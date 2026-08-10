@@ -360,62 +360,96 @@ export class LeadService {
   }
 
   async agendarReunion(
-  data: {
-    idAsesor: number;
-    idLead: number;
-    idTipoActividad: number;
-    titulo: string;
-    descripcion: string;
-    fecha: string;
-    hora: string;
-    idUsuarioCreacion: number;
+    data: {
+      idAsesor: number;
+      idLead: number;
+      idTipoActividad: number;
+      titulo: string;
+      descripcion: string;
+      fecha: string;
+      hora: string;
+      idUsuarioCreacion: number;
+    }
+  ) {
+
+    try {
+
+      return await this.leadRepository.agendarReunion(
+        data
+      );
+
+    } catch (error) {
+
+      console.log(
+        'Error al agendar reunion:',
+        error
+      );
+
+      throw error;
+    }
+
   }
+
+  async listarActividadesAsesores(
+    data: {
+      fechaInicio?: string | null;
+      fechaFin?: string | null;
+      idAsesor?: number | null;
+      idTipoActividad?: number | null;
+      estado?: number | null;
+    }
+  ) {
+
+    try {
+
+      return await this.leadRepository.listarActividadesAsesores(
+        data
+      );
+
+    } catch (error) {
+
+      console.log(
+        'Error al listar actividades de asesores:',
+        error
+      );
+
+      throw error;
+
+    }
+
+  }
+  async obtenerActividadLead(idLead: number) {
+    try {
+      return await this.leadRepository.obtenerActividadLead(idLead);
+    } catch (error) {
+      console.log(
+        'Error al obtener actividades del lead:',
+        error,
+      );
+
+      throw error;
+    }
+  }
+
+
+  async actualizarFechaHoraActividad(
+  idActividad: number,
+  fecha: string,
+  hora: string,
 ) {
-
   try {
-
-    return await this.leadRepository.agendarReunion(
-      data
+    return await this.leadRepository.actualizarFechaHoraActividad(
+      idActividad,
+      fecha,
+      hora,
     );
-
   } catch (error) {
-
     console.log(
-      'Error al agendar reunion:',
-      error
+      'Error al actualizar fecha y hora de la actividad:',
+      error,
     );
 
     throw error;
   }
-
-}
-
-async listarActividadesAsesores(
-  data: {
-    fechaInicio?: string | null;
-    fechaFin?: string | null;
-    idAsesor?: number | null;
-    idTipoActividad?: number | null;
-    estado?: number | null;
-  }
-) {
-
-  try {
-
-    return await this.leadRepository.listarActividadesAsesores(
-      data
-    );
-
-  } catch (error) {
-
-    console.log(
-      'Error al listar actividades de asesores:',
-      error
-    );
-
-    throw error;
-
-  }
-
 }
 }

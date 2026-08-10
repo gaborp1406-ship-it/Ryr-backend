@@ -57,4 +57,6 @@ export declare class LeadService {
         idTipoActividad?: number | null;
         estado?: number | null;
     }): Promise<any>;
+    obtenerActividadLead(idLead: number): Promise<any>;
+    actualizarFechaHoraActividad(idActividad: number, fecha: string, hora: string): Promise<any>;
 }

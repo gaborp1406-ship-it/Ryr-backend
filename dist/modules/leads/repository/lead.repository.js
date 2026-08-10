@@ -220,6 +220,17 @@ let LeadRepository = class LeadRepository {
             data.estado ?? null,
         ]);
     }
+    async obtenerActividadLead(idLead) {
+        return await this.dataSource.query(`
+      SELECT *
+      FROM fn_obtener_actividad_lead($1)
+    `, [idLead]);
+    }
+    async actualizarFechaHoraActividad(idActividad, fecha, hora) {
+        return await this.dataSource.query(`
+      SELECT fn_reprogramar_actividad($1, $2, $3)
+    `, [idActividad, fecha, hora]);
+    }
 };
 exports.LeadRepository = LeadRepository;
 exports.LeadRepository = LeadRepository = __decorate([

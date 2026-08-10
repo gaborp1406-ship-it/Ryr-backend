@@ -54,4 +54,12 @@ export declare class LeadController {
         idTipoActividad?: number;
         estado?: number;
     }): Promise<any>;
+    obtenerActividadLead(body: {
+        idLead: number;
+    }): Promise<any>;
+    actualizarFechaHoraActividad(body: {
+        idActividad: number;
+        fecha: string;
+        hora: string;
+    }): Promise<any>;
 }

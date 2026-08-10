@@ -242,6 +242,24 @@ let LeadService = class LeadService {
             throw error;
         }
     }
+    async obtenerActividadLead(idLead) {
+        try {
+            return await this.leadRepository.obtenerActividadLead(idLead);
+        }
+        catch (error) {
+            console.log('Error al obtener actividades del lead:', error);
+            throw error;
+        }
+    }
+    async actualizarFechaHoraActividad(idActividad, fecha, hora) {
+        try {
+            return await this.leadRepository.actualizarFechaHoraActividad(idActividad, fecha, hora);
+        }
+        catch (error) {
+            console.log('Error al actualizar fecha y hora de la actividad:', error);
+            throw error;
+        }
+    }
 };
 exports.LeadService = LeadService;
 exports.LeadService = LeadService = __decorate([

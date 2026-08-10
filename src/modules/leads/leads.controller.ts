@@ -202,4 +202,32 @@ export class LeadController {
     return this.leadService.listarActividadesAsesores(body);
 
   }
+
+  @Post('obtener-actividad-lead')
+  @UseGuards(JwtAuthGuard)
+  obtenerActividadLead(
+    @Body()
+    body: {
+      idLead: number;
+    },
+  ) {
+    return this.leadService.obtenerActividadLead(body.idLead);
+  }
+
+  @Post('reprogramar-actividad')
+  @UseGuards(JwtAuthGuard)
+  actualizarFechaHoraActividad(
+    @Body()
+    body: {
+      idActividad: number;
+      fecha: string;
+      hora: string;
+    },
+  ) {
+    return this.leadService.actualizarFechaHoraActividad(
+      body.idActividad,
+      body.fecha,
+      body.hora,
+    );
+  }
 }

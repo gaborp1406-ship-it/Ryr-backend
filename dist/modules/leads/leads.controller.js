@@ -72,6 +72,12 @@ let LeadController = class LeadController {
     listarActividadesAsesores(body) {
         return this.leadService.listarActividadesAsesores(body);
     }
+    obtenerActividadLead(body) {
+        return this.leadService.obtenerActividadLead(body.idLead);
+    }
+    actualizarFechaHoraActividad(body) {
+        return this.leadService.actualizarFechaHoraActividad(body.idActividad, body.fecha, body.hora);
+    }
 };
 exports.LeadController = LeadController;
 __decorate([
@@ -210,6 +216,22 @@ __decorate([
     __metadata("design:paramtypes", [Object]),
     __metadata("design:returntype", void 0)
 ], LeadController.prototype, "listarActividadesAsesores", null);
+__decorate([
+    (0, common_1.Post)('obtener-actividad-lead'),
+    (0, common_1.UseGuards)(jwt_auth_guard_1.JwtAuthGuard),
+    __param(0, (0, common_1.Body)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [Object]),
+    __metadata("design:returntype", void 0)
+], LeadController.prototype, "obtenerActividadLead", null);
+__decorate([
+    (0, common_1.Post)('reprogramar-actividad'),
+    (0, common_1.UseGuards)(jwt_auth_guard_1.JwtAuthGuard),
+    __param(0, (0, common_1.Body)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [Object]),
+    __metadata("design:returntype", void 0)
+], LeadController.prototype, "actualizarFechaHoraActividad", null);
 exports.LeadController = LeadController = __decorate([
     (0, common_1.Controller)('lead'),
     __metadata("design:paramtypes", [leads_service_1.LeadService])

@@ -356,4 +356,27 @@ export class LeadRepository {
     );
 
   }
+
+  async obtenerActividadLead(idLead: number) {
+    return await this.dataSource.query(
+      `
+      SELECT *
+      FROM fn_obtener_actividad_lead($1)
+    `,
+      [idLead],
+    );
+  }
+
+  async actualizarFechaHoraActividad(
+  idActividad: number,
+  fecha: string,
+  hora: string,
+) {
+  return await this.dataSource.query(
+    `
+      SELECT fn_reprogramar_actividad($1, $2, $3)
+    `,
+    [idActividad, fecha, hora],
+  );
+}
 }
