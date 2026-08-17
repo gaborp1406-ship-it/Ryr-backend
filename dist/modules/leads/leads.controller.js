@@ -42,14 +42,17 @@ let LeadController = class LeadController {
     obtenerEstadoContactoLead(id_lead) {
         return this.leadService.obtenerEstadoContactoLead(id_lead);
     }
-    obtenerHistorialCorreo(id_estado_contacto) {
-        return this.leadService.obtenerHistorialCorreo(id_estado_contacto);
+    obtenerInfoEstadoReunionLead(id_lead) {
+        return this.leadService.obtenerInfoEstadoReunionLead(id_lead);
     }
-    obtenerHistorialWhatsapp(id_estado_contacto) {
-        return this.leadService.obtenerHistorialWhatsapp(id_estado_contacto);
+    obtenerHistorialCorreo(id_estado_contacto, tipo_historial) {
+        return this.leadService.obtenerHistorialCorreo(id_estado_contacto, tipo_historial);
     }
-    obtenerHistorialLlamadas(id_estado_contacto) {
-        return this.leadService.obtenerHistorialLlamadas(id_estado_contacto);
+    obtenerHistorialWhatsapp(id_estado_contacto, tipo_historial) {
+        return this.leadService.obtenerHistorialWhatsapp(id_estado_contacto, tipo_historial);
+    }
+    obtenerHistorialLlamadas(id_estado_contacto, tipo_historial) {
+        return this.leadService.obtenerHistorialLlamadas(id_estado_contacto, tipo_historial);
     }
     registrarWhatsapp(data) {
         return this.leadService.registrarWhatsapp(data);
@@ -77,6 +80,24 @@ let LeadController = class LeadController {
     }
     actualizarFechaHoraActividad(body) {
         return this.leadService.actualizarFechaHoraActividad(body.idActividad, body.fecha, body.hora);
+    }
+    finalizarEtapaContactoAgendarReunion(data) {
+        return this.leadService.finalizarEtapaContactoAgendarReunion(data);
+    }
+    obtenerInfoAgendarReuLead(idLead) {
+        return this.leadService.obtenerInfoAgendarReuLead(idLead);
+    }
+    registrarWhatsappReunion(data) {
+        return this.leadService.registrarWhatsappreunion(data);
+    }
+    registrarCorreoReunion(data) {
+        return this.leadService.registrarCorreoreunion(data);
+    }
+    obtenerHistorialCorreoReunion(id_estado_reunion, tipo_historial) {
+        return this.leadService.obtenerHistorialCorreoReunion(id_estado_reunion, tipo_historial);
+    }
+    obtenerHistorialWhatsappReunion(id_estado_reunion, tipo_historial) {
+        return this.leadService.obtenerHistorialWhatsappReunion(id_estado_reunion, tipo_historial);
     }
 };
 exports.LeadController = LeadController;
@@ -137,27 +158,38 @@ __decorate([
     __metadata("design:returntype", void 0)
 ], LeadController.prototype, "obtenerEstadoContactoLead", null);
 __decorate([
-    (0, common_1.Get)('historial-correo/:id_estado_contacto'),
+    (0, common_1.Get)('info-estado-reunion/:id_lead'),
     (0, common_1.UseGuards)(jwt_auth_guard_1.JwtAuthGuard),
-    __param(0, (0, common_1.Param)('id_estado_contacto', common_1.ParseIntPipe)),
+    __param(0, (0, common_1.Param)('id_lead', common_1.ParseIntPipe)),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", [Number]),
+    __metadata("design:returntype", void 0)
+], LeadController.prototype, "obtenerInfoEstadoReunionLead", null);
+__decorate([
+    (0, common_1.Get)('historial-correo/:id_estado_contacto/:tipo_historial'),
+    (0, common_1.UseGuards)(jwt_auth_guard_1.JwtAuthGuard),
+    __param(0, (0, common_1.Param)('id_estado_contacto', common_1.ParseIntPipe)),
+    __param(1, (0, common_1.Param)('tipo_historial', common_1.ParseIntPipe)),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [Number, Number]),
     __metadata("design:returntype", void 0)
 ], LeadController.prototype, "obtenerHistorialCorreo", null);
 __decorate([
-    (0, common_1.Get)('historial-whatsapp/:id_estado_contacto'),
+    (0, common_1.Get)('historial-whatsapp/:id_estado_contacto/:tipo_historial'),
     (0, common_1.UseGuards)(jwt_auth_guard_1.JwtAuthGuard),
     __param(0, (0, common_1.Param)('id_estado_contacto', common_1.ParseIntPipe)),
+    __param(1, (0, common_1.Param)('tipo_historial', common_1.ParseIntPipe)),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [Number]),
+    __metadata("design:paramtypes", [Number, Number]),
     __metadata("design:returntype", void 0)
 ], LeadController.prototype, "obtenerHistorialWhatsapp", null);
 __decorate([
-    (0, common_1.Get)('historial-llamadas/:id_estado_contacto'),
+    (0, common_1.Get)('historial-llamadas/:id_estado_contacto/:tipo_historial'),
     (0, common_1.UseGuards)(jwt_auth_guard_1.JwtAuthGuard),
     __param(0, (0, common_1.Param)('id_estado_contacto', common_1.ParseIntPipe)),
+    __param(1, (0, common_1.Param)('tipo_historial', common_1.ParseIntPipe)),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [Number]),
+    __metadata("design:paramtypes", [Number, Number]),
     __metadata("design:returntype", void 0)
 ], LeadController.prototype, "obtenerHistorialLlamadas", null);
 __decorate([
@@ -232,6 +264,56 @@ __decorate([
     __metadata("design:paramtypes", [Object]),
     __metadata("design:returntype", void 0)
 ], LeadController.prototype, "actualizarFechaHoraActividad", null);
+__decorate([
+    (0, common_1.Post)('finalizar-etapa-contacto-agendarreunion'),
+    (0, common_1.UseGuards)(jwt_auth_guard_1.JwtAuthGuard),
+    __param(0, (0, common_1.Body)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [Object]),
+    __metadata("design:returntype", void 0)
+], LeadController.prototype, "finalizarEtapaContactoAgendarReunion", null);
+__decorate([
+    (0, common_1.Get)('obtener-info-agendarreu-lead/:idLead'),
+    (0, common_1.UseGuards)(jwt_auth_guard_1.JwtAuthGuard),
+    __param(0, (0, common_1.Param)('idLead', common_1.ParseIntPipe)),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [Number]),
+    __metadata("design:returntype", void 0)
+], LeadController.prototype, "obtenerInfoAgendarReuLead", null);
+__decorate([
+    (0, common_1.Post)('registrar-whatsapp-reunion'),
+    (0, common_1.UseGuards)(jwt_auth_guard_1.JwtAuthGuard),
+    __param(0, (0, common_1.Body)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [Object]),
+    __metadata("design:returntype", void 0)
+], LeadController.prototype, "registrarWhatsappReunion", null);
+__decorate([
+    (0, common_1.Post)('registrar-correo-reunion'),
+    (0, common_1.UseGuards)(jwt_auth_guard_1.JwtAuthGuard),
+    __param(0, (0, common_1.Body)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [Object]),
+    __metadata("design:returntype", void 0)
+], LeadController.prototype, "registrarCorreoReunion", null);
+__decorate([
+    (0, common_1.Get)('historial-correo/:id_estado_reunion/:tipo_historial/reunion'),
+    (0, common_1.UseGuards)(jwt_auth_guard_1.JwtAuthGuard),
+    __param(0, (0, common_1.Param)('id_estado_reunion', common_1.ParseIntPipe)),
+    __param(1, (0, common_1.Param)('tipo_historial', common_1.ParseIntPipe)),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [Number, Number]),
+    __metadata("design:returntype", void 0)
+], LeadController.prototype, "obtenerHistorialCorreoReunion", null);
+__decorate([
+    (0, common_1.Get)('historial-whatsapp/:id_estado_reunion/:tipo_historial/reunion'),
+    (0, common_1.UseGuards)(jwt_auth_guard_1.JwtAuthGuard),
+    __param(0, (0, common_1.Param)('id_estado_reunion', common_1.ParseIntPipe)),
+    __param(1, (0, common_1.Param)('tipo_historial', common_1.ParseIntPipe)),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [Number, Number]),
+    __metadata("design:returntype", void 0)
+], LeadController.prototype, "obtenerHistorialWhatsappReunion", null);
 exports.LeadController = LeadController = __decorate([
     (0, common_1.Controller)('lead'),
     __metadata("design:paramtypes", [leads_service_1.LeadService])

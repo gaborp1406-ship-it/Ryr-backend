@@ -92,49 +92,60 @@ let LeadRepository = class LeadRepository {
     `, [id_lead]);
         return result[0];
     }
-    async obtenerHistorialCorreo(id_estado_contacto) {
-        return await this.dataSource.query(`
+    async obtenerInfoEstadoReunionLead(id_lead) {
+        const result = await this.dataSource.query(`
     SELECT *
-    FROM fn_obtener_historial_contacto_correo($1)
-    `, [id_estado_contacto]);
+    FROM fn_obtener_info_reunion($1)
+    `, [id_lead]);
+        return result[0];
     }
-    async obtenerHistorialWhatsapp(id_estado_contacto) {
+    async obtenerHistorialCorreo(id_estado_contacto, tipo_historial) {
         return await this.dataSource.query(`
     SELECT *
-    FROM fn_obtener_historial_contacto_whatsapp($1)
-    `, [id_estado_contacto]);
+    FROM fn_obtener_historial_contacto_correo($1, $2)
+    `, [id_estado_contacto, tipo_historial]);
     }
-    async obtenerHistorialLlamadas(id_estado_contacto) {
+    async obtenerHistorialWhatsapp(id_estado_contacto, tipo_historial) {
         return await this.dataSource.query(`
     SELECT *
-    FROM fn_obtener_historial_contacto_llamadas($1)
-    `, [id_estado_contacto]);
+    FROM fn_obtener_historial_contacto_whatsapp($1, $2)
+    `, [id_estado_contacto, tipo_historial]);
+    }
+    async obtenerHistorialLlamadas(id_estado_contacto, tipo_historial) {
+        return await this.dataSource.query(`
+    SELECT *
+    FROM fn_obtener_historial_contacto_llamadas($1, $2)
+    `, [id_estado_contacto, tipo_historial]);
     }
     async registrarWhatsapp(data) {
         const result = await this.dataSource.query(`
- SELECT fn_guardar_whatsapp_evidencia(
-    $1,
-    $2,
-    $3
- ) AS id
- `, [
+      SELECT fn_guardar_whatsapp_evidencia(
+        $1,
+        $2,
+        $3,
+        $4
+      ) AS id
+    `, [
             data.id_estado_contacto,
             data.url_evidencia,
-            data.mensaje ?? null
+            data.mensaje ?? null,
+            data.tipo_historial,
         ]);
         return result[0];
     }
     async registrarCorreo(data) {
         const result = await this.dataSource.query(`
- SELECT fn_guardar_correo_evidencia(
-    $1,
-    $2,
-    $3
- ) AS id
- `, [
+      SELECT fn_guardar_correo_evidencia(
+        $1,
+        $2,
+        $3,
+        $4
+      ) AS id
+    `, [
             data.id_estado_contacto,
             data.url_evidencia,
-            data.mensaje ?? null
+            data.mensaje ?? null,
+            data.tipo_historial,
         ]);
         return result[0];
     }
@@ -230,6 +241,67 @@ let LeadRepository = class LeadRepository {
         return await this.dataSource.query(`
       SELECT fn_reprogramar_actividad($1, $2, $3)
     `, [idActividad, fecha, hora]);
+    }
+    async finalizarEtapaContactoAgendarReunion(data) {
+        const result = await this.dataSource.query(`
+    SELECT fn_finalizar_etapa_contacto_agendarreunion(
+      $1
+    ) AS estado
+    `, [
+            data.id_lead
+        ]);
+        return result[0];
+    }
+    async obtenerInfoAgendarReuLead(idLead) {
+        const result = await this.dataSource.query(`
+    SELECT *
+    FROM fn_obtener_info_agendarreu_lead($1)
+    `, [idLead]);
+        return result;
+    }
+    async registrarWhatsappreunion(data) {
+        const result = await this.dataSource.query(`
+      SELECT fn_guardar_whatsapp_evidencia_reunion(
+        $1,
+        $2,
+        $3,
+        $4
+      ) AS id
+    `, [
+            data.id_estado_reunion,
+            data.url_evidencia,
+            data.mensaje ?? null,
+            data.tipo_historial,
+        ]);
+        return result[0];
+    }
+    async registrarCorreoreunion(data) {
+        const result = await this.dataSource.query(`
+      SELECT fn_guardar_correo_evidencia_reunion(
+        $1,
+        $2,
+        $3,
+        $4
+      ) AS id
+    `, [
+            data.id_estado_reunion,
+            data.url_evidencia,
+            data.mensaje ?? null,
+            data.tipo_historial,
+        ]);
+        return result[0];
+    }
+    async obtenerHistorialCorreoReunion(id_estado_reunion, tipo_historial) {
+        return await this.dataSource.query(`
+    SELECT *
+    FROM fn_obtener_historial_contacto_correo_reunion($1, $2)
+    `, [id_estado_reunion, tipo_historial]);
+    }
+    async obtenerHistorialWhatsappReunion(id_estado_reunion, tipo_historial) {
+        return await this.dataSource.query(`
+    SELECT *
+    FROM fn_obtener_historial_contacto_whatsapp_reunion($1, $2)
+    `, [id_estado_reunion, tipo_historial]);
     }
 };
 exports.LeadRepository = LeadRepository;

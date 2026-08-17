@@ -13,18 +13,21 @@ export declare class LeadService {
     obtenerEtapaActualLead(id_lead: number): Promise<any>;
     finalizarEtapaLeadAsignacion(id_lead_etapa: number): Promise<any>;
     obtenerEstadoContactoLead(id_lead: number): Promise<any>;
-    obtenerHistorialCorreo(id_estado_contacto: number): Promise<any>;
-    obtenerHistorialWhatsapp(id_estado_contacto: number): Promise<any>;
-    obtenerHistorialLlamadas(id_estado_contacto: number): Promise<any>;
+    obtenerInfoEstadoReunionLead(id_lead: number): Promise<any>;
+    obtenerHistorialCorreo(id_estado_contacto: number, tipo_historial: number): Promise<any>;
+    obtenerHistorialWhatsapp(id_estado_contacto: number, tipo_historial: number): Promise<any>;
+    obtenerHistorialLlamadas(id_estado_contacto: number, tipo_historial: number): Promise<any>;
     registrarWhatsapp(data: {
         id_estado_contacto: number;
         url_evidencia: string;
         mensaje?: string;
+        tipo_historial: number;
     }): Promise<any>;
     registrarCorreo(data: {
         id_estado_contacto: number;
         url_evidencia: string;
         mensaje?: string;
+        tipo_historial: number;
     }): Promise<any>;
     registrarLlamada(data: {
         id_estado_contacto: number;
@@ -59,4 +62,22 @@ export declare class LeadService {
     }): Promise<any>;
     obtenerActividadLead(idLead: number): Promise<any>;
     actualizarFechaHoraActividad(idActividad: number, fecha: string, hora: string): Promise<any>;
+    finalizarEtapaContactoAgendarReunion(data: {
+        id_lead: number;
+    }): Promise<any>;
+    obtenerInfoAgendarReuLead(idLead: number): Promise<any>;
+    registrarWhatsappreunion(data: {
+        id_estado_reunion: number;
+        url_evidencia: string;
+        mensaje?: string;
+        tipo_historial: number;
+    }): Promise<any>;
+    registrarCorreoreunion(data: {
+        id_estado_reunion: number;
+        url_evidencia: string;
+        mensaje?: string;
+        tipo_historial: number;
+    }): Promise<any>;
+    obtenerHistorialCorreoReunion(id_estado_reunion: number, tipo_historial: number): Promise<any>;
+    obtenerHistorialWhatsappReunion(id_estado_reunion: number, tipo_historial: number): Promise<any>;
 }

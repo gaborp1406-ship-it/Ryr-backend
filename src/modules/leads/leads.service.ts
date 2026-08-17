@@ -183,112 +183,90 @@ export class LeadService {
     }
   }
 
-  async obtenerHistorialCorreo(id_estado_contacto: number) {
+  async obtenerInfoEstadoReunionLead(id_lead: number) {
     try {
-      return await this.leadRepository.obtenerHistorialCorreo(
-        id_estado_contacto,
-      );
+      return await this.leadRepository.obtenerInfoEstadoReunionLead(id_lead);
     } catch (error) {
-      console.log('Error al obtener historial de correos:', error);
+      console.log('Error al obtener el estado de contacto:', error);
       throw error;
     }
   }
 
-  async obtenerHistorialWhatsapp(id_estado_contacto: number) {
-    try {
-      return await this.leadRepository.obtenerHistorialWhatsapp(
-        id_estado_contacto,
-      );
-    } catch (error) {
-      console.log('Error al obtener historial de WhatsApp:', error);
-      throw error;
-    }
+  async obtenerHistorialCorreo(
+    id_estado_contacto: number,
+    tipo_historial: number,
+  ) {
+    return await this.leadRepository.obtenerHistorialCorreo(
+      id_estado_contacto,
+      tipo_historial,
+    );
   }
 
-  async obtenerHistorialLlamadas(id_estado_contacto: number) {
-    try {
-      return await this.leadRepository.obtenerHistorialLlamadas(
-        id_estado_contacto,
-      );
-    } catch (error) {
-      console.log('Error al obtener historial de llamadas:', error);
-      throw error;
-    }
+  async obtenerHistorialWhatsapp(
+    id_estado_contacto: number,
+    tipo_historial: number,
+  ) {
+    return await this.leadRepository.obtenerHistorialWhatsapp(
+      id_estado_contacto,
+      tipo_historial,
+    );
+  }
+
+  async obtenerHistorialLlamadas(
+    id_estado_contacto: number,
+    tipo_historial: number,
+  ) {
+    return await this.leadRepository.obtenerHistorialLlamadas(
+      id_estado_contacto,
+      tipo_historial,
+    );
   }
 
   async registrarWhatsapp(data: {
     id_estado_contacto: number;
     url_evidencia: string;
     mensaje?: string;
+    tipo_historial: number;
   }) {
-
     try {
-
       let url = data.url_evidencia;
 
-
-      if (url && url.startsWith("data:")) {
-
+      if (url && url.startsWith('data:')) {
         url = await this.subirEvidenciaBase64(url);
-
       }
-
 
       return await this.leadRepository.registrarWhatsapp({
         ...data,
-        url_evidencia: url
+        url_evidencia: url,
       });
-
-
     } catch (error) {
-
-      console.log(
-        "Error al registrar whatsapp:",
-        error
-      );
-
+      console.log('Error al registrar whatsapp:', error);
       throw error;
     }
-
   }
-
 
   async registrarCorreo(data: {
     id_estado_contacto: number;
     url_evidencia: string;
     mensaje?: string;
+    tipo_historial: number;
   }) {
-
     try {
-
       let url = data.url_evidencia;
 
-
-      if (url && url.startsWith("data:")) {
-
+      if (url && url.startsWith('data:')) {
         url = await this.subirEvidenciaBase64(url);
-
       }
-
 
       return await this.leadRepository.registrarCorreo({
         ...data,
-        url_evidencia: url
+        url_evidencia: url,
       });
-
-
     } catch (error) {
-
-      console.log(
-        "Error al registrar correo:",
-        error
-      );
-
+      console.log('Error al registrar correo:', error);
       throw error;
     }
-
   }
-
 
   async registrarLlamada(data: {
     id_estado_contacto: number;
@@ -433,23 +411,131 @@ export class LeadService {
 
 
   async actualizarFechaHoraActividad(
-  idActividad: number,
-  fecha: string,
-  hora: string,
-) {
-  try {
-    return await this.leadRepository.actualizarFechaHoraActividad(
-      idActividad,
-      fecha,
-      hora,
-    );
-  } catch (error) {
-    console.log(
-      'Error al actualizar fecha y hora de la actividad:',
-      error,
-    );
+    idActividad: number,
+    fecha: string,
+    hora: string,
+  ) {
+    try {
+      return await this.leadRepository.actualizarFechaHoraActividad(
+        idActividad,
+        fecha,
+        hora,
+      );
+    } catch (error) {
+      console.log(
+        'Error al actualizar fecha y hora de la actividad:',
+        error,
+      );
 
-    throw error;
+      throw error;
+    }
   }
-}
+  async finalizarEtapaContactoAgendarReunion(data: {
+    id_lead: number;
+  }) {
+
+    try {
+
+      return await this.leadRepository.finalizarEtapaContactoAgendarReunion(data);
+
+    } catch (error) {
+
+      console.log(
+        'Error al finalizar etapa contacto agendar reunión:',
+        error
+      );
+
+      throw error;
+    }
+
+  }
+
+  async obtenerInfoAgendarReuLead(idLead: number) {
+
+    try {
+
+      return await this.leadRepository.obtenerInfoAgendarReuLead(idLead);
+
+    } catch (error) {
+
+      console.log(
+        'Error al obtener información de agendar reunión:',
+        error
+      );
+
+      throw error;
+    }
+
+  }
+
+
+
+
+
+  async registrarWhatsappreunion(data: {
+    id_estado_reunion: number;
+    url_evidencia: string;
+    mensaje?: string;
+    tipo_historial: number;
+  }) {
+    try {
+      let url = data.url_evidencia;
+
+      if (url && url.startsWith('data:')) {
+        url = await this.subirEvidenciaBase64(url);
+      }
+
+      return await this.leadRepository.registrarWhatsappreunion({
+        ...data,
+        url_evidencia: url,
+      });
+    } catch (error) {
+      console.log('Error al registrar whatsapp:', error);
+      throw error;
+    }
+  }
+
+  async registrarCorreoreunion(data: {
+    id_estado_reunion: number;
+    url_evidencia: string;
+    mensaje?: string;
+    tipo_historial: number;
+  }) {
+    try {
+      let url = data.url_evidencia;
+
+      if (url && url.startsWith('data:')) {
+        url = await this.subirEvidenciaBase64(url);
+      }
+
+      return await this.leadRepository.registrarCorreoreunion({
+        ...data,
+        url_evidencia: url,
+      });
+    } catch (error) {
+      console.log('Error al registrar correo:', error);
+      throw error;
+    }
+  }
+
+    async obtenerHistorialCorreoReunion(
+    id_estado_reunion: number,
+    tipo_historial: number,
+  ) {
+    return await this.leadRepository.obtenerHistorialCorreoReunion(
+      id_estado_reunion,
+      tipo_historial,
+    );
+  }
+
+  async obtenerHistorialWhatsappReunion(
+    id_estado_reunion: number,
+    tipo_historial: number,
+  ) {
+    return await this.leadRepository.obtenerHistorialWhatsappReunion(
+      id_estado_reunion,
+      tipo_historial,
+    );
+  }
+
 }

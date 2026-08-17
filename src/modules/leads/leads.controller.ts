@@ -71,64 +71,85 @@ export class LeadController {
     return this.leadService.obtenerEstadoContactoLead(id_lead);
   }
 
-  @Get('historial-correo/:id_estado_contacto')
+    @Get('info-estado-reunion/:id_lead')
+  @UseGuards(JwtAuthGuard)
+  obtenerInfoEstadoReunionLead(
+    @Param('id_lead', ParseIntPipe) id_lead: number,
+  ) {
+    return this.leadService.obtenerInfoEstadoReunionLead(id_lead);
+  }
+
+  @Get('historial-correo/:id_estado_contacto/:tipo_historial')
   @UseGuards(JwtAuthGuard)
   obtenerHistorialCorreo(
     @Param('id_estado_contacto', ParseIntPipe)
     id_estado_contacto: number,
+
+    @Param('tipo_historial', ParseIntPipe)
+    tipo_historial: number,
   ) {
     return this.leadService.obtenerHistorialCorreo(
       id_estado_contacto,
+      tipo_historial,
     );
   }
 
-  @Get('historial-whatsapp/:id_estado_contacto')
+  @Get('historial-whatsapp/:id_estado_contacto/:tipo_historial')
   @UseGuards(JwtAuthGuard)
   obtenerHistorialWhatsapp(
     @Param('id_estado_contacto', ParseIntPipe)
     id_estado_contacto: number,
+
+    @Param('tipo_historial', ParseIntPipe)
+    tipo_historial: number,
   ) {
     return this.leadService.obtenerHistorialWhatsapp(
       id_estado_contacto,
+      tipo_historial,
     );
   }
 
-  @Get('historial-llamadas/:id_estado_contacto')
+  @Get('historial-llamadas/:id_estado_contacto/:tipo_historial')
   @UseGuards(JwtAuthGuard)
   obtenerHistorialLlamadas(
     @Param('id_estado_contacto', ParseIntPipe)
     id_estado_contacto: number,
+
+    @Param('tipo_historial', ParseIntPipe)
+    tipo_historial: number,
   ) {
     return this.leadService.obtenerHistorialLlamadas(
       id_estado_contacto,
+      tipo_historial,
     );
   }
-
   @Post('registrar-whatsapp')
   @UseGuards(JwtAuthGuard)
   registrarWhatsapp(
-    @Body() data: {
+    @Body()
+    data: {
       id_estado_contacto: number;
       url_evidencia: string;
       mensaje?: string;
+      tipo_historial: number;
     },
   ) {
     return this.leadService.registrarWhatsapp(data);
   }
 
-
   @Post('registrar-correo')
   @UseGuards(JwtAuthGuard)
   registrarCorreo(
-    @Body() data: {
+    @Body()
+    data: {
       id_estado_contacto: number;
       url_evidencia: string;
       mensaje?: string;
+      tipo_historial: number;
     },
   ) {
     return this.leadService.registrarCorreo(data);
   }
-
 
   @Post('registrar-llamada')
   @UseGuards(JwtAuthGuard)
@@ -230,4 +251,89 @@ export class LeadController {
       body.hora,
     );
   }
+
+  @Post('finalizar-etapa-contacto-agendarreunion')
+  @UseGuards(JwtAuthGuard)
+  finalizarEtapaContactoAgendarReunion(
+    @Body() data: {
+      id_lead: number;
+    },
+  ) {
+
+    return this.leadService.finalizarEtapaContactoAgendarReunion(data);
+
+  }
+  @Get('obtener-info-agendarreu-lead/:idLead')
+  @UseGuards(JwtAuthGuard)
+  obtenerInfoAgendarReuLead(
+    @Param('idLead', ParseIntPipe) idLead: number,
+  ) {
+
+    return this.leadService.obtenerInfoAgendarReuLead(idLead);
+
+  }
+
+ @Post('registrar-whatsapp-reunion')
+  @UseGuards(JwtAuthGuard)
+  registrarWhatsappReunion(
+    @Body()
+    data: {
+      id_estado_reunion: number;
+      url_evidencia: string;
+      mensaje?: string;
+      tipo_historial: number;
+    },
+  ) {
+    return this.leadService.registrarWhatsappreunion(data);
+  }
+
+  @Post('registrar-correo-reunion')
+  @UseGuards(JwtAuthGuard)
+  registrarCorreoReunion(
+    @Body()
+    data: {
+      id_estado_reunion: number;
+      url_evidencia: string;
+      mensaje?: string;
+      tipo_historial: number;
+    },
+  ) {
+    return this.leadService.registrarCorreoreunion(data);
+  }
+
+
+  @Get('historial-correo/:id_estado_reunion/:tipo_historial/reunion')
+  @UseGuards(JwtAuthGuard)
+  obtenerHistorialCorreoReunion(
+    @Param('id_estado_reunion', ParseIntPipe)
+    id_estado_reunion: number,
+
+    @Param('tipo_historial', ParseIntPipe)
+    tipo_historial: number,
+  ) {
+    return this.leadService.obtenerHistorialCorreoReunion(
+      id_estado_reunion,
+      tipo_historial,
+    );
+  }
+
+  @Get('historial-whatsapp/:id_estado_reunion/:tipo_historial/reunion')
+  @UseGuards(JwtAuthGuard)
+  obtenerHistorialWhatsappReunion(
+    @Param('id_estado_reunion', ParseIntPipe)
+    id_estado_reunion: number,
+
+    @Param('tipo_historial', ParseIntPipe)
+    tipo_historial: number,
+  ) {
+    return this.leadService.obtenerHistorialWhatsappReunion(
+      id_estado_reunion,
+      tipo_historial,
+    );
+  }
+
+
+
+
 }
+

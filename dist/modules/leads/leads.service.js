@@ -138,62 +138,53 @@ let LeadService = class LeadService {
             throw error;
         }
     }
-    async obtenerHistorialCorreo(id_estado_contacto) {
+    async obtenerInfoEstadoReunionLead(id_lead) {
         try {
-            return await this.leadRepository.obtenerHistorialCorreo(id_estado_contacto);
+            return await this.leadRepository.obtenerInfoEstadoReunionLead(id_lead);
         }
         catch (error) {
-            console.log('Error al obtener historial de correos:', error);
+            console.log('Error al obtener el estado de contacto:', error);
             throw error;
         }
     }
-    async obtenerHistorialWhatsapp(id_estado_contacto) {
-        try {
-            return await this.leadRepository.obtenerHistorialWhatsapp(id_estado_contacto);
-        }
-        catch (error) {
-            console.log('Error al obtener historial de WhatsApp:', error);
-            throw error;
-        }
+    async obtenerHistorialCorreo(id_estado_contacto, tipo_historial) {
+        return await this.leadRepository.obtenerHistorialCorreo(id_estado_contacto, tipo_historial);
     }
-    async obtenerHistorialLlamadas(id_estado_contacto) {
-        try {
-            return await this.leadRepository.obtenerHistorialLlamadas(id_estado_contacto);
-        }
-        catch (error) {
-            console.log('Error al obtener historial de llamadas:', error);
-            throw error;
-        }
+    async obtenerHistorialWhatsapp(id_estado_contacto, tipo_historial) {
+        return await this.leadRepository.obtenerHistorialWhatsapp(id_estado_contacto, tipo_historial);
+    }
+    async obtenerHistorialLlamadas(id_estado_contacto, tipo_historial) {
+        return await this.leadRepository.obtenerHistorialLlamadas(id_estado_contacto, tipo_historial);
     }
     async registrarWhatsapp(data) {
         try {
             let url = data.url_evidencia;
-            if (url && url.startsWith("data:")) {
+            if (url && url.startsWith('data:')) {
                 url = await this.subirEvidenciaBase64(url);
             }
             return await this.leadRepository.registrarWhatsapp({
                 ...data,
-                url_evidencia: url
+                url_evidencia: url,
             });
         }
         catch (error) {
-            console.log("Error al registrar whatsapp:", error);
+            console.log('Error al registrar whatsapp:', error);
             throw error;
         }
     }
     async registrarCorreo(data) {
         try {
             let url = data.url_evidencia;
-            if (url && url.startsWith("data:")) {
+            if (url && url.startsWith('data:')) {
                 url = await this.subirEvidenciaBase64(url);
             }
             return await this.leadRepository.registrarCorreo({
                 ...data,
-                url_evidencia: url
+                url_evidencia: url,
             });
         }
         catch (error) {
-            console.log("Error al registrar correo:", error);
+            console.log('Error al registrar correo:', error);
             throw error;
         }
     }
@@ -259,6 +250,62 @@ let LeadService = class LeadService {
             console.log('Error al actualizar fecha y hora de la actividad:', error);
             throw error;
         }
+    }
+    async finalizarEtapaContactoAgendarReunion(data) {
+        try {
+            return await this.leadRepository.finalizarEtapaContactoAgendarReunion(data);
+        }
+        catch (error) {
+            console.log('Error al finalizar etapa contacto agendar reunión:', error);
+            throw error;
+        }
+    }
+    async obtenerInfoAgendarReuLead(idLead) {
+        try {
+            return await this.leadRepository.obtenerInfoAgendarReuLead(idLead);
+        }
+        catch (error) {
+            console.log('Error al obtener información de agendar reunión:', error);
+            throw error;
+        }
+    }
+    async registrarWhatsappreunion(data) {
+        try {
+            let url = data.url_evidencia;
+            if (url && url.startsWith('data:')) {
+                url = await this.subirEvidenciaBase64(url);
+            }
+            return await this.leadRepository.registrarWhatsappreunion({
+                ...data,
+                url_evidencia: url,
+            });
+        }
+        catch (error) {
+            console.log('Error al registrar whatsapp:', error);
+            throw error;
+        }
+    }
+    async registrarCorreoreunion(data) {
+        try {
+            let url = data.url_evidencia;
+            if (url && url.startsWith('data:')) {
+                url = await this.subirEvidenciaBase64(url);
+            }
+            return await this.leadRepository.registrarCorreoreunion({
+                ...data,
+                url_evidencia: url,
+            });
+        }
+        catch (error) {
+            console.log('Error al registrar correo:', error);
+            throw error;
+        }
+    }
+    async obtenerHistorialCorreoReunion(id_estado_reunion, tipo_historial) {
+        return await this.leadRepository.obtenerHistorialCorreoReunion(id_estado_reunion, tipo_historial);
+    }
+    async obtenerHistorialWhatsappReunion(id_estado_reunion, tipo_historial) {
+        return await this.leadRepository.obtenerHistorialWhatsappReunion(id_estado_reunion, tipo_historial);
     }
 };
 exports.LeadService = LeadService;
