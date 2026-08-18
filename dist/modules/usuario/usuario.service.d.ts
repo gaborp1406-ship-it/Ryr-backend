@@ -4,4 +4,5 @@ export declare class UsuarioService {
     private usuarioRepository;
     constructor(usuarioRepository: UsuarioRepository);
     registrarUsuario(data: CreateUsuarioDto): Promise<import("../../interfaces/responses.interface").Response>;
+    obtenerCredencialesSip(id_trabajador: number): Promise<import("./interfaces/usuario-sip.interface").UsuarioSip>;
 }

@@ -22,6 +22,19 @@ let UsuarioRepository = class UsuarioRepository {
         const result = await this.dataSource.query(`SELECT * FROM seg_usuario_registrar($1, $2, $3, $4::json)`, [idTrabajador, usuario, contrasenia, rolesJson]);
         return result[0];
     }
+    async obtenerCredencialesSip(id_usuario) {
+        const result = await this.dataSource.query(`
+    SELECT
+      su.id_trabajador,
+      su.extension,
+      su.username,
+      su.password
+    FROM sip_agentes su
+    WHERE su.id_trabajador = $1
+      AND su.activo = true
+    `, [id_usuario]);
+        return result[0] || null;
+    }
 };
 exports.UsuarioRepository = UsuarioRepository;
 exports.UsuarioRepository = UsuarioRepository = __decorate([

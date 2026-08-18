@@ -25,5 +25,9 @@ export class UsuarioService {
     }
   }
 
-
+  async obtenerCredencialesSip(id_trabajador: number) {
+    const result =
+      await this.usuarioRepository.obtenerCredencialesSip(id_trabajador);
+    return result;
+  }
 }

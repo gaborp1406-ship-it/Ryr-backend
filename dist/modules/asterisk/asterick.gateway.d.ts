@@ -1,0 +1,63 @@
+import { OnModuleInit, OnModuleDestroy } from '@nestjs/common';
+import { AriService } from './asterisk.service';
+import { AmdService } from '../amd/amd.service';
+import { CallStatus } from './constants/asterisk.constants';
+import { CallEventsService } from './events/CallEventsService';
+interface ICallContext {
+    extension: string;
+    phone: string;
+    agentChannelId: string;
+    customerChannelId?: string;
+    bridgeId?: string;
+    idRegistroLlamada?: number;
+    status: CallStatus;
+    endingReason?: string;
+}
+export declare class AriGateway implements OnModuleInit, OnModuleDestroy {
+    private readonly ariService;
+    private readonly amdService;
+    private readonly callEventsService;
+    private readonly logger;
+    private ws;
+    private isConnecting;
+    private reconnectTimer?;
+    private closingForShutdown;
+    private amdInProgress;
+    private heartbeatInterval?;
+    private isAlive;
+    private agentRingingChannels;
+    private outboundRingingChannels;
+    private connectedChannels;
+    private readonly destroyedChannels;
+    private readonly calls;
+    private readonly channelIndex;
+    private readonly pendingBridges;
+    constructor(ariService: AriService, amdService: AmdService, callEventsService: CallEventsService);
+    onModuleInit(): void;
+    onModuleDestroy(): void;
+    private connect;
+    private startHeartbeat;
+    private stopHeartbeat;
+    registerCall(context: Pick<ICallContext, 'extension' | 'phone' | 'agentChannelId'>): void;
+    removeCall(agentChannelId: string): void;
+    updateCall(channelId: string, data: Partial<ICallContext>): void;
+    private linkChannel;
+    findCallByChannel(channelId: string): ICallContext | undefined;
+    handleEvent(event: any): Promise<void>;
+    private onStasisStart;
+    private handleAgentStasisStart;
+    private handleCustomerStasisStart;
+    private safeAddToBridge;
+    private onChannelHangupRequest;
+    private onStasisEnd;
+    private onChannelStateChange;
+    private onDial;
+    private onChannelDestroyed;
+    private endCall;
+    private cleanupCall;
+    hangupCall(channelId: string): Promise<{
+        success: boolean;
+        channelId: string;
+    }>;
+}
+export {};

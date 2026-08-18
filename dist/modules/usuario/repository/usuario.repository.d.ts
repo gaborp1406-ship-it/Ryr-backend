@@ -1,5 +1,6 @@
 import { DataSource } from 'typeorm';
 import { Response } from "../../../interfaces/responses.interface";
+import { UsuarioSip } from '../interfaces/usuario-sip.interface';
 export declare class UsuarioRepository {
     private dataSource;
     constructor(dataSource: DataSource);
@@ -7,4 +8,5 @@ export declare class UsuarioRepository {
         idrol: number;
         estado: number;
     }>): Promise<Response>;
+    obtenerCredencialesSip(id_usuario: number): Promise<UsuarioSip>;
 }

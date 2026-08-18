@@ -71,4 +71,6 @@ export class AuthService {
       console.log('Error al verificar el estado del usuario:', error);
     }
   }
+
+  
 }

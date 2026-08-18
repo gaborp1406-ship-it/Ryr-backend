@@ -6,11 +6,11 @@ import { ConfigModule } from '@nestjs/config';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { UsuarioModule } from './modules/usuario/usuario.module';
 import { AuthModule } from './modules/auth/auth.module';
-import { AriModule } from './modules/ari/ari.module';
 import { OpcionesModule } from './modules/opciones/opciones.module';
 import { ProyectosModule } from './modules/proyectos/proyectos.module';
 import { AsesoresModule } from './modules/asesores/asesores.module';
 import { LeadsModule } from './modules/leads/leads.module';
+import { AsteriskModule } from './modules/asterisk/asterisk.module';
 
 @Module({
   imports: [
@@ -35,9 +35,10 @@ import { LeadsModule } from './modules/leads/leads.module';
     UsuarioModule,
     AuthModule,
     ProyectosModule,
-    AriModule,
+
     AsesoresModule,
     LeadsModule,
+    AsteriskModule,
     OpcionesModule,
   ],
   controllers: [AppController],

@@ -30,6 +30,10 @@ let UsuarioService = class UsuarioService {
             throw error;
         }
     }
+    async obtenerCredencialesSip(id_trabajador) {
+        const result = await this.usuarioRepository.obtenerCredencialesSip(id_trabajador);
+        return result;
+    }
 };
 exports.UsuarioService = UsuarioService;
 exports.UsuarioService = UsuarioService = __decorate([

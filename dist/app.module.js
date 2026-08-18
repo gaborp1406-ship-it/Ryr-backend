@@ -15,11 +15,11 @@ const config_1 = require("@nestjs/config");
 const typeorm_1 = require("@nestjs/typeorm");
 const usuario_module_1 = require("./modules/usuario/usuario.module");
 const auth_module_1 = require("./modules/auth/auth.module");
-const ari_module_1 = require("./modules/ari/ari.module");
 const opciones_module_1 = require("./modules/opciones/opciones.module");
 const proyectos_module_1 = require("./modules/proyectos/proyectos.module");
 const asesores_module_1 = require("./modules/asesores/asesores.module");
 const leads_module_1 = require("./modules/leads/leads.module");
+const asterisk_module_1 = require("./modules/asterisk/asterisk.module");
 let AppModule = class AppModule {
 };
 exports.AppModule = AppModule;
@@ -46,9 +46,9 @@ exports.AppModule = AppModule = __decorate([
             usuario_module_1.UsuarioModule,
             auth_module_1.AuthModule,
             proyectos_module_1.ProyectosModule,
-            ari_module_1.AriModule,
             asesores_module_1.AsesoresModule,
             leads_module_1.LeadsModule,
+            asterisk_module_1.AsteriskModule,
             opciones_module_1.OpcionesModule,
         ],
         controllers: [app_controller_1.AppController],
