@@ -18,7 +18,7 @@ const common_1 = require("@nestjs/common");
 const axios_1 = __importDefault(require("axios"));
 const typeorm_1 = require("typeorm");
 const uuid_1 = require("uuid");
-const PREFIX_PHONE = '356951';
+const PREFIX_PHONE = '366651';
 let AriService = AriService_1 = class AriService {
     dataSource;
     logger = new common_1.Logger(AriService_1.name);
@@ -63,27 +63,26 @@ let AriService = AriService_1 = class AriService {
     async crearRegistroLlamada(idTrabajador) {
         const result = await this.dataSource.query(`
         SELECT *
-        FROM ari_crear_registro_llamada_manual(
-            $1,
-         
-        )
-        `, [idTrabajador]);
+        FROM ari_crear_registro_llamada($1)
+      `, [idTrabajador]);
         return result[0];
     }
     async call(agent, phone, idTrabajador, channelId) {
         const fullPhone = phone.startsWith(PREFIX_PHONE)
             ? phone
             : `${PREFIX_PHONE}${phone}`;
+        this.logger.log(`Originando llamada hacia agente: ${agent}`);
         const response = await axios_1.default.post(`${this.url}/channels`, null, {
             params: {
                 endpoint: `PJSIP/${agent}`,
                 app: this.app,
                 appArgs: `outbound,${fullPhone}`,
-                callerId: agent,
+                callerId: fullPhone,
                 channelId,
             },
             auth: this.auth,
         });
+        this.logger.log(`Canal Asterisk creado: ${response.data.id}`);
         const registro = await this.crearRegistroLlamada(idTrabajador);
         this.logger.log(`Registro llamada creado: ${JSON.stringify(registro)}`);
         return {
@@ -107,13 +106,20 @@ let AriService = AriService_1 = class AriService {
     }
     async createBridge() {
         const response = await axios_1.default.post(`${this.url}/bridges`, null, {
-            params: { type: 'mixing' },
+            params: {
+                type: 'mixing',
+            },
             auth: this.auth,
         });
         return response.data;
     }
     async addChannelToBridge(bridgeId, channelId) {
-        const response = await axios_1.default.post(`${this.url}/bridges/${bridgeId}/addChannel`, null, { params: { channel: channelId }, auth: this.auth });
+        const response = await axios_1.default.post(`${this.url}/bridges/${bridgeId}/addChannel`, null, {
+            params: {
+                channel: channelId,
+            },
+            auth: this.auth,
+        });
         return response.data;
     }
     async answer(channelId) {
@@ -131,24 +137,32 @@ let AriService = AriService_1 = class AriService {
     }
     async hangup(channelId) {
         try {
-            const response = await axios_1.default.delete(`${this.url}/channels/${channelId}`, { auth: this.auth });
+            const response = await axios_1.default.delete(`${this.url}/channels/${channelId}`, {
+                auth: this.auth,
+            });
             return response.data;
         }
         catch (error) {
             if (this.isNotFound(error)) {
-                return { alreadyGone: true };
+                return {
+                    alreadyGone: true,
+                };
             }
             throw error;
         }
     }
     async deleteBridge(bridgeId) {
         try {
-            const response = await axios_1.default.delete(`${this.url}/bridges/${bridgeId}`, { auth: this.auth });
+            const response = await axios_1.default.delete(`${this.url}/bridges/${bridgeId}`, {
+                auth: this.auth,
+            });
             return response.data;
         }
         catch (error) {
             if (this.isNotFound(error)) {
-                return { alreadyGone: true };
+                return {
+                    alreadyGone: true,
+                };
             }
             throw error;
         }
