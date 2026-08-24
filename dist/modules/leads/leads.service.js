@@ -106,13 +106,13 @@ let LeadService = class LeadService {
     async obtenerEtapaActualLead(id_lead) {
         try {
             const result = await this.leadRepository.obtenerEtapaActualLead(id_lead);
-            if (!result) {
-                throw new Error('No se encontró una etapa actual para el lead.');
+            if (!result || result.length === 0) {
+                throw new Error('No se encontraron etapas para el lead.');
             }
             return result;
         }
         catch (error) {
-            console.log('Error al obtener la etapa actual del lead:', error);
+            console.log('Error al obtener las etapas del lead:', error);
             throw error;
         }
     }
@@ -306,6 +306,15 @@ let LeadService = class LeadService {
     }
     async obtenerHistorialWhatsappReunion(id_estado_reunion, tipo_historial) {
         return await this.leadRepository.obtenerHistorialWhatsappReunion(id_estado_reunion, tipo_historial);
+    }
+    async obtenerTodasActividades(id_lead) {
+        return await this.leadRepository.obtenerTodasActividades(id_lead);
+    }
+    async finalizarEtapaAtencion(id_lead) {
+        return await this.leadRepository.finalizarEtapaAtencion(id_lead);
+    }
+    async finalizarEtapaOportunidadDesistio(id_lead, motivo) {
+        return await this.leadRepository.finalizarEtapaOportunidadDesistio(id_lead, motivo);
     }
 };
 exports.LeadService = LeadService;

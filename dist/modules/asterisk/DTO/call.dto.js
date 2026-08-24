@@ -15,6 +15,8 @@ class CallDto {
     agent;
     phone;
     idTrabajador;
+    id_etapa_lead;
+    tipo_historial;
 }
 exports.CallDto = CallDto;
 __decorate([
@@ -30,4 +32,14 @@ __decorate([
     (0, class_validator_1.IsNumber)(),
     __metadata("design:type", Number)
 ], CallDto.prototype, "idTrabajador", void 0);
+__decorate([
+    (0, class_validator_1.IsNotEmpty)(),
+    (0, class_validator_1.IsNumber)(),
+    __metadata("design:type", Number)
+], CallDto.prototype, "id_etapa_lead", void 0);
+__decorate([
+    (0, class_validator_1.IsNotEmpty)(),
+    (0, class_validator_1.IsNumber)(),
+    __metadata("design:type", Number)
+], CallDto.prototype, "tipo_historial", void 0);
 //# sourceMappingURL=call.dto.js.map

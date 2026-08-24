@@ -45,6 +45,8 @@ export class AriController {
                 body.agent,
                 body.phone,
                 body.idTrabajador,
+                body.id_etapa_lead,
+                body.tipo_historial,
                 channelId,
             );
 
@@ -91,7 +93,4 @@ export class AriController {
                 })),
             );
     }
-
-
-    
 }

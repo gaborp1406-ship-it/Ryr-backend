@@ -67,10 +67,10 @@ let LeadRepository = class LeadRepository {
     }
     async obtenerEtapaActualLead(id_lead) {
         const result = await this.dataSource.query(`
-    SELECT *
-    FROM fn_obtener_etapa_actual_lead($1)
+      SELECT *
+      FROM fn_obtener_etapa_actual_lead($1)
     `, [id_lead]);
-        return result[0];
+        return result;
     }
     async obtenerDetalleLead(id_lead) {
         const result = await this.dataSource.query(`
@@ -302,6 +302,22 @@ let LeadRepository = class LeadRepository {
     SELECT *
     FROM fn_obtener_historial_contacto_whatsapp_reunion($1, $2)
     `, [id_estado_reunion, tipo_historial]);
+    }
+    async obtenerTodasActividades(id_lead) {
+        return await this.dataSource.query(`
+    SELECT *
+    FROM fn_obtener_todas_actividades($1)
+    `, [id_lead]);
+    }
+    async finalizarEtapaAtencion(id_lead) {
+        return await this.dataSource.query(`
+    SELECT fn_finalizar_etapa_atencion($1) AS resultado
+    `, [id_lead]);
+    }
+    async finalizarEtapaOportunidadDesistio(id_lead, motivo) {
+        return await this.dataSource.query(`
+    SELECT fn_finalizar_etapa_oportunidad_desistio($1, $2) AS resultado
+    `, [id_lead, motivo ?? null]);
     }
 };
 exports.LeadRepository = LeadRepository;

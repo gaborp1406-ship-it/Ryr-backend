@@ -71,7 +71,7 @@ export class LeadController {
     return this.leadService.obtenerEstadoContactoLead(id_lead);
   }
 
-    @Get('info-estado-reunion/:id_lead')
+  @Get('info-estado-reunion/:id_lead')
   @UseGuards(JwtAuthGuard)
   obtenerInfoEstadoReunionLead(
     @Param('id_lead', ParseIntPipe) id_lead: number,
@@ -273,7 +273,7 @@ export class LeadController {
 
   }
 
- @Post('registrar-whatsapp-reunion')
+  @Post('registrar-whatsapp-reunion')
   @UseGuards(JwtAuthGuard)
   registrarWhatsappReunion(
     @Body()
@@ -332,8 +332,35 @@ export class LeadController {
     );
   }
 
+  @Get('todas-actividades/:id_lead')
+  @UseGuards(JwtAuthGuard)
+  obtenerTodasActividades(
+    @Param('id_lead', ParseIntPipe)
+    id_lead: number,
+  ) {
+    return this.leadService.obtenerTodasActividades(id_lead);
+  }
+  @Post('finalizar-etapa-atencion/:id_lead')
+  @UseGuards(JwtAuthGuard)
+  finalizarEtapaAtencion(
+    @Param('id_lead', ParseIntPipe)
+    id_lead: number,
+  ) {
+    return this.leadService.finalizarEtapaAtencion(id_lead);
+  }
+  @Post('finalizar-etapa-oportunidad-desistio/:id_lead')
+  @UseGuards(JwtAuthGuard)
+  finalizarEtapaOportunidadDesistio(
+    @Param('id_lead', ParseIntPipe)
+    id_lead: number,
 
-
-
+    @Body('motivo')
+    motivo?: number,
+  ) {
+    return this.leadService.finalizarEtapaOportunidadDesistio(
+      id_lead,
+      motivo,
+    );
+  }
 }
 

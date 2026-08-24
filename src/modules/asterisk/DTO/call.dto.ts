@@ -14,4 +14,14 @@ export class CallDto {
   @IsNumber()
   idTrabajador!: number;
 
+ @IsNotEmpty()
+  @IsNumber()
+  id_etapa_lead!: number;
+
+   @IsNotEmpty()
+  @IsNumber()
+  tipo_historial!: number;
+
+
+
 }

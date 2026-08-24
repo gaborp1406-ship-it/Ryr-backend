@@ -99,6 +99,15 @@ let LeadController = class LeadController {
     obtenerHistorialWhatsappReunion(id_estado_reunion, tipo_historial) {
         return this.leadService.obtenerHistorialWhatsappReunion(id_estado_reunion, tipo_historial);
     }
+    obtenerTodasActividades(id_lead) {
+        return this.leadService.obtenerTodasActividades(id_lead);
+    }
+    finalizarEtapaAtencion(id_lead) {
+        return this.leadService.finalizarEtapaAtencion(id_lead);
+    }
+    finalizarEtapaOportunidadDesistio(id_lead, motivo) {
+        return this.leadService.finalizarEtapaOportunidadDesistio(id_lead, motivo);
+    }
 };
 exports.LeadController = LeadController;
 __decorate([
@@ -314,6 +323,31 @@ __decorate([
     __metadata("design:paramtypes", [Number, Number]),
     __metadata("design:returntype", void 0)
 ], LeadController.prototype, "obtenerHistorialWhatsappReunion", null);
+__decorate([
+    (0, common_1.Get)('todas-actividades/:id_lead'),
+    (0, common_1.UseGuards)(jwt_auth_guard_1.JwtAuthGuard),
+    __param(0, (0, common_1.Param)('id_lead', common_1.ParseIntPipe)),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [Number]),
+    __metadata("design:returntype", void 0)
+], LeadController.prototype, "obtenerTodasActividades", null);
+__decorate([
+    (0, common_1.Post)('finalizar-etapa-atencion/:id_lead'),
+    (0, common_1.UseGuards)(jwt_auth_guard_1.JwtAuthGuard),
+    __param(0, (0, common_1.Param)('id_lead', common_1.ParseIntPipe)),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [Number]),
+    __metadata("design:returntype", void 0)
+], LeadController.prototype, "finalizarEtapaAtencion", null);
+__decorate([
+    (0, common_1.Post)('finalizar-etapa-oportunidad-desistio/:id_lead'),
+    (0, common_1.UseGuards)(jwt_auth_guard_1.JwtAuthGuard),
+    __param(0, (0, common_1.Param)('id_lead', common_1.ParseIntPipe)),
+    __param(1, (0, common_1.Body)('motivo')),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [Number, Number]),
+    __metadata("design:returntype", void 0)
+], LeadController.prototype, "finalizarEtapaOportunidadDesistio", null);
 exports.LeadController = LeadController = __decorate([
     (0, common_1.Controller)('lead'),
     __metadata("design:paramtypes", [leads_service_1.LeadService])

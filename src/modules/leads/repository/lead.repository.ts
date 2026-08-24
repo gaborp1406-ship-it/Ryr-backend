@@ -71,17 +71,20 @@ export class LeadRepository {
     return result;
   }
 
-  async obtenerEtapaActualLead(id_lead: number) {
-    const result = await this.dataSource.query(
-      `
-    SELECT *
-    FROM fn_obtener_etapa_actual_lead($1)
+async obtenerEtapaActualLead(id_lead: number) {
+  const result = await this.dataSource.query(
+    `
+      SELECT *
+      FROM fn_obtener_etapa_actual_lead($1)
     `,
-      [id_lead],
-    );
+    [id_lead],
+  );
 
-    return result[0];
-  }
+  return result;
+}
+
+
+
   async obtenerDetalleLead(id_lead: number) {
     const result = await this.dataSource.query(
       `
@@ -433,7 +436,7 @@ export class LeadRepository {
 
   }
 
-    async registrarWhatsappreunion(data: {
+  async registrarWhatsappreunion(data: {
     id_estado_reunion: number;
     url_evidencia: string;
     mensaje?: string;
@@ -484,8 +487,8 @@ export class LeadRepository {
 
     return result[0];
   }
-  
-    async obtenerHistorialCorreoReunion(
+
+  async obtenerHistorialCorreoReunion(
     id_estado_reunion: number,
     tipo_historial: number,
   ) {
@@ -510,4 +513,34 @@ export class LeadRepository {
       [id_estado_reunion, tipo_historial],
     );
   }
+
+  async obtenerTodasActividades(id_lead: number) {
+    return await this.dataSource.query(
+      `
+    SELECT *
+    FROM fn_obtener_todas_actividades($1)
+    `,
+      [id_lead],
+    );
+  }
+  async finalizarEtapaAtencion(id_lead: number) {
+    return await this.dataSource.query(
+      `
+    SELECT fn_finalizar_etapa_atencion($1) AS resultado
+    `,
+      [id_lead],
+    );
+  }
+
+  async finalizarEtapaOportunidadDesistio(
+  id_lead: number,
+  motivo?: number,
+) {
+  return await this.dataSource.query(
+    `
+    SELECT fn_finalizar_etapa_oportunidad_desistio($1, $2) AS resultado
+    `,
+    [id_lead, motivo ?? null],
+  );
+}
 }

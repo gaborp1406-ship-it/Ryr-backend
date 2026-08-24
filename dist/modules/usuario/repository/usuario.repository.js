@@ -23,16 +23,10 @@ let UsuarioRepository = class UsuarioRepository {
         return result[0];
     }
     async obtenerCredencialesSip(id_usuario) {
-        const result = await this.dataSource.query(`
-    SELECT
-      su.id_trabajador,
-      su.extension,
-      su.username,
-      su.password
-    FROM sip_agentes su
-    WHERE su.id_trabajador = $1
-      AND su.activo = true
-    `, [id_usuario]);
+        const result = await this.dataSource.query(`SELECT su.id, pa.username, pa.password 
+     FROM seg_usuario su
+     LEFT JOIN ps_auths pa ON su.id_ps_auth = pa.id_auth
+     WHERE su.id = $1`, [id_usuario]);
         return result[0] || null;
     }
 };

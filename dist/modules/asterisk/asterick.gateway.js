@@ -297,7 +297,7 @@ let AriGateway = AriGateway_1 = class AriGateway {
     async handleCustomerStasisStart(channel, args) {
         const bridgeId = args[1];
         if (this.destroyedChannels.has(channel.id)) {
-            this.logger.warn(`Canal ${channel.id} ya fue destruido antes de AMD`);
+            this.logger.warn(`Canal ${channel.id} ya fue destruido antes de conectar`);
             return;
         }
         const call = this.findCallByChannel(channel.id);
@@ -306,56 +306,37 @@ let AriGateway = AriGateway_1 = class AriGateway {
             return;
         }
         await this.ariService.answer(channel.id);
-        if (call) {
-            call.status = asterisk_constants_1.CALL_STATUS.AMD_CHECKING;
+        if (this.destroyedChannels.has(channel.id)) {
+            return;
         }
+        await this.safeAddToBridge(bridgeId, channel.id);
+        if (call) {
+            call.status = asterisk_constants_1.CALL_STATUS.CONNECTED;
+            await this.startRecording(call);
+            this.callEventsService.callConnected({
+                extension: call.extension,
+                channelId: channel.id,
+                phone: call.phone,
+                bridgeId: call.bridgeId,
+            });
+        }
+    }
+    async startRecording(call) {
+        if (!call.bridgeId || call.recordingName)
+            return;
+        const recordingName = `rec_${call.agentChannelId}`;
         try {
-            this.amdInProgress.add(channel.id);
-            const amdResult = await this.amdService.detectHuman(channel.id, 3000);
-            this.amdInProgress.delete(channel.id);
-            if (this.destroyedChannels.has(channel.id)) {
-                this.logger.warn(`Canal ${channel.id} fue destruido durante AMD`);
-                return;
-            }
-            if (amdResult.isHuman) {
-                this.logger.log('HUMANO detectado - agregando a bridge');
-                if (this.destroyedChannels.has(channel.id)) {
-                    return;
-                }
-                await this.safeAddToBridge(bridgeId, channel.id);
-                if (call) {
-                    call.status = asterisk_constants_1.CALL_STATUS.CONNECTED;
-                    this.callEventsService.callConnected({
-                        extension: call.extension,
-                        channelId: channel.id,
-                        phone: call.phone,
-                        bridgeId: call.bridgeId,
-                    });
-                }
+            await this.ariService.startBridgeRecording(call.bridgeId, recordingName);
+            call.recordingName = recordingName;
+            if (call.idRegistroLlamada) {
+                await this.ariService.iniciarGrabacionDb(call.idRegistroLlamada, recordingName);
             }
             else {
-                this.logger.log('MAQUINA detectada - desconectando');
-                if (!this.destroyedChannels.has(channel.id)) {
-                    await this.ariService.hangup(channel.id);
-                }
+                this.logger.warn(`Grabación ${recordingName} iniciada sin idRegistroLlamada, no se persistió en BD`);
             }
         }
         catch (error) {
-            if (this.destroyedChannels.has(channel.id)) {
-                this.logger.warn(`Canal ${channel.id} terminó durante el procesamiento de AMD`);
-                return;
-            }
-            this.logger.error('Error durante AMD, agregando al bridge igual', error);
-            await this.safeAddToBridge(bridgeId, channel.id);
-            if (call) {
-                call.status = asterisk_constants_1.CALL_STATUS.CONNECTED;
-                this.callEventsService.callConnected({
-                    extension: call.extension,
-                    channelId: channel.id,
-                    phone: call.phone,
-                    bridgeId: call.bridgeId,
-                });
-            }
+            this.logger.warn(`No se pudo iniciar grabación para bridge ${call.bridgeId}: ${error?.response?.data ?? error?.message}`);
         }
     }
     async safeAddToBridge(bridgeId, channelId) {
@@ -492,6 +473,7 @@ let AriGateway = AriGateway_1 = class AriGateway {
         call.status = asterisk_constants_1.CALL_STATUS.ENDING;
         call.endingReason = reason;
         this.logger.log(`Finalizando llamada ${call.agentChannelId} (motivo: ${reason})`);
+        await this.stopRecording(call);
         const hangupIfAlive = async (channelId) => {
             if (!channelId)
                 return;
@@ -525,6 +507,43 @@ let AriGateway = AriGateway_1 = class AriGateway {
         });
         this.cleanupCall(call);
         call.status = asterisk_constants_1.CALL_STATUS.ENDED;
+    }
+    async esperarGrabacionStored(recordingName, maxIntentos = 10) {
+        for (let intento = 1; intento <= maxIntentos; intento++) {
+            if (await this.ariService.existeGrabacionStored(recordingName)) {
+                this.logger.log(`✅ Grabación disponible en Asterisk: ${recordingName}`);
+                return;
+            }
+            this.logger.log(`⏳ Esperando grabación... intento ${intento}/${maxIntentos}`);
+            await new Promise((resolve) => setTimeout(resolve, 500));
+        }
+        throw new Error(`La grabación no estuvo disponible: ${recordingName}`);
+    }
+    async stopRecording(call) {
+        if (!call.recordingName)
+            return;
+        try {
+            await this.ariService.stopBridgeRecording(call.recordingName);
+            this.logger.log(`🛑 Grabación detenida: ${call.recordingName}`);
+            await this.esperarGrabacionStored(call.recordingName);
+            if (call.idRegistroLlamada) {
+                const fileBuffer = await this.ariService.descargarGrabacionARI(call.recordingName);
+                const storagePath = await this.ariService.subirGrabacionSupabase(call.recordingName, fileBuffer);
+                this.logger.log(`☁️ Grabación subida a Supabase: ${storagePath}`);
+                await this.ariService.finalizarGrabacionDb(call.idRegistroLlamada, storagePath, 'completada');
+                await this.ariService.eliminarGrabacionStoredARI(call.recordingName);
+            }
+        }
+        catch (error) {
+            this.logger.error(`❌ Error procesando grabación ${call.recordingName}: ${error?.message}`);
+            if (call.idRegistroLlamada) {
+                try {
+                    await this.ariService.finalizarGrabacionDb(call.idRegistroLlamada, call.recordingName, 'error');
+                }
+                catch {
+                }
+            }
+        }
     }
     cleanupCall(call) {
         this.agentRingingChannels.delete(call.agentChannelId);

@@ -27,7 +27,7 @@ interface ICallContext {
   bridgeId?: string;
 
   idRegistroLlamada?: number;
-
+  recordingName?: string;
   status: CallStatus;
   endingReason?: string;
 }
@@ -391,7 +391,7 @@ export class AriGateway implements OnModuleInit, OnModuleDestroy {
     const bridgeId = args[1];
 
     if (this.destroyedChannels.has(channel.id)) {
-      this.logger.warn(`Canal ${channel.id} ya fue destruido antes de AMD`);
+      this.logger.warn(`Canal ${channel.id} ya fue destruido antes de conectar`);
       return;
     }
 
@@ -406,72 +406,50 @@ export class AriGateway implements OnModuleInit, OnModuleDestroy {
 
     await this.ariService.answer(channel.id);
 
-    if (call) {
-      call.status = CALL_STATUS.AMD_CHECKING;
+    if (this.destroyedChannels.has(channel.id)) {
+      return;
     }
 
+    // AMD deshabilitado temporalmente (no había implementación real, solo simulaba con Math.random()).
+    // Conectamos directo apenas el cliente contesta.
+    await this.safeAddToBridge(bridgeId, channel.id);
+
+    if (call) {
+      call.status = CALL_STATUS.CONNECTED;
+
+      await this.startRecording(call);
+      this.callEventsService.callConnected({
+        extension: call.extension,
+        channelId: channel.id,
+        phone: call.phone,
+        bridgeId: call.bridgeId,
+      });
+    }
+  }
+
+  private async startRecording(call: ICallContext): Promise<void> {
+    if (!call.bridgeId || call.recordingName) return; // sin bridge o ya grabando
+
+    const recordingName = `rec_${call.agentChannelId}`;
+
     try {
-      this.amdInProgress.add(channel.id);
-      const amdResult = await this.amdService.detectHuman(channel.id, 3000);
-      this.amdInProgress.delete(channel.id);
-      if (this.destroyedChannels.has(channel.id)) {
-        this.logger.warn(`Canal ${channel.id} fue destruido durante AMD`);
-        return;
-      }
+      await this.ariService.startBridgeRecording(call.bridgeId, recordingName);
+      call.recordingName = recordingName;
 
-      if (amdResult.isHuman) {
-        this.logger.log('HUMANO detectado - agregando a bridge');
-
-        if (this.destroyedChannels.has(channel.id)) {
-          return;
-        }
-
-        await this.safeAddToBridge(bridgeId, channel.id);
-
-        if (call) {
-          call.status = CALL_STATUS.CONNECTED;
-
-          // Recién acá: humano confirmado por AMD Y canal todavía vivo.
-          this.callEventsService.callConnected({
-            extension: call.extension,
-            channelId: channel.id,
-            phone: call.phone,
-            bridgeId: call.bridgeId,
-          });
-        }
-      } else {
-        this.logger.log('MAQUINA detectada - desconectando');
-
-        if (!this.destroyedChannels.has(channel.id)) {
-          await this.ariService.hangup(channel.id);
-        }
-      }
-    } catch (error) {
-      if (this.destroyedChannels.has(channel.id)) {
-        this.logger.warn(
-          `Canal ${channel.id} terminó durante el procesamiento de AMD`,
+      if (call.idRegistroLlamada) {
+        await this.ariService.iniciarGrabacionDb(
+          call.idRegistroLlamada,
+          recordingName,
         );
-        return;
+      } else {
+        this.logger.warn(
+          `Grabación ${recordingName} iniciada sin idRegistroLlamada, no se persistió en BD`,
+        );
       }
-
-      this.logger.error(
-        'Error durante AMD, agregando al bridge igual',
-        error as any,
+    } catch (error: any) {
+      this.logger.warn(
+        `No se pudo iniciar grabación para bridge ${call.bridgeId}: ${error?.response?.data ?? error?.message}`,
       );
-
-      await this.safeAddToBridge(bridgeId, channel.id);
-
-      if (call) {
-        call.status = CALL_STATUS.CONNECTED;
-        this.callEventsService.callConnected({
-          extension: call.extension,
-          channelId: channel.id,
-          phone: call.phone,
-          bridgeId: call.bridgeId,
-        });
-      }
-
-
     }
   }
 
@@ -669,7 +647,7 @@ export class AriGateway implements OnModuleInit, OnModuleDestroy {
     this.logger.log(
       `Finalizando llamada ${call.agentChannelId} (motivo: ${reason})`,
     );
-
+    await this.stopRecording(call);
     const hangupIfAlive = async (channelId?: string) => {
       if (!channelId) return;
       if (this.destroyedChannels.has(channelId)) return;
@@ -707,6 +685,62 @@ export class AriGateway implements OnModuleInit, OnModuleDestroy {
     call.status = CALL_STATUS.ENDED;
   }
 
+
+  private async esperarGrabacionStored(
+    recordingName: string,
+    maxIntentos = 10,
+  ): Promise<void> {
+    for (let intento = 1; intento <= maxIntentos; intento++) {
+      if (await this.ariService.existeGrabacionStored(recordingName)) {
+        this.logger.log(`✅ Grabación disponible en Asterisk: ${recordingName}`);
+        return;
+      }
+      this.logger.log(`⏳ Esperando grabación... intento ${intento}/${maxIntentos}`);
+      await new Promise((resolve) => setTimeout(resolve, 500));
+    }
+    throw new Error(`La grabación no estuvo disponible: ${recordingName}`);
+  }
+  private async stopRecording(call: ICallContext): Promise<void> {
+    if (!call.recordingName) return;
+
+    try {
+      await this.ariService.stopBridgeRecording(call.recordingName);
+      this.logger.log(`🛑 Grabación detenida: ${call.recordingName}`);
+
+      await this.esperarGrabacionStored(call.recordingName);
+
+      if (call.idRegistroLlamada) {
+        const fileBuffer = await this.ariService.descargarGrabacionARI(call.recordingName);
+        const storagePath = await this.ariService.subirGrabacionSupabase(
+          call.recordingName,
+          fileBuffer,
+        );
+        this.logger.log(`☁️ Grabación subida a Supabase: ${storagePath}`);
+
+        await this.ariService.finalizarGrabacionDb(
+          call.idRegistroLlamada,
+          storagePath,
+          'completada',
+        );
+
+        await this.ariService.eliminarGrabacionStoredARI(call.recordingName);
+      }
+    } catch (error: any) {
+      this.logger.error(`❌ Error procesando grabación ${call.recordingName}: ${error?.message}`);
+
+      if (call.idRegistroLlamada) {
+        try {
+          await this.ariService.finalizarGrabacionDb(
+            call.idRegistroLlamada,
+            call.recordingName,
+            'error',
+          );
+        } catch {
+          // noop
+        }
+      }
+    }
+  }
   private cleanupCall(call: ICallContext): void {
     this.agentRingingChannels.delete(call.agentChannelId);
     this.channelIndex.delete(call.agentChannelId);

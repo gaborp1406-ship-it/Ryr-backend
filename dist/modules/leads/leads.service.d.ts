@@ -80,4 +80,7 @@ export declare class LeadService {
     }): Promise<any>;
     obtenerHistorialCorreoReunion(id_estado_reunion: number, tipo_historial: number): Promise<any>;
     obtenerHistorialWhatsappReunion(id_estado_reunion: number, tipo_historial: number): Promise<any>;
+    obtenerTodasActividades(id_lead: number): Promise<any>;
+    finalizarEtapaAtencion(id_lead: number): Promise<any>;
+    finalizarEtapaOportunidadDesistio(id_lead: number, motivo?: number): Promise<any>;
 }

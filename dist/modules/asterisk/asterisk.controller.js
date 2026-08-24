@@ -40,7 +40,7 @@ let AriController = class AriController {
             agentChannelId: channelId,
         });
         try {
-            const result = await this.ariService.call(body.agent, body.phone, body.idTrabajador, channelId);
+            const result = await this.ariService.call(body.agent, body.phone, body.idTrabajador, body.id_etapa_lead, body.tipo_historial, channelId);
             this.ariGateway.updateCall(channelId, {
                 phone: result.phone,
                 idRegistroLlamada: result.idRegistroLlamada,

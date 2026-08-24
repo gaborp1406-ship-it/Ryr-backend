@@ -10,6 +10,7 @@ interface ICallContext {
     customerChannelId?: string;
     bridgeId?: string;
     idRegistroLlamada?: number;
+    recordingName?: string;
     status: CallStatus;
     endingReason?: string;
 }
@@ -47,6 +48,7 @@ export declare class AriGateway implements OnModuleInit, OnModuleDestroy {
     private onStasisStart;
     private handleAgentStasisStart;
     private handleCustomerStasisStart;
+    private startRecording;
     private safeAddToBridge;
     private onChannelHangupRequest;
     private onStasisEnd;
@@ -54,6 +56,8 @@ export declare class AriGateway implements OnModuleInit, OnModuleDestroy {
     private onDial;
     private onChannelDestroyed;
     private endCall;
+    private esperarGrabacionStored;
+    private stopRecording;
     private cleanupCall;
     hangupCall(channelId: string): Promise<{
         success: boolean;

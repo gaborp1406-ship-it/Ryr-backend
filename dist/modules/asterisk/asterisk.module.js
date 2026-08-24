@@ -14,6 +14,7 @@ const asterisk_service_1 = require("./asterisk.service");
 const asterisk_controller_1 = require("./asterisk.controller");
 const amd_module_1 = require("../amd/amd.module");
 const CallEventsService_1 = require("./events/CallEventsService");
+const supabase_provider_1 = require("../leads/supabase.provider");
 let AsteriskModule = class AsteriskModule {
 };
 exports.AsteriskModule = AsteriskModule;
@@ -21,7 +22,7 @@ exports.AsteriskModule = AsteriskModule = __decorate([
     (0, common_1.Module)({
         imports: [axios_1.HttpModule, amd_module_1.AmdModule],
         controllers: [asterisk_controller_1.AriController],
-        providers: [asterisk_service_1.AriService, asterick_gateway_1.AriGateway, CallEventsService_1.CallEventsService],
+        providers: [asterisk_service_1.AriService, asterick_gateway_1.AriGateway, CallEventsService_1.CallEventsService, supabase_provider_1.SupabaseProvider],
         exports: [asterisk_service_1.AriService, asterick_gateway_1.AriGateway, CallEventsService_1.CallEventsService],
     })
 ], AsteriskModule);
