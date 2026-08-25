@@ -15,104 +15,72 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.TrabajadorController = void 0;
 const common_1 = require("@nestjs/common");
 const trabajador_service_1 = require("./trabajador.service");
-const trabajador_request_dto_1 = require("./dto/trabajador-request.dto");
-const list_trabajador_dto_1 = require("./dto/list-trabajador.dto");
 const jwt_auth_guard_1 = require("../auth/guard/jwt-auth.guard");
+const cambiar_estado_dto_1 = require("./dto/cambiar-estado.dto");
 let TrabajadorController = class TrabajadorController {
     TrabajadorService;
     constructor(TrabajadorService) {
         this.TrabajadorService = TrabajadorService;
     }
-    registrarTrabajador(data) {
-        return this.TrabajadorService.registrarTrabajador(data);
+    listarEstadosConexion() {
+        return this.TrabajadorService.listarEstadosConexion();
     }
-    obtenerEstadoTrabajador(data) {
-        return this.TrabajadorService.obtenerEstadoConexionAgente(data);
+    obtenerEstadoActual(id) {
+        return this.TrabajadorService.obtenerEstadoActual(id);
     }
-    listarTrabajadoresAgentes(data) {
-        return this.TrabajadorService.listarTrabajadoresAgentes(data);
+    cambiarEstado(data) {
+        return this.TrabajadorService.cambiarEstado(data.id_trabajador, data.id_estado);
     }
-    cambiarEstadoConexionAgente(data) {
-        return this.TrabajadorService.cambiarEstadoConexionAgente(data);
+    listarEstadoActualTrabajadores(id_estado) {
+        return this.TrabajadorService.listarEstadoActualTrabajadores(id_estado ? Number(id_estado) : undefined);
     }
-    listarRoles(id_rol) {
-        return this.TrabajadorService.listadoRoles(id_rol);
-    }
-    obtenerTrabajador(id) {
-        return this.TrabajadorService.obtenerTrabajador(id);
-    }
-    listarEstadosConexion(id_estado_conexion) {
-        return this.TrabajadorService.listadoEstadosConexion(id_estado_conexion);
-    }
-    obtenerTrabajadorPorCamapania(id) {
-        return this.TrabajadorService.obtenerTrabajadoresPorCampania(id);
+    historialEstadoTrabajador(id, id_estado, fecha_desde, fecha_hasta) {
+        return this.TrabajadorService.historialEstadoTrabajador(id, id_estado ? Number(id_estado) : undefined, fecha_desde, fecha_hasta);
     }
 };
 exports.TrabajadorController = TrabajadorController;
 __decorate([
-    (0, common_1.Post)('registrar'),
+    (0, common_1.Get)('estados-conexion'),
     (0, common_1.UseGuards)(jwt_auth_guard_1.JwtAuthGuard),
-    __param(0, (0, common_1.Body)()),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [trabajador_request_dto_1.TrabajadorRequestDto]),
-    __metadata("design:returntype", void 0)
-], TrabajadorController.prototype, "registrarTrabajador", null);
-__decorate([
-    (0, common_1.Post)('obtener-estado-trabajador'),
-    (0, common_1.UseGuards)(jwt_auth_guard_1.JwtAuthGuard),
-    __param(0, (0, common_1.Body)()),
-    __metadata("design:type", Function),
-    __metadata("design:paramtypes", [trabajador_request_dto_1.TrabajadorRequestDto]),
-    __metadata("design:returntype", void 0)
-], TrabajadorController.prototype, "obtenerEstadoTrabajador", null);
-__decorate([
-    (0, common_1.Get)('listar-trabajadores-agentes'),
-    (0, common_1.UseGuards)(jwt_auth_guard_1.JwtAuthGuard),
-    __param(0, (0, common_1.Query)()),
-    __metadata("design:type", Function),
-    __metadata("design:paramtypes", [list_trabajador_dto_1.ListTrabajadoresDTO]),
-    __metadata("design:returntype", void 0)
-], TrabajadorController.prototype, "listarTrabajadoresAgentes", null);
-__decorate([
-    (0, common_1.Post)('cambiar-estado-conexion'),
-    (0, common_1.UseGuards)(jwt_auth_guard_1.JwtAuthGuard),
-    __param(0, (0, common_1.Body)()),
-    __metadata("design:type", Function),
-    __metadata("design:paramtypes", [trabajador_request_dto_1.TrabajadorRequestDto]),
-    __metadata("design:returntype", void 0)
-], TrabajadorController.prototype, "cambiarEstadoConexionAgente", null);
-__decorate([
-    (0, common_1.Get)('listar-roles'),
-    (0, common_1.UseGuards)(jwt_auth_guard_1.JwtAuthGuard),
-    __param(0, (0, common_1.Query)('id_rol', new common_1.ParseIntPipe({ optional: true }))),
-    __metadata("design:type", Function),
-    __metadata("design:paramtypes", [Number]),
-    __metadata("design:returntype", void 0)
-], TrabajadorController.prototype, "listarRoles", null);
-__decorate([
-    (0, common_1.Get)('obtener-trabajador/:id'),
-    (0, common_1.UseGuards)(jwt_auth_guard_1.JwtAuthGuard),
-    __param(0, (0, common_1.Param)('id', new common_1.ParseIntPipe())),
-    __metadata("design:type", Function),
-    __metadata("design:paramtypes", [Number]),
-    __metadata("design:returntype", void 0)
-], TrabajadorController.prototype, "obtenerTrabajador", null);
-__decorate([
-    (0, common_1.Get)('listar-estados-conexion'),
-    (0, common_1.UseGuards)(jwt_auth_guard_1.JwtAuthGuard),
-    __param(0, (0, common_1.Param)('id_estado_conexion', new common_1.ParseIntPipe({ optional: true }))),
-    __metadata("design:type", Function),
-    __metadata("design:paramtypes", [Number]),
+    __metadata("design:paramtypes", []),
     __metadata("design:returntype", void 0)
 ], TrabajadorController.prototype, "listarEstadosConexion", null);
 __decorate([
-    (0, common_1.Get)('obtener-trabajador-campania/:id'),
+    (0, common_1.Get)(':id/estado-actual'),
     (0, common_1.UseGuards)(jwt_auth_guard_1.JwtAuthGuard),
-    __param(0, (0, common_1.Param)('id', new common_1.ParseIntPipe())),
+    __param(0, (0, common_1.Param)('id', common_1.ParseIntPipe)),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", [Number]),
     __metadata("design:returntype", void 0)
-], TrabajadorController.prototype, "obtenerTrabajadorPorCamapania", null);
+], TrabajadorController.prototype, "obtenerEstadoActual", null);
+__decorate([
+    (0, common_1.Post)('estado/cambiar'),
+    (0, common_1.UseGuards)(jwt_auth_guard_1.JwtAuthGuard),
+    __param(0, (0, common_1.Body)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [cambiar_estado_dto_1.CambiarEstadoDto]),
+    __metadata("design:returntype", void 0)
+], TrabajadorController.prototype, "cambiarEstado", null);
+__decorate([
+    (0, common_1.Get)('estado-actual'),
+    (0, common_1.UseGuards)(jwt_auth_guard_1.JwtAuthGuard),
+    __param(0, (0, common_1.Query)('id_estado')),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [String]),
+    __metadata("design:returntype", void 0)
+], TrabajadorController.prototype, "listarEstadoActualTrabajadores", null);
+__decorate([
+    (0, common_1.Get)(':id/historial-estado'),
+    (0, common_1.UseGuards)(jwt_auth_guard_1.JwtAuthGuard),
+    __param(0, (0, common_1.Param)('id', common_1.ParseIntPipe)),
+    __param(1, (0, common_1.Query)('id_estado')),
+    __param(2, (0, common_1.Query)('fecha_desde')),
+    __param(3, (0, common_1.Query)('fecha_hasta')),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [Number, String, String, String]),
+    __metadata("design:returntype", void 0)
+], TrabajadorController.prototype, "historialEstadoTrabajador", null);
 exports.TrabajadorController = TrabajadorController = __decorate([
     (0, common_1.Controller)('trabajador'),
     __metadata("design:paramtypes", [trabajador_service_1.TrabajadorService])

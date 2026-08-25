@@ -362,6 +362,28 @@ let AriGateway = AriGateway_1 = class AriGateway {
         }
         const call = this.findCallByChannel(channelId);
         if (call) {
+            if (channelId === call.customerChannelId &&
+                call.status === asterisk_constants_1.CALL_STATUS.DIALING_CUSTOMER &&
+                !call.retriedAfterCongestion &&
+                call.bridgeId) {
+                call.retriedAfterCongestion = true;
+                this.logger.warn(`⚠️ Canal cliente ${channelId} (${call.phone}) colgó sin conectar, reintentando...`);
+                this.channelIndex.delete(channelId);
+                await new Promise((resolve) => setTimeout(resolve, 800));
+                if (!this.isCallEnding(call)) {
+                    try {
+                        const nuevoCustomerChannel = await this.ariService.originate(`PJSIP/${call.phone}@itelbox-out`, `bridge,${call.bridgeId}`);
+                        call.customerChannelId = nuevoCustomerChannel.id;
+                        call.status = asterisk_constants_1.CALL_STATUS.DIALING_CUSTOMER;
+                        this.linkChannel(call.agentChannelId, nuevoCustomerChannel.id);
+                        this.logger.log(`🔁 Reintento exitoso (desde hangup request), nuevo canal cliente: ${nuevoCustomerChannel.id}`);
+                        return;
+                    }
+                    catch (error) {
+                        this.logger.error(`Reintento (desde hangup request) también falló para ${call.phone}: ${error?.message}`);
+                    }
+                }
+            }
             await this.endCall(call, channelId === call.agentChannelId ? 'agent-hangup' : 'customer-hangup');
             return;
         }
@@ -395,6 +417,10 @@ let AriGateway = AriGateway_1 = class AriGateway {
                 channelId: channel.id,
             });
         }
+    }
+    isCallEnding(call) {
+        const status = call.status;
+        return status === asterisk_constants_1.CALL_STATUS.ENDING || status === asterisk_constants_1.CALL_STATUS.ENDED;
     }
     async onDial(event) {
         const peer = event.peer;
@@ -432,11 +458,38 @@ let AriGateway = AriGateway_1 = class AriGateway {
             this.connectedChannels.add(channelId);
             return;
         }
+        if (dialStatus === 'CONGESTION' || dialStatus === 'CHANUNAVAIL') {
+            if (!call.retriedAfterCongestion && call.bridgeId) {
+                call.retriedAfterCongestion = true;
+                this.logger.warn(`⚠️ ${dialStatus} en primer intento para ${call.phone}, reintentando...`);
+                this.channelIndex.delete(channelId);
+                this.destroyedChannels.add(channelId);
+                await new Promise((resolve) => setTimeout(resolve, 800));
+                if (this.isCallEnding(call)) {
+                    return;
+                }
+                try {
+                    const nuevoCustomerChannel = await this.ariService.originate(`PJSIP/${call.phone}@itelbox-out`, `bridge,${call.bridgeId}`);
+                    call.customerChannelId = nuevoCustomerChannel.id;
+                    call.status = asterisk_constants_1.CALL_STATUS.DIALING_CUSTOMER;
+                    this.linkChannel(call.agentChannelId, nuevoCustomerChannel.id);
+                    this.logger.log(`🔁 Reintento exitoso, nuevo canal cliente: ${nuevoCustomerChannel.id}`);
+                    return;
+                }
+                catch (error) {
+                    this.logger.error(`Reintento tras ${dialStatus} también falló para ${call.phone}: ${error?.message}`);
+                }
+            }
+            this.callEventsService.noAnswer({
+                extension: call.extension,
+                channelId,
+            });
+            await this.endCall(call, `dial-${dialStatus.toLowerCase()}`);
+            return;
+        }
         if (dialStatus === 'NOANSWER' ||
             dialStatus === 'BUSY' ||
-            dialStatus === 'CANCEL' ||
-            dialStatus === 'CONGESTION' ||
-            dialStatus === 'CHANUNAVAIL') {
+            dialStatus === 'CANCEL') {
             this.callEventsService.noAnswer({
                 extension: call.extension,
                 channelId,

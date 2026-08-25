@@ -371,7 +371,7 @@ async finalizarGrabacionDb(
       UPDATE com_leads_etapa_contacto_llamada
          SET grabacion_path = $1,
              grabacion_estado = $2,
-             fecha_fin = CURRENT_TIMESTAMP,
+             fecha_fin = CURRENT_TIMESTAMP
        WHERE id = $3
     `,
     [grabacionPath, estado, idRegistroLlamada],

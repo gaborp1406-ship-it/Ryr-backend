@@ -42,6 +42,9 @@ let LeadController = class LeadController {
     obtenerEstadoContactoLead(id_lead) {
         return this.leadService.obtenerEstadoContactoLead(id_lead);
     }
+    registrarPrimerContacto(id_estado_contacto) {
+        return this.leadService.registrarPrimerContacto(id_estado_contacto);
+    }
     obtenerInfoEstadoReunionLead(id_lead) {
         return this.leadService.obtenerInfoEstadoReunionLead(id_lead);
     }
@@ -51,8 +54,8 @@ let LeadController = class LeadController {
     obtenerHistorialWhatsapp(id_estado_contacto, tipo_historial) {
         return this.leadService.obtenerHistorialWhatsapp(id_estado_contacto, tipo_historial);
     }
-    obtenerHistorialLlamadas(id_estado_contacto, tipo_historial) {
-        return this.leadService.obtenerHistorialLlamadas(id_estado_contacto, tipo_historial);
+    obtenerHistorialLlamadas(id_etapa_lead, tipo_historial) {
+        return this.leadService.obtenerHistorialLlamadas(id_etapa_lead, tipo_historial);
     }
     registrarWhatsapp(data) {
         return this.leadService.registrarWhatsapp(data);
@@ -167,6 +170,14 @@ __decorate([
     __metadata("design:returntype", void 0)
 ], LeadController.prototype, "obtenerEstadoContactoLead", null);
 __decorate([
+    (0, common_1.Get)('registrar-primer-contacto/:id_estado_contacto'),
+    (0, common_1.UseGuards)(jwt_auth_guard_1.JwtAuthGuard),
+    __param(0, (0, common_1.Param)('id_estado_contacto', common_1.ParseIntPipe)),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [Number]),
+    __metadata("design:returntype", void 0)
+], LeadController.prototype, "registrarPrimerContacto", null);
+__decorate([
     (0, common_1.Get)('info-estado-reunion/:id_lead'),
     (0, common_1.UseGuards)(jwt_auth_guard_1.JwtAuthGuard),
     __param(0, (0, common_1.Param)('id_lead', common_1.ParseIntPipe)),
@@ -193,9 +204,9 @@ __decorate([
     __metadata("design:returntype", void 0)
 ], LeadController.prototype, "obtenerHistorialWhatsapp", null);
 __decorate([
-    (0, common_1.Get)('historial-llamadas/:id_estado_contacto/:tipo_historial'),
+    (0, common_1.Get)('historial-llamadas/:id_etapa_lead/:tipo_historial'),
     (0, common_1.UseGuards)(jwt_auth_guard_1.JwtAuthGuard),
-    __param(0, (0, common_1.Param)('id_estado_contacto', common_1.ParseIntPipe)),
+    __param(0, (0, common_1.Param)('id_etapa_lead', common_1.ParseIntPipe)),
     __param(1, (0, common_1.Param)('tipo_historial', common_1.ParseIntPipe)),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", [Number, Number]),

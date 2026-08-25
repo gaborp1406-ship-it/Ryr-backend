@@ -183,6 +183,17 @@ export class LeadService {
     }
   }
 
+  async registrarPrimerContacto(id_estado_contacto: number) {
+  try {
+    return await this.leadRepository.registrarPrimerContacto(
+      id_estado_contacto,
+    );
+  } catch (error) {
+    console.log('Error al registrar el primer contacto:', error);
+    throw error;
+  }
+}
+
   async obtenerInfoEstadoReunionLead(id_lead: number) {
     try {
       return await this.leadRepository.obtenerInfoEstadoReunionLead(id_lead);
@@ -213,14 +224,17 @@ export class LeadService {
   }
 
   async obtenerHistorialLlamadas(
-    id_estado_contacto: number,
+    id_etapa_lead: number,
     tipo_historial: number,
   ) {
     return await this.leadRepository.obtenerHistorialLlamadas(
-      id_estado_contacto,
+      id_etapa_lead,
       tipo_historial,
     );
   }
+
+
+
 
   async registrarWhatsapp(data: {
     id_estado_contacto: number;
@@ -347,6 +361,7 @@ export class LeadService {
       fecha: string;
       hora: string;
       idUsuarioCreacion: number;
+      lugar_plataforma: string;
     }
   ) {
 
@@ -472,28 +487,20 @@ export class LeadService {
 
 
 
-  async registrarWhatsappreunion(data: {
-    id_estado_reunion: number;
-    url_evidencia: string;
-    mensaje?: string;
-    tipo_historial: number;
-  }) {
-    try {
-      let url = data.url_evidencia;
-
-      if (url && url.startsWith('data:')) {
-        url = await this.subirEvidenciaBase64(url);
-      }
-
-      return await this.leadRepository.registrarWhatsappreunion({
-        ...data,
-        url_evidencia: url,
-      });
-    } catch (error) {
-      console.log('Error al registrar whatsapp:', error);
-      throw error;
-    }
+// Service
+async registrarWhatsappreunion(data: {
+  id_estado_reunion: number;
+  fecha: string;
+  hora: string;
+  tipo_historial: number;
+}) {
+  try {
+    return await this.leadRepository.registrarWhatsappreunion(data);
+  } catch (error) {
+    console.log('Error al registrar whatsapp:', error);
+    throw error;
   }
+}
 
   async registrarCorreoreunion(data: {
     id_estado_reunion: number;

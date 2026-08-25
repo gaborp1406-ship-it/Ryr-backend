@@ -30,6 +30,7 @@ interface ICallContext {
   recordingName?: string;
   status: CallStatus;
   endingReason?: string;
+  retriedAfterCongestion?: boolean;
 }
 
 @Injectable()
@@ -484,6 +485,50 @@ export class AriGateway implements OnModuleInit, OnModuleDestroy {
     const call = this.findCallByChannel(channelId);
 
     if (call) {
+      // 👇 NUEVO: si es el canal del cliente y nunca llegó a conectar,
+      // puede ser un fallo temprano del trunk (503/CONGESTION) cuyo evento
+      // Dial todavía no llegó o llega después. Reintentamos una vez acá,
+      // antes de dar la llamada por perdida.
+      if (
+        channelId === call.customerChannelId &&
+        call.status === CALL_STATUS.DIALING_CUSTOMER &&
+        !call.retriedAfterCongestion &&
+        call.bridgeId
+      ) {
+        call.retriedAfterCongestion = true;
+
+        this.logger.warn(
+          `⚠️ Canal cliente ${channelId} (${call.phone}) colgó sin conectar, reintentando...`,
+        );
+
+        this.channelIndex.delete(channelId);
+
+        await new Promise((resolve) => setTimeout(resolve, 800));
+
+        if (!this.isCallEnding(call)) {
+          try {
+            const nuevoCustomerChannel = await this.ariService.originate(
+              `PJSIP/${call.phone}@itelbox-out`,
+              `bridge,${call.bridgeId}`,
+            );
+
+            call.customerChannelId = nuevoCustomerChannel.id;
+            call.status = CALL_STATUS.DIALING_CUSTOMER;
+            this.linkChannel(call.agentChannelId, nuevoCustomerChannel.id);
+
+            this.logger.log(
+              `🔁 Reintento exitoso (desde hangup request), nuevo canal cliente: ${nuevoCustomerChannel.id}`,
+            );
+            return;
+          } catch (error: any) {
+            this.logger.error(
+              `Reintento (desde hangup request) también falló para ${call.phone}: ${error?.message}`,
+            );
+            // sigue abajo y termina la llamada normalmente
+          }
+        }
+      }
+
       await this.endCall(
         call,
         channelId === call.agentChannelId ? 'agent-hangup' : 'customer-hangup',
@@ -497,7 +542,6 @@ export class AriGateway implements OnModuleInit, OnModuleDestroy {
       this.logger.warn(`No se pudo colgar canal huérfano ${channelId}`);
     }
   }
-
 
 
 
@@ -529,6 +573,15 @@ export class AriGateway implements OnModuleInit, OnModuleDestroy {
       });
     }
   }
+
+
+  private isCallEnding(call: ICallContext): boolean {
+    const status: CallStatus = call.status;
+    return status === CALL_STATUS.ENDING || status === CALL_STATUS.ENDED;
+  }
+
+
+
   private async onDial(event: any): Promise<void> {
     const peer = event.peer;
     const dialStatus = event.dialstatus;
@@ -582,12 +635,59 @@ export class AriGateway implements OnModuleInit, OnModuleDestroy {
       return;
     }
 
+    if (dialStatus === 'CONGESTION' || dialStatus === 'CHANUNAVAIL') {
+      if (!call.retriedAfterCongestion && call.bridgeId) {
+        call.retriedAfterCongestion = true;
+
+        this.logger.warn(
+          `⚠️ ${dialStatus} en primer intento para ${call.phone}, reintentando...`,
+        );
+
+        // Limpiar el canal viejo del índice antes de reintentar
+        this.channelIndex.delete(channelId);
+        this.destroyedChannels.add(channelId);
+        // Si mientras esperábamos la llamada terminó (agente colgó, etc.), no reintentamos
+        await new Promise((resolve) => setTimeout(resolve, 800));
+
+        // Si mientras esperábamos la llamada terminó (agente colgó, etc.), no reintentamos
+        if (this.isCallEnding(call)) {
+          return;
+        }
+        try {
+          const nuevoCustomerChannel = await this.ariService.originate(
+            `PJSIP/${call.phone}@itelbox-out`,
+            `bridge,${call.bridgeId}`,
+          );
+
+          call.customerChannelId = nuevoCustomerChannel.id;
+          call.status = CALL_STATUS.DIALING_CUSTOMER;
+          this.linkChannel(call.agentChannelId, nuevoCustomerChannel.id);
+
+          this.logger.log(
+            `🔁 Reintento exitoso, nuevo canal cliente: ${nuevoCustomerChannel.id}`,
+          );
+          return;
+        } catch (error: any) {
+          this.logger.error(
+            `Reintento tras ${dialStatus} también falló para ${call.phone}: ${error?.message}`,
+          );
+          // sigue abajo y termina la llamada normalmente
+        }
+      }
+
+      this.callEventsService.noAnswer({
+        extension: call.extension,
+        channelId,
+      });
+
+      await this.endCall(call, `dial-${dialStatus.toLowerCase()}`);
+      return;
+    }
+
     if (
       dialStatus === 'NOANSWER' ||
       dialStatus === 'BUSY' ||
-      dialStatus === 'CANCEL' ||
-      dialStatus === 'CONGESTION' ||
-      dialStatus === 'CHANUNAVAIL'
+      dialStatus === 'CANCEL'
     ) {
       this.callEventsService.noAnswer({
         extension: call.extension,

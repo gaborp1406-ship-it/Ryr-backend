@@ -10,10 +10,11 @@ export declare class LeadController {
     obtenerEtapaActualLead(id_lead: number): Promise<any>;
     finalizarEtapaLead(id_lead_etapa: number): Promise<any>;
     obtenerEstadoContactoLead(id_lead: number): Promise<any>;
+    registrarPrimerContacto(id_estado_contacto: number): Promise<any>;
     obtenerInfoEstadoReunionLead(id_lead: number): Promise<any>;
     obtenerHistorialCorreo(id_estado_contacto: number, tipo_historial: number): Promise<any>;
     obtenerHistorialWhatsapp(id_estado_contacto: number, tipo_historial: number): Promise<any>;
-    obtenerHistorialLlamadas(id_estado_contacto: number, tipo_historial: number): Promise<any>;
+    obtenerHistorialLlamadas(id_etapa_lead: number, tipo_historial: number): Promise<any>;
     registrarWhatsapp(data: {
         id_estado_contacto: number;
         url_evidencia: string;
@@ -49,6 +50,7 @@ export declare class LeadController {
         fecha: string;
         hora: string;
         idUsuarioCreacion: number;
+        lugar_plataforma: string;
     }): Promise<any>;
     listarActividadesAsesores(body: {
         fechaInicio?: string;
@@ -71,8 +73,8 @@ export declare class LeadController {
     obtenerInfoAgendarReuLead(idLead: number): Promise<any>;
     registrarWhatsappReunion(data: {
         id_estado_reunion: number;
-        url_evidencia: string;
-        mensaje?: string;
+        fecha: string;
+        hora: string;
         tipo_historial: number;
     }): Promise<any>;
     registrarCorreoReunion(data: {

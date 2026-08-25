@@ -111,11 +111,11 @@ let LeadRepository = class LeadRepository {
     FROM fn_obtener_historial_contacto_whatsapp($1, $2)
     `, [id_estado_contacto, tipo_historial]);
     }
-    async obtenerHistorialLlamadas(id_estado_contacto, tipo_historial) {
+    async obtenerHistorialLlamadas(id_etapa_lead, tipo_historial) {
         return await this.dataSource.query(`
     SELECT *
     FROM fn_obtener_historial_contacto_llamadas($1, $2)
-    `, [id_estado_contacto, tipo_historial]);
+    `, [id_etapa_lead, tipo_historial]);
     }
     async registrarWhatsapp(data) {
         const result = await this.dataSource.query(`
@@ -199,7 +199,8 @@ let LeadRepository = class LeadRepository {
       $5,
       $6,
       $7,
-      $8
+      $8,
+      $9
     )
     `, [
             data.idAsesor,
@@ -209,7 +210,8 @@ let LeadRepository = class LeadRepository {
             data.descripcion,
             data.fecha,
             data.hora,
-            data.idUsuarioCreacion
+            data.idUsuarioCreacion,
+            data.lugar_plataforma
         ]);
         return result[0] ?? null;
     }
@@ -261,16 +263,16 @@ let LeadRepository = class LeadRepository {
     }
     async registrarWhatsappreunion(data) {
         const result = await this.dataSource.query(`
-      SELECT fn_guardar_whatsapp_evidencia_reunion(
-        $1,
-        $2,
-        $3,
-        $4
-      ) AS id
-    `, [
+    SELECT fn_guardar_whatsapp_evidencia_reunion(
+      $1,
+      $2,
+      $3,
+      $4
+    ) AS id
+  `, [
             data.id_estado_reunion,
-            data.url_evidencia,
-            data.mensaje ?? null,
+            data.fecha,
+            data.hora,
             data.tipo_historial,
         ]);
         return result[0];
@@ -318,6 +320,12 @@ let LeadRepository = class LeadRepository {
         return await this.dataSource.query(`
     SELECT fn_finalizar_etapa_oportunidad_desistio($1, $2) AS resultado
     `, [id_lead, motivo ?? null]);
+    }
+    async registrarPrimerContacto(id_estado_contacto) {
+        const result = await this.dataSource.query(`
+      SELECT fn_registrar_primer_contacto($1);
+    `, [id_estado_contacto]);
+        return result[0];
     }
 };
 exports.LeadRepository = LeadRepository;

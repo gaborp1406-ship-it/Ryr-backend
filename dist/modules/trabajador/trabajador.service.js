@@ -17,93 +17,59 @@ let TrabajadorService = class TrabajadorService {
     constructor(trabajadorRepository) {
         this.trabajadorRepository = trabajadorRepository;
     }
-    async registrarTrabajador(data) {
+    async listarEstadosConexion() {
         try {
-            const result = await this.trabajadorRepository.per_registro_trabajador(data.idTipoDocumento, data.nroDocumento, data.nombre, data.apellido, data.correo, data.celular, data.fechaNacimiento, data.campanias, data.id_trabajador ?? null);
+            return await this.trabajadorRepository.fn_listar_estados_conexion();
+        }
+        catch (error) {
+            console.log('Error al listar estados de conexión:', error);
+            throw new common_1.InternalServerErrorException('Error al listar estados de conexión');
+        }
+    }
+    async obtenerEstadoActual(id_trabajador) {
+        try {
+            const result = await this.trabajadorRepository.fn_obtener_estado_actual_asesor(id_trabajador);
             if (!result) {
-                throw new Error('Error inesperado al registrar trabajador');
+                throw new common_1.BadRequestException('El trabajador no tiene un estado registrado');
             }
             return result;
         }
         catch (error) {
-            console.log('Error al registrar trabajador:', error);
+            console.log('Error al obtener estado actual:', error);
+            throw error instanceof common_1.BadRequestException
+                ? error
+                : new common_1.InternalServerErrorException('Error al obtener estado actual');
         }
     }
-    async obtenerEstadoConexionAgente(data) {
+    async cambiarEstado(id_trabajador, id_estado) {
         try {
-            if (!data || !data.id_trabajador) {
-                throw new common_1.BadRequestException('id_trabajador es requerido');
-            }
-            const result = await this.trabajadorRepository.per_obtener_estado_conexion_agente(data.id_trabajador);
+            const result = await this.trabajadorRepository.fn_cambiar_estado_asesor(id_trabajador, id_estado);
             if (!result) {
-                throw new common_1.InternalServerErrorException('Error al obtener estado del trabajador.');
+                throw new Error('Error inesperado al cambiar estado');
             }
             return result;
         }
         catch (error) {
-            if (error)
-                throw error;
-            throw new common_1.InternalServerErrorException(error);
+            console.log('Error al cambiar estado:', error);
+            throw new common_1.InternalServerErrorException('Error al cambiar estado');
         }
     }
-    async listarTrabajadoresAgentes(data) {
+    async listarEstadoActualTrabajadores(id_estado) {
         try {
-            const result = await this.trabajadorRepository.fn_listar_trabajadores_agentes(data.id_trabajador ?? undefined, data.id_estado_conexion ?? undefined, data.busqueda ?? undefined, data.id_campania ?? undefined, data.limit ?? undefined, data.offset ?? undefined);
-            console.log('Result from Repository:', result);
-            if (!result.data || result.data.length === 0) {
-                return { data: [], total: 0 };
-            }
-            return result;
+            return await this.trabajadorRepository.fn_listar_estado_actual_trabajadores(id_estado ?? null);
         }
         catch (error) {
-            if (error)
-                throw error;
-            throw new common_1.InternalServerErrorException(error);
+            console.log('Error al listar estado actual de trabajadores:', error);
+            throw new common_1.InternalServerErrorException('Error al listar estado actual de trabajadores');
         }
     }
-    async cambiarEstadoConexionAgente(data) {
+    async historialEstadoTrabajador(id_trabajador, id_estado, fecha_desde, fecha_hasta) {
         try {
-            const result = await this.trabajadorRepository.fn_cambiar_estado_conexion_agente(data.id_trabajador, data.id_estado_conexion_inicial);
-            return result;
+            return await this.trabajadorRepository.fn_historial_estado_trabajador(id_trabajador, id_estado ?? null, fecha_desde ?? null, fecha_hasta ?? null);
         }
         catch (error) {
-            if (error)
-                throw error;
-            throw new common_1.InternalServerErrorException(error);
-        }
-    }
-    async listadoRoles(id_rol) {
-        return await this.trabajadorRepository.fn_listado_roles(id_rol);
-    }
-    async obtenerTrabajador(id_trabajador) {
-        try {
-            const result = await this.trabajadorRepository.adm_obtener_trabajador(id_trabajador);
-            if (!result) {
-                throw new common_1.InternalServerErrorException('Error al obtener trabajador.');
-            }
-            return result;
-        }
-        catch (error) {
-            if (error)
-                throw error;
-            throw new common_1.InternalServerErrorException(error);
-        }
-    }
-    async listadoEstadosConexion(id_estado_conexion) {
-        return await this.trabajadorRepository.fn_listado_estados_conexion(id_estado_conexion);
-    }
-    async obtenerTrabajadoresPorCampania(id_campania) {
-        try {
-            const result = await this.trabajadorRepository.fn_obtener_trabajadores_por_campania(id_campania);
-            if (!result) {
-                throw new common_1.InternalServerErrorException('Error al obtener los trabajadores de esta camapaña.');
-            }
-            return result;
-        }
-        catch (error) {
-            if (error)
-                throw error;
-            throw new common_1.InternalServerErrorException(error);
+            console.log('Error al obtener historial de estado:', error);
+            throw new common_1.InternalServerErrorException('Error al obtener historial de estado');
         }
     }
 };

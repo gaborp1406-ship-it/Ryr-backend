@@ -13,6 +13,7 @@ interface ICallContext {
     recordingName?: string;
     status: CallStatus;
     endingReason?: string;
+    retriedAfterCongestion?: boolean;
 }
 export declare class AriGateway implements OnModuleInit, OnModuleDestroy {
     private readonly ariService;
@@ -53,6 +54,7 @@ export declare class AriGateway implements OnModuleInit, OnModuleDestroy {
     private onChannelHangupRequest;
     private onStasisEnd;
     private onChannelStateChange;
+    private isCallEnding;
     private onDial;
     private onChannelDestroyed;
     private endCall;

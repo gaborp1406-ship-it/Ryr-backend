@@ -71,6 +71,14 @@ export class LeadController {
     return this.leadService.obtenerEstadoContactoLead(id_lead);
   }
 
+  @Get('registrar-primer-contacto/:id_estado_contacto')
+  @UseGuards(JwtAuthGuard)
+  registrarPrimerContacto(
+    @Param('id_estado_contacto', ParseIntPipe) id_estado_contacto: number,
+  ) {
+    return this.leadService.registrarPrimerContacto(id_estado_contacto);
+  }
+
   @Get('info-estado-reunion/:id_lead')
   @UseGuards(JwtAuthGuard)
   obtenerInfoEstadoReunionLead(
@@ -109,20 +117,28 @@ export class LeadController {
     );
   }
 
-  @Get('historial-llamadas/:id_estado_contacto/:tipo_historial')
+
+
+
+  @Get('historial-llamadas/:id_etapa_lead/:tipo_historial')
   @UseGuards(JwtAuthGuard)
   obtenerHistorialLlamadas(
-    @Param('id_estado_contacto', ParseIntPipe)
-    id_estado_contacto: number,
+    @Param('id_etapa_lead', ParseIntPipe)
+    id_etapa_lead: number,
 
     @Param('tipo_historial', ParseIntPipe)
     tipo_historial: number,
   ) {
     return this.leadService.obtenerHistorialLlamadas(
-      id_estado_contacto,
+      id_etapa_lead,
       tipo_historial,
     );
   }
+
+
+
+
+
   @Post('registrar-whatsapp')
   @UseGuards(JwtAuthGuard)
   registrarWhatsapp(
@@ -200,6 +216,8 @@ export class LeadController {
       fecha: string;
       hora: string;
       idUsuarioCreacion: number;
+      lugar_plataforma: string;
+
     },
   ) {
 
@@ -279,8 +297,8 @@ export class LeadController {
     @Body()
     data: {
       id_estado_reunion: number;
-      url_evidencia: string;
-      mensaje?: string;
+      fecha: string;
+      hora: string;
       tipo_historial: number;
     },
   ) {

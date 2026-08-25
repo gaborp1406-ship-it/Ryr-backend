@@ -138,6 +138,15 @@ let LeadService = class LeadService {
             throw error;
         }
     }
+    async registrarPrimerContacto(id_estado_contacto) {
+        try {
+            return await this.leadRepository.registrarPrimerContacto(id_estado_contacto);
+        }
+        catch (error) {
+            console.log('Error al registrar el primer contacto:', error);
+            throw error;
+        }
+    }
     async obtenerInfoEstadoReunionLead(id_lead) {
         try {
             return await this.leadRepository.obtenerInfoEstadoReunionLead(id_lead);
@@ -153,8 +162,8 @@ let LeadService = class LeadService {
     async obtenerHistorialWhatsapp(id_estado_contacto, tipo_historial) {
         return await this.leadRepository.obtenerHistorialWhatsapp(id_estado_contacto, tipo_historial);
     }
-    async obtenerHistorialLlamadas(id_estado_contacto, tipo_historial) {
-        return await this.leadRepository.obtenerHistorialLlamadas(id_estado_contacto, tipo_historial);
+    async obtenerHistorialLlamadas(id_etapa_lead, tipo_historial) {
+        return await this.leadRepository.obtenerHistorialLlamadas(id_etapa_lead, tipo_historial);
     }
     async registrarWhatsapp(data) {
         try {
@@ -271,14 +280,7 @@ let LeadService = class LeadService {
     }
     async registrarWhatsappreunion(data) {
         try {
-            let url = data.url_evidencia;
-            if (url && url.startsWith('data:')) {
-                url = await this.subirEvidenciaBase64(url);
-            }
-            return await this.leadRepository.registrarWhatsappreunion({
-                ...data,
-                url_evidencia: url,
-            });
+            return await this.leadRepository.registrarWhatsappreunion(data);
         }
         catch (error) {
             console.log('Error al registrar whatsapp:', error);

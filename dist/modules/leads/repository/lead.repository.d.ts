@@ -13,7 +13,7 @@ export declare class LeadRepository {
     obtenerInfoEstadoReunionLead(id_lead: number): Promise<any>;
     obtenerHistorialCorreo(id_estado_contacto: number, tipo_historial: number): Promise<any>;
     obtenerHistorialWhatsapp(id_estado_contacto: number, tipo_historial: number): Promise<any>;
-    obtenerHistorialLlamadas(id_estado_contacto: number, tipo_historial: number): Promise<any>;
+    obtenerHistorialLlamadas(id_etapa_lead: number, tipo_historial: number): Promise<any>;
     registrarWhatsapp(data: {
         id_estado_contacto: number;
         url_evidencia: string;
@@ -41,6 +41,7 @@ export declare class LeadRepository {
         fecha: string;
         hora: string;
         idUsuarioCreacion: number;
+        lugar_plataforma: string;
     }): Promise<any>;
     listarActividadesAsesores(data: {
         fechaInicio?: string | null;
@@ -57,8 +58,8 @@ export declare class LeadRepository {
     obtenerInfoAgendarReuLead(idLead: number): Promise<any>;
     registrarWhatsappreunion(data: {
         id_estado_reunion: number;
-        url_evidencia: string;
-        mensaje?: string;
+        fecha: string;
+        hora: string;
         tipo_historial: number;
     }): Promise<any>;
     registrarCorreoreunion(data: {
@@ -72,4 +73,5 @@ export declare class LeadRepository {
     obtenerTodasActividades(id_lead: number): Promise<any>;
     finalizarEtapaAtencion(id_lead: number): Promise<any>;
     finalizarEtapaOportunidadDesistio(id_lead: number, motivo?: number): Promise<any>;
+    registrarPrimerContacto(id_estado_contacto: number): Promise<any>;
 }

@@ -9,64 +9,59 @@ import {
   Param,
 } from '@nestjs/common';
 import { TrabajadorService } from './trabajador.service';
-import { TrabajadorRequestDto } from './dto/trabajador-request.dto';
-import { ListTrabajadoresDTO } from './dto/list-trabajador.dto';
 import { JwtAuthGuard } from '../auth/guard/jwt-auth.guard';
+import { CambiarEstadoDto } from './dto/cambiar-estado.dto';
+
 @Controller('trabajador')
 export class TrabajadorController {
   constructor(private readonly TrabajadorService: TrabajadorService) {}
 
-  @Post('registrar')
+
+
+  @Get('estados-conexion')
   @UseGuards(JwtAuthGuard)
-  registrarTrabajador(@Body() data: TrabajadorRequestDto) {
-    return this.TrabajadorService.registrarTrabajador(data);
+  listarEstadosConexion() {
+    return this.TrabajadorService.listarEstadosConexion();
   }
 
-  //Servicio que se ejecuta antes de hacer una llamada
-  @Post('obtener-estado-trabajador')
+  @Get(':id/estado-actual')
   @UseGuards(JwtAuthGuard)
-  obtenerEstadoTrabajador(@Body() data: TrabajadorRequestDto) {
-    return this.TrabajadorService.obtenerEstadoConexionAgente(data);
+  obtenerEstadoActual(@Param('id', ParseIntPipe) id: number) {
+    return this.TrabajadorService.obtenerEstadoActual(id);
   }
 
-  @Get('listar-trabajadores-agentes')
+  @Post('estado/cambiar')
   @UseGuards(JwtAuthGuard)
-  listarTrabajadoresAgentes(@Query() data: ListTrabajadoresDTO) {
-    return this.TrabajadorService.listarTrabajadoresAgentes(data);
+  cambiarEstado(@Body() data: CambiarEstadoDto) {
+    return this.TrabajadorService.cambiarEstado(
+      data.id_trabajador,
+      data.id_estado,
+    );
   }
 
-  @Post('cambiar-estado-conexion')
+  @Get('estado-actual')
   @UseGuards(JwtAuthGuard)
-  cambiarEstadoConexionAgente(@Body() data: TrabajadorRequestDto) {
-    return this.TrabajadorService.cambiarEstadoConexionAgente(data);
-  }
-
-  @Get('listar-roles')
-  @UseGuards(JwtAuthGuard)
-  listarRoles(
-    @Query('id_rol', new ParseIntPipe({ optional: true })) id_rol?: number,
+  listarEstadoActualTrabajadores(
+    @Query('id_estado') id_estado?: string,
   ) {
-    return this.TrabajadorService.listadoRoles(id_rol);
+    return this.TrabajadorService.listarEstadoActualTrabajadores(
+      id_estado ? Number(id_estado) : undefined,
+    );
   }
 
-  @Get('obtener-trabajador/:id')
+  @Get(':id/historial-estado')
   @UseGuards(JwtAuthGuard)
-  obtenerTrabajador(@Param('id', new ParseIntPipe()) id: number) {
-    return this.TrabajadorService.obtenerTrabajador(id);
-  }
-
-  @Get('listar-estados-conexion')
-  @UseGuards(JwtAuthGuard)
-  listarEstadosConexion(
-    @Param('id_estado_conexion', new ParseIntPipe({ optional: true }))
-    id_estado_conexion?: number,
+  historialEstadoTrabajador(
+    @Param('id', ParseIntPipe) id: number,
+    @Query('id_estado') id_estado?: string,
+    @Query('fecha_desde') fecha_desde?: string,
+    @Query('fecha_hasta') fecha_hasta?: string,
   ) {
-    return this.TrabajadorService.listadoEstadosConexion(id_estado_conexion);
-  }
-
-  @Get('obtener-trabajador-campania/:id')
-  @UseGuards(JwtAuthGuard)
-  obtenerTrabajadorPorCamapania(@Param('id', new ParseIntPipe()) id: number) {
-    return this.TrabajadorService.obtenerTrabajadoresPorCampania(id);
+    return this.TrabajadorService.historialEstadoTrabajador(
+      id,
+      id_estado ? Number(id_estado) : undefined,
+      fecha_desde,
+      fecha_hasta,
+    );
   }
 }

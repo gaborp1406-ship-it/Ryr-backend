@@ -71,17 +71,17 @@ export class LeadRepository {
     return result;
   }
 
-async obtenerEtapaActualLead(id_lead: number) {
-  const result = await this.dataSource.query(
-    `
+  async obtenerEtapaActualLead(id_lead: number) {
+    const result = await this.dataSource.query(
+      `
       SELECT *
       FROM fn_obtener_etapa_actual_lead($1)
     `,
-    [id_lead],
-  );
+      [id_lead],
+    );
 
-  return result;
-}
+    return result;
+  }
 
 
 
@@ -165,7 +165,7 @@ async obtenerEtapaActualLead(id_lead: number) {
   }
 
   async obtenerHistorialLlamadas(
-    id_estado_contacto: number,
+    id_etapa_lead: number,
     tipo_historial: number,
   ) {
     return await this.dataSource.query(
@@ -173,7 +173,7 @@ async obtenerEtapaActualLead(id_lead: number) {
     SELECT *
     FROM fn_obtener_historial_contacto_llamadas($1, $2)
     `,
-      [id_estado_contacto, tipo_historial],
+      [id_etapa_lead, tipo_historial],
     );
   }
 
@@ -313,6 +313,7 @@ async obtenerEtapaActualLead(id_lead: number) {
       fecha: string;
       hora: string;
       idUsuarioCreacion: number;
+      lugar_plataforma: string;
     }
   ) {
 
@@ -328,7 +329,8 @@ async obtenerEtapaActualLead(id_lead: number) {
       $5,
       $6,
       $7,
-      $8
+      $8,
+      $9
     )
     `,
       [
@@ -339,7 +341,8 @@ async obtenerEtapaActualLead(id_lead: number) {
         data.descripcion,
         data.fecha,
         data.hora,
-        data.idUsuarioCreacion
+        data.idUsuarioCreacion,
+        data.lugar_plataforma
       ]
     );
 
@@ -436,31 +439,32 @@ async obtenerEtapaActualLead(id_lead: number) {
 
   }
 
-  async registrarWhatsappreunion(data: {
-    id_estado_reunion: number;
-    url_evidencia: string;
-    mensaje?: string;
-    tipo_historial: number;
-  }) {
-    const result = await this.dataSource.query(
-      `
-      SELECT fn_guardar_whatsapp_evidencia_reunion(
-        $1,
-        $2,
-        $3,
-        $4
-      ) AS id
-    `,
-      [
-        data.id_estado_reunion,
-        data.url_evidencia,
-        data.mensaje ?? null,
-        data.tipo_historial,
-      ],
-    );
+// Repository
+async registrarWhatsappreunion(data: {
+  id_estado_reunion: number;
+  fecha: string;
+  hora: string;
+  tipo_historial: number;
+}) {
+  const result = await this.dataSource.query(
+    `
+    SELECT fn_guardar_whatsapp_evidencia_reunion(
+      $1,
+      $2,
+      $3,
+      $4
+    ) AS id
+  `,
+    [
+      data.id_estado_reunion,
+      data.fecha,
+      data.hora,
+      data.tipo_historial,
+    ],
+  );
 
-    return result[0];
-  }
+  return result[0];
+}
 
   async registrarCorreoreunion(data: {
     id_estado_reunion: number;
@@ -533,14 +537,25 @@ async obtenerEtapaActualLead(id_lead: number) {
   }
 
   async finalizarEtapaOportunidadDesistio(
-  id_lead: number,
-  motivo?: number,
-) {
-  return await this.dataSource.query(
-    `
+    id_lead: number,
+    motivo?: number,
+  ) {
+    return await this.dataSource.query(
+      `
     SELECT fn_finalizar_etapa_oportunidad_desistio($1, $2) AS resultado
     `,
-    [id_lead, motivo ?? null],
+      [id_lead, motivo ?? null],
+    );
+  }
+
+  async registrarPrimerContacto(id_estado_contacto: number) {
+  const result = await this.dataSource.query(
+    `
+      SELECT fn_registrar_primer_contacto($1);
+    `,
+    [id_estado_contacto],
   );
+
+  return result[0];
 }
 }

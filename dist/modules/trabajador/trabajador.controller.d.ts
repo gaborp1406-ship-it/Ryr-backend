@@ -1,15 +1,11 @@
 import { TrabajadorService } from './trabajador.service';
-import { TrabajadorRequestDto } from './dto/trabajador-request.dto';
-import { ListTrabajadoresDTO } from './dto/list-trabajador.dto';
+import { CambiarEstadoDto } from './dto/cambiar-estado.dto';
 export declare class TrabajadorController {
     private readonly TrabajadorService;
     constructor(TrabajadorService: TrabajadorService);
-    registrarTrabajador(data: TrabajadorRequestDto): Promise<import("../../interfaces/responses.interface").Response | undefined>;
-    obtenerEstadoTrabajador(data: TrabajadorRequestDto): Promise<import("../../interfaces/responses.interface").JSONResponse>;
-    listarTrabajadoresAgentes(data: ListTrabajadoresDTO): Promise<import("./dto/trabajador.dto").ListTrabajadoresResponseDTO>;
-    cambiarEstadoConexionAgente(data: TrabajadorRequestDto): Promise<import("../../interfaces/responses.interface").JSONResponse>;
-    listarRoles(id_rol?: number): Promise<import("./interfaces/trabajador.interface").RolListado[]>;
-    obtenerTrabajador(id: number): Promise<import("./interfaces/trabajador.interface").Trabajador[]>;
-    listarEstadosConexion(id_estado_conexion?: number): Promise<import("./interfaces/trabajador.interface").EstadosConexionListado[]>;
-    obtenerTrabajadorPorCamapania(id: number): Promise<import("./interfaces/trabajador-por-campania.interface").ITrabajadorPorCampania[]>;
+    listarEstadosConexion(): Promise<any>;
+    obtenerEstadoActual(id: number): Promise<any>;
+    cambiarEstado(data: CambiarEstadoDto): Promise<any>;
+    listarEstadoActualTrabajadores(id_estado?: string): Promise<any>;
+    historialEstadoTrabajador(id: number, id_estado?: string, fecha_desde?: string, fecha_hasta?: string): Promise<any>;
 }
