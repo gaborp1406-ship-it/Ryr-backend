@@ -439,15 +439,15 @@ export class LeadRepository {
 
   }
 
-// Repository
-async registrarWhatsappreunion(data: {
-  id_estado_reunion: number;
-  fecha: string;
-  hora: string;
-  tipo_historial: number;
-}) {
-  const result = await this.dataSource.query(
-    `
+  // Repository
+  async registrarWhatsappreunion(data: {
+    id_estado_reunion: number;
+    fecha: string;
+    hora: string;
+    tipo_historial: number;
+  }) {
+    const result = await this.dataSource.query(
+      `
     SELECT fn_guardar_whatsapp_evidencia_reunion(
       $1,
       $2,
@@ -455,16 +455,16 @@ async registrarWhatsappreunion(data: {
       $4
     ) AS id
   `,
-    [
-      data.id_estado_reunion,
-      data.fecha,
-      data.hora,
-      data.tipo_historial,
-    ],
-  );
+      [
+        data.id_estado_reunion,
+        data.fecha,
+        data.hora,
+        data.tipo_historial,
+      ],
+    );
 
-  return result[0];
-}
+    return result[0];
+  }
 
   async registrarCorreoreunion(data: {
     id_estado_reunion: number;
@@ -549,13 +549,42 @@ async registrarWhatsappreunion(data: {
   }
 
   async registrarPrimerContacto(id_estado_contacto: number) {
-  const result = await this.dataSource.query(
-    `
+    const result = await this.dataSource.query(
+      `
       SELECT fn_registrar_primer_contacto($1);
     `,
-    [id_estado_contacto],
-  );
+      [id_estado_contacto],
+    );
 
-  return result[0];
+    return result[0];
+  }
+  async actualizarChecklistNegociacion(
+    id_lead_etapa: number,
+    campo: string,
+    valor: boolean,
+  ) {
+    return await this.dataSource.query(
+      `
+      SELECT *
+      FROM public.fn_actualizar_checklist_negociacion($1, $2, $3)
+    `,
+      [
+        id_lead_etapa,
+        campo,
+        valor,
+      ],
+    );
+  }
+
+  async obtenerChecklistNegociacion(
+  id_lead: number,
+) {
+  return await this.dataSource.query(
+    `
+      SELECT *
+      FROM public.fn_obtener_checklist_negociacion($1)
+    `,
+    [id_lead],
+  );
 }
 }

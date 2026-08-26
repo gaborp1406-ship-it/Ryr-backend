@@ -184,15 +184,15 @@ export class LeadService {
   }
 
   async registrarPrimerContacto(id_estado_contacto: number) {
-  try {
-    return await this.leadRepository.registrarPrimerContacto(
-      id_estado_contacto,
-    );
-  } catch (error) {
-    console.log('Error al registrar el primer contacto:', error);
-    throw error;
+    try {
+      return await this.leadRepository.registrarPrimerContacto(
+        id_estado_contacto,
+      );
+    } catch (error) {
+      console.log('Error al registrar el primer contacto:', error);
+      throw error;
+    }
   }
-}
 
   async obtenerInfoEstadoReunionLead(id_lead: number) {
     try {
@@ -487,20 +487,20 @@ export class LeadService {
 
 
 
-// Service
-async registrarWhatsappreunion(data: {
-  id_estado_reunion: number;
-  fecha: string;
-  hora: string;
-  tipo_historial: number;
-}) {
-  try {
-    return await this.leadRepository.registrarWhatsappreunion(data);
-  } catch (error) {
-    console.log('Error al registrar whatsapp:', error);
-    throw error;
+  // Service
+  async registrarWhatsappreunion(data: {
+    id_estado_reunion: number;
+    fecha: string;
+    hora: string;
+    tipo_historial: number;
+  }) {
+    try {
+      return await this.leadRepository.registrarWhatsappreunion(data);
+    } catch (error) {
+      console.log('Error al registrar whatsapp:', error);
+      throw error;
+    }
   }
-}
 
   async registrarCorreoreunion(data: {
     id_estado_reunion: number;
@@ -561,4 +561,24 @@ async registrarWhatsappreunion(data: {
       motivo,
     );
   }
+
+  async actualizarChecklistNegociacion(
+  id_lead_etapa: number,
+  campo: string,
+  valor: boolean,
+) {
+  return await this.leadRepository.actualizarChecklistNegociacion(
+    id_lead_etapa,
+    campo,
+    valor,
+  );
+}
+
+async obtenerChecklistNegociacion(
+  id_lead: number,
+) {
+  return await this.leadRepository.obtenerChecklistNegociacion(
+    id_lead,
+  );
+}
 }

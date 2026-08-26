@@ -108,8 +108,11 @@ let LeadController = class LeadController {
     finalizarEtapaAtencion(id_lead) {
         return this.leadService.finalizarEtapaAtencion(id_lead);
     }
-    finalizarEtapaOportunidadDesistio(id_lead, motivo) {
-        return this.leadService.finalizarEtapaOportunidadDesistio(id_lead, motivo);
+    actualizarChecklistNegociacion(id_lead_etapa, campo, valor) {
+        return this.leadService.actualizarChecklistNegociacion(id_lead_etapa, campo, valor);
+    }
+    obtenerChecklistNegociacion(id_lead) {
+        return this.leadService.obtenerChecklistNegociacion(id_lead);
     }
 };
 exports.LeadController = LeadController;
@@ -351,14 +354,21 @@ __decorate([
     __metadata("design:returntype", void 0)
 ], LeadController.prototype, "finalizarEtapaAtencion", null);
 __decorate([
-    (0, common_1.Post)('finalizar-etapa-oportunidad-desistio/:id_lead'),
-    (0, common_1.UseGuards)(jwt_auth_guard_1.JwtAuthGuard),
-    __param(0, (0, common_1.Param)('id_lead', common_1.ParseIntPipe)),
-    __param(1, (0, common_1.Body)('motivo')),
+    (0, common_1.Post)('etapa-negociacion/checklist'),
+    __param(0, (0, common_1.Body)('id_lead_etapa', common_1.ParseIntPipe)),
+    __param(1, (0, common_1.Body)('campo')),
+    __param(2, (0, common_1.Body)('valor')),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [Number, Number]),
+    __metadata("design:paramtypes", [Number, String, Boolean]),
     __metadata("design:returntype", void 0)
-], LeadController.prototype, "finalizarEtapaOportunidadDesistio", null);
+], LeadController.prototype, "actualizarChecklistNegociacion", null);
+__decorate([
+    (0, common_1.Get)('etapa-negociacion/checklist/:id_lead'),
+    __param(0, (0, common_1.Param)('id_lead', common_1.ParseIntPipe)),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [Number]),
+    __metadata("design:returntype", void 0)
+], LeadController.prototype, "obtenerChecklistNegociacion", null);
 exports.LeadController = LeadController = __decorate([
     (0, common_1.Controller)('lead'),
     __metadata("design:paramtypes", [leads_service_1.LeadService])

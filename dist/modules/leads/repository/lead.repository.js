@@ -327,6 +327,22 @@ let LeadRepository = class LeadRepository {
     `, [id_estado_contacto]);
         return result[0];
     }
+    async actualizarChecklistNegociacion(id_lead_etapa, campo, valor) {
+        return await this.dataSource.query(`
+      SELECT *
+      FROM public.fn_actualizar_checklist_negociacion($1, $2, $3)
+    `, [
+            id_lead_etapa,
+            campo,
+            valor,
+        ]);
+    }
+    async obtenerChecklistNegociacion(id_lead) {
+        return await this.dataSource.query(`
+      SELECT *
+      FROM public.fn_obtener_checklist_negociacion($1)
+    `, [id_lead]);
+    }
 };
 exports.LeadRepository = LeadRepository;
 exports.LeadRepository = LeadRepository = __decorate([

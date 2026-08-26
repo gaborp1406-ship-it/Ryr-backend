@@ -366,18 +366,31 @@ export class LeadController {
   ) {
     return this.leadService.finalizarEtapaAtencion(id_lead);
   }
-  @Post('finalizar-etapa-oportunidad-desistio/:id_lead')
-  @UseGuards(JwtAuthGuard)
-  finalizarEtapaOportunidadDesistio(
+  @Post('etapa-negociacion/checklist')
+  actualizarChecklistNegociacion(
+    @Body('id_lead_etapa', ParseIntPipe)
+    id_lead_etapa: number,
+
+    @Body('campo')
+    campo: string,
+
+    @Body('valor')
+    valor: boolean,
+  ) {
+    return this.leadService.actualizarChecklistNegociacion(
+      id_lead_etapa,
+      campo,
+      valor,
+    );
+  }
+
+  @Get('etapa-negociacion/checklist/:id_lead')
+  obtenerChecklistNegociacion(
     @Param('id_lead', ParseIntPipe)
     id_lead: number,
-
-    @Body('motivo')
-    motivo?: number,
   ) {
-    return this.leadService.finalizarEtapaOportunidadDesistio(
+    return this.leadService.obtenerChecklistNegociacion(
       id_lead,
-      motivo,
     );
   }
 }

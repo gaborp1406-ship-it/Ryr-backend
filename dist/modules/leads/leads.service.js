@@ -318,6 +318,12 @@ let LeadService = class LeadService {
     async finalizarEtapaOportunidadDesistio(id_lead, motivo) {
         return await this.leadRepository.finalizarEtapaOportunidadDesistio(id_lead, motivo);
     }
+    async actualizarChecklistNegociacion(id_lead_etapa, campo, valor) {
+        return await this.leadRepository.actualizarChecklistNegociacion(id_lead_etapa, campo, valor);
+    }
+    async obtenerChecklistNegociacion(id_lead) {
+        return await this.leadRepository.obtenerChecklistNegociacion(id_lead);
+    }
 };
 exports.LeadService = LeadService;
 exports.LeadService = LeadService = __decorate([
