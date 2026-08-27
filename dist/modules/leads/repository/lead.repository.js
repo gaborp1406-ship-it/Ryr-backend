@@ -321,6 +321,11 @@ let LeadRepository = class LeadRepository {
     SELECT fn_finalizar_etapa_oportunidad_desistio($1, $2) AS resultado
     `, [id_lead, motivo ?? null]);
     }
+    async finalizarEtapaNegociacion(id_lead) {
+        return await this.dataSource.query(`
+      SELECT fn_finalizar_etapa_negociacion($1) AS resultado
+    `, [id_lead]);
+    }
     async registrarPrimerContacto(id_estado_contacto) {
         const result = await this.dataSource.query(`
       SELECT fn_registrar_primer_contacto($1);
@@ -341,6 +346,22 @@ let LeadRepository = class LeadRepository {
         return await this.dataSource.query(`
       SELECT *
       FROM public.fn_obtener_checklist_negociacion($1)
+    `, [id_lead]);
+    }
+    async actualizarChecklistCierre(id_lead_etapa, campo, valor) {
+        return await this.dataSource.query(`
+      SELECT *
+      FROM public.fn_actualizar_checklist_cierre($1, $2, $3)
+    `, [
+            id_lead_etapa,
+            campo,
+            valor,
+        ]);
+    }
+    async obtenerChecklistCierre(id_lead) {
+        return await this.dataSource.query(`
+      SELECT *
+      FROM public.fn_obtener_checklist_cierre($1)
     `, [id_lead]);
     }
 };

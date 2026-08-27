@@ -69,11 +69,17 @@ let LeadController = class LeadController {
     finalizarEtapaContactoDesistio(data) {
         return this.leadService.finalizarEtapaContactoDesistio(data);
     }
+    finalizarEtapaOportunidadDesistio(data) {
+        return this.leadService.finalizarEtapaOportunidadDesistio(data.id_lead, data.motivo);
+    }
     obtenerInfoDesistioLead(idLead) {
         return this.leadService.obtenerInfoDesistioLead(idLead);
     }
     agendarReunion(body) {
         return this.leadService.agendarReunion(body);
+    }
+    finalizarEtapaNegociacion(id_lead) {
+        return this.leadService.finalizarEtapaNegociacion(id_lead);
     }
     listarActividadesAsesores(body) {
         return this.leadService.listarActividadesAsesores(body);
@@ -113,6 +119,12 @@ let LeadController = class LeadController {
     }
     obtenerChecklistNegociacion(id_lead) {
         return this.leadService.obtenerChecklistNegociacion(id_lead);
+    }
+    actualizarChecklistCierre(id_lead_etapa, campo, valor) {
+        return this.leadService.actualizarChecklistCierre(id_lead_etapa, campo, valor);
+    }
+    obtenerChecklistCierre(id_lead) {
+        return this.leadService.obtenerChecklistCierre(id_lead);
     }
 };
 exports.LeadController = LeadController;
@@ -248,6 +260,14 @@ __decorate([
     __metadata("design:returntype", void 0)
 ], LeadController.prototype, "finalizarEtapaContactoDesistio", null);
 __decorate([
+    (0, common_1.Post)('finalizar-etapa-oportunidad-desistio'),
+    (0, common_1.UseGuards)(jwt_auth_guard_1.JwtAuthGuard),
+    __param(0, (0, common_1.Body)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [Object]),
+    __metadata("design:returntype", void 0)
+], LeadController.prototype, "finalizarEtapaOportunidadDesistio", null);
+__decorate([
     (0, common_1.Get)('info-desistio-lead/:idLead'),
     (0, common_1.UseGuards)(jwt_auth_guard_1.JwtAuthGuard),
     __param(0, (0, common_1.Param)('idLead', common_1.ParseIntPipe)),
@@ -263,6 +283,14 @@ __decorate([
     __metadata("design:paramtypes", [Object]),
     __metadata("design:returntype", void 0)
 ], LeadController.prototype, "agendarReunion", null);
+__decorate([
+    (0, common_1.Post)('finalizar-etapa-negociacion/:id_lead'),
+    (0, common_1.UseGuards)(jwt_auth_guard_1.JwtAuthGuard),
+    __param(0, (0, common_1.Param)('id_lead', common_1.ParseIntPipe)),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [Number]),
+    __metadata("design:returntype", void 0)
+], LeadController.prototype, "finalizarEtapaNegociacion", null);
 __decorate([
     (0, common_1.Post)('listar-actividades-asesores'),
     (0, common_1.UseGuards)(jwt_auth_guard_1.JwtAuthGuard),
@@ -369,6 +397,22 @@ __decorate([
     __metadata("design:paramtypes", [Number]),
     __metadata("design:returntype", void 0)
 ], LeadController.prototype, "obtenerChecklistNegociacion", null);
+__decorate([
+    (0, common_1.Post)('etapa-cierre/checklist'),
+    __param(0, (0, common_1.Body)('id_lead_etapa', common_1.ParseIntPipe)),
+    __param(1, (0, common_1.Body)('campo')),
+    __param(2, (0, common_1.Body)('valor')),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [Number, String, Boolean]),
+    __metadata("design:returntype", void 0)
+], LeadController.prototype, "actualizarChecklistCierre", null);
+__decorate([
+    (0, common_1.Get)('etapa-cierre/checklist/:id_lead'),
+    __param(0, (0, common_1.Param)('id_lead', common_1.ParseIntPipe)),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [Number]),
+    __metadata("design:returntype", void 0)
+], LeadController.prototype, "obtenerChecklistCierre", null);
 exports.LeadController = LeadController = __decorate([
     (0, common_1.Controller)('lead'),
     __metadata("design:paramtypes", [leads_service_1.LeadService])

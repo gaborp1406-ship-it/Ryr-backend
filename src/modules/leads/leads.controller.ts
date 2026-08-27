@@ -194,6 +194,23 @@ export class LeadController {
     return this.leadService.finalizarEtapaContactoDesistio(data);
 
   }
+
+
+  @Post('finalizar-etapa-oportunidad-desistio')
+  @UseGuards(JwtAuthGuard)
+  finalizarEtapaOportunidadDesistio(
+    @Body() data: {
+      id_lead: number;
+      motivo?: number;
+    },
+  ) {
+    return this.leadService.finalizarEtapaOportunidadDesistio(
+      data.id_lead,
+      data.motivo,
+    );
+  }
+
+
   @Get('info-desistio-lead/:idLead')
   @UseGuards(JwtAuthGuard)
   obtenerInfoDesistioLead(
@@ -224,6 +241,15 @@ export class LeadController {
     return this.leadService.agendarReunion(body);
 
   }
+
+
+  @Post('finalizar-etapa-negociacion/:id_lead')
+@UseGuards(JwtAuthGuard)
+finalizarEtapaNegociacion(
+  @Param('id_lead', ParseIntPipe) id_lead: number,
+) {
+  return this.leadService.finalizarEtapaNegociacion(id_lead);
+}
 
   @Post('listar-actividades-asesores')
   @UseGuards(JwtAuthGuard)
@@ -393,5 +419,33 @@ export class LeadController {
       id_lead,
     );
   }
+ @Post('etapa-cierre/checklist')
+  actualizarChecklistCierre(
+    @Body('id_lead_etapa', ParseIntPipe)
+    id_lead_etapa: number,
+
+    @Body('campo')
+    campo: string,
+
+    @Body('valor')
+    valor: boolean,
+  ) {
+    return this.leadService.actualizarChecklistCierre(
+      id_lead_etapa,
+      campo,
+      valor,
+    );
+  }
+
+  @Get('etapa-cierre/checklist/:id_lead')
+  obtenerChecklistCierre(
+    @Param('id_lead', ParseIntPipe)
+    id_lead: number,
+  ) {
+    return this.leadService.obtenerChecklistCierre(
+      id_lead,
+    );
+  }
 }
+
 

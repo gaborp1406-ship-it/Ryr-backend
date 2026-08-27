@@ -562,6 +562,10 @@ export class LeadService {
     );
   }
 
+  async finalizarEtapaNegociacion(id_lead: number) {
+  return await this.leadRepository.finalizarEtapaNegociacion(id_lead);
+}
+
   async actualizarChecklistNegociacion(
   id_lead_etapa: number,
   campo: string,
@@ -581,4 +585,25 @@ async obtenerChecklistNegociacion(
     id_lead,
   );
 }
+
+ async actualizarChecklistCierre(
+  id_lead_etapa: number,
+  campo: string,
+  valor: boolean,
+) {
+  return await this.leadRepository.actualizarChecklistCierre(
+    id_lead_etapa,
+    campo,
+    valor,
+  );
+}
+
+async obtenerChecklistCierre(
+  id_lead: number,
+) {
+  return await this.leadRepository.obtenerChecklistCierre(
+    id_lead,
+  );
+}
+
 }

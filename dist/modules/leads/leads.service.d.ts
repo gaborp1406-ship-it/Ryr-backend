@@ -85,6 +85,9 @@ export declare class LeadService {
     obtenerTodasActividades(id_lead: number): Promise<any>;
     finalizarEtapaAtencion(id_lead: number): Promise<any>;
     finalizarEtapaOportunidadDesistio(id_lead: number, motivo?: number): Promise<any>;
+    finalizarEtapaNegociacion(id_lead: number): Promise<any>;
     actualizarChecklistNegociacion(id_lead_etapa: number, campo: string, valor: boolean): Promise<any>;
     obtenerChecklistNegociacion(id_lead: number): Promise<any>;
+    actualizarChecklistCierre(id_lead_etapa: number, campo: string, valor: boolean): Promise<any>;
+    obtenerChecklistCierre(id_lead: number): Promise<any>;
 }

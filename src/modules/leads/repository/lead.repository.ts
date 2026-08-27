@@ -548,6 +548,17 @@ export class LeadRepository {
     );
   }
 
+
+  async finalizarEtapaNegociacion(id_lead: number) {
+  return await this.dataSource.query(
+    `
+      SELECT fn_finalizar_etapa_negociacion($1) AS resultado
+    `,
+    [id_lead],
+  );
+}
+
+  
   async registrarPrimerContacto(id_estado_contacto: number) {
     const result = await this.dataSource.query(
       `
@@ -583,6 +594,39 @@ export class LeadRepository {
     `
       SELECT *
       FROM public.fn_obtener_checklist_negociacion($1)
+    `,
+    [id_lead],
+  );
+}
+
+
+
+
+ async actualizarChecklistCierre(
+    id_lead_etapa: number,
+    campo: string,
+    valor: boolean,
+  ) {
+    return await this.dataSource.query(
+      `
+      SELECT *
+      FROM public.fn_actualizar_checklist_cierre($1, $2, $3)
+    `,
+      [
+        id_lead_etapa,
+        campo,
+        valor,
+      ],
+    );
+  }
+
+  async obtenerChecklistCierre(
+  id_lead: number,
+) {
+  return await this.dataSource.query(
+    `
+      SELECT *
+      FROM public.fn_obtener_checklist_cierre($1)
     `,
     [id_lead],
   );
