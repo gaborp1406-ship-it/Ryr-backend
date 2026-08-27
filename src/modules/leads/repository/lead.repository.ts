@@ -549,12 +549,59 @@ export class LeadRepository {
   }
 
 
+
+  async finalizarEtapaNegociacionDesistio(
+    id_lead: number,
+    motivo?: number,
+  ) {
+    return await this.dataSource.query(
+      `
+    SELECT fn_finalizar_etapa_negociacion_desistio($1, $2) AS resultado
+    `,
+      [id_lead, motivo ?? null],
+    );
+  }
+
+    async finalizarEtapaCierreDesistio(
+    id_lead: number,
+    motivo?: number,
+  ) {
+    return await this.dataSource.query(
+      `
+    SELECT fn_finalizar_etapa_cierre_desistio($1, $2) AS resultado
+    `,
+      [id_lead, motivo ?? null],
+    );
+  }
+
+
+
   async finalizarEtapaNegociacion(id_lead: number) {
   return await this.dataSource.query(
     `
       SELECT fn_finalizar_etapa_negociacion($1) AS resultado
     `,
     [id_lead],
+  );
+}
+
+
+ async finalizarEtapaCierre(id_lead: number) {
+  return await this.dataSource.query(
+    `
+      SELECT fn_finalizar_etapa_cierre($1) AS resultado
+    `,
+    [id_lead],
+  );
+}
+
+
+ async finalizarActividad(id_actividad: number) {
+  return await this.dataSource.query(
+    `
+      SELECT fn_finalizar_actividad($1) AS resultado
+    `,
+    [id_actividad],
   );
 }
 

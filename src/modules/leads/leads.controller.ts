@@ -211,6 +211,40 @@ export class LeadController {
   }
 
 
+
+
+
+  @Post('finalizar-etapa-negociacion-desistio')
+  @UseGuards(JwtAuthGuard)
+  finalizarEtapaNegociacionDesistio(
+    @Body() data: {
+      id_lead: number;
+      motivo?: number;
+    },
+  ) {
+    return this.leadService.finalizarEtapaNegociacionDesistio(
+      data.id_lead,
+      data.motivo,
+    );
+  }
+
+
+
+  @Post('finalizar-etapa-cierre-desistio')
+  @UseGuards(JwtAuthGuard)
+  finalizarEtapaCierreDesistio(
+    @Body() data: {
+      id_lead: number;
+      motivo?: number;
+    },
+  ) {
+    return this.leadService.finalizarEtapaCierreDesistio(
+      data.id_lead,
+      data.motivo,
+    );
+  }
+
+
   @Get('info-desistio-lead/:idLead')
   @UseGuards(JwtAuthGuard)
   obtenerInfoDesistioLead(
@@ -244,12 +278,28 @@ export class LeadController {
 
 
   @Post('finalizar-etapa-negociacion/:id_lead')
-@UseGuards(JwtAuthGuard)
-finalizarEtapaNegociacion(
-  @Param('id_lead', ParseIntPipe) id_lead: number,
-) {
-  return this.leadService.finalizarEtapaNegociacion(id_lead);
-}
+  @UseGuards(JwtAuthGuard)
+  finalizarEtapaNegociacion(
+    @Param('id_lead', ParseIntPipe) id_lead: number,
+  ) {
+    return this.leadService.finalizarEtapaNegociacion(id_lead);
+  }
+
+
+
+
+  @Post('finalizar-etapa-cierre/:id_lead')
+  @UseGuards(JwtAuthGuard)
+  finalizarEtapaCierre(
+    @Param('id_lead', ParseIntPipe) id_lead: number,
+  ) {
+    return this.leadService.finalizarEtapaCierre(id_lead);
+  }
+
+
+
+
+
 
   @Post('listar-actividades-asesores')
   @UseGuards(JwtAuthGuard)
@@ -419,7 +469,7 @@ finalizarEtapaNegociacion(
       id_lead,
     );
   }
- @Post('etapa-cierre/checklist')
+  @Post('etapa-cierre/checklist')
   actualizarChecklistCierre(
     @Body('id_lead_etapa', ParseIntPipe)
     id_lead_etapa: number,
@@ -445,6 +495,16 @@ finalizarEtapaNegociacion(
     return this.leadService.obtenerChecklistCierre(
       id_lead,
     );
+  }
+
+
+
+  @Post('finalizar-actividad/:id_actividad')
+  @UseGuards(JwtAuthGuard)
+  finalizarActividad(
+    @Param('id_actividad', ParseIntPipe) id_actividad: number,
+  ) {
+    return this.leadService.finalizarActividad(id_actividad);
   }
 }
 

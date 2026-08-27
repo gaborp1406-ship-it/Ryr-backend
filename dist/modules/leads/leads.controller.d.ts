@@ -44,6 +44,14 @@ export declare class LeadController {
         id_lead: number;
         motivo?: number;
     }): Promise<any>;
+    finalizarEtapaNegociacionDesistio(data: {
+        id_lead: number;
+        motivo?: number;
+    }): Promise<any>;
+    finalizarEtapaCierreDesistio(data: {
+        id_lead: number;
+        motivo?: number;
+    }): Promise<any>;
     obtenerInfoDesistioLead(idLead: number): Promise<any>;
     agendarReunion(body: {
         idAsesor: number;
@@ -57,6 +65,7 @@ export declare class LeadController {
         lugar_plataforma: string;
     }): Promise<any>;
     finalizarEtapaNegociacion(id_lead: number): Promise<any>;
+    finalizarEtapaCierre(id_lead: number): Promise<any>;
     listarActividadesAsesores(body: {
         fechaInicio?: string;
         fechaFin?: string;
@@ -96,4 +105,5 @@ export declare class LeadController {
     obtenerChecklistNegociacion(id_lead: number): Promise<any>;
     actualizarChecklistCierre(id_lead_etapa: number, campo: string, valor: boolean): Promise<any>;
     obtenerChecklistCierre(id_lead: number): Promise<any>;
+    finalizarActividad(id_actividad: number): Promise<any>;
 }

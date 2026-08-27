@@ -321,10 +321,30 @@ let LeadRepository = class LeadRepository {
     SELECT fn_finalizar_etapa_oportunidad_desistio($1, $2) AS resultado
     `, [id_lead, motivo ?? null]);
     }
+    async finalizarEtapaNegociacionDesistio(id_lead, motivo) {
+        return await this.dataSource.query(`
+    SELECT fn_finalizar_etapa_negociacion_desistio($1, $2) AS resultado
+    `, [id_lead, motivo ?? null]);
+    }
+    async finalizarEtapaCierreDesistio(id_lead, motivo) {
+        return await this.dataSource.query(`
+    SELECT fn_finalizar_etapa_cierre_desistio($1, $2) AS resultado
+    `, [id_lead, motivo ?? null]);
+    }
     async finalizarEtapaNegociacion(id_lead) {
         return await this.dataSource.query(`
       SELECT fn_finalizar_etapa_negociacion($1) AS resultado
     `, [id_lead]);
+    }
+    async finalizarEtapaCierre(id_lead) {
+        return await this.dataSource.query(`
+      SELECT fn_finalizar_etapa_cierre($1) AS resultado
+    `, [id_lead]);
+    }
+    async finalizarActividad(id_actividad) {
+        return await this.dataSource.query(`
+      SELECT fn_finalizar_actividad($1) AS resultado
+    `, [id_actividad]);
     }
     async registrarPrimerContacto(id_estado_contacto) {
         const result = await this.dataSource.query(`
