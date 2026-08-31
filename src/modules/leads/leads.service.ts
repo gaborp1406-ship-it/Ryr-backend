@@ -2,10 +2,13 @@ import { Inject, Injectable } from '@nestjs/common';
 import { LeadRepository } from './repository/lead.repository';
 import { ICrearLead, IListarClientesPotenciales } from './interface/leads.interface';
 import { SupabaseClient } from '@supabase/supabase-js';
+import { NotificacionesGateway } from '../notificaciones/notificaciones.gateway';
+import { NotificacionesService } from '../notificaciones/notificaciones.service';
 
 @Injectable()
 export class LeadService {
   constructor(private leadRepository: LeadRepository,
+    private readonly notificacionesService: NotificacionesService,
 
     @Inject("SUPABASE_CLIENT")
     private readonly supabase: SupabaseClient,
@@ -85,33 +88,29 @@ export class LeadService {
     }
   }
   async crearLead(data: ICrearLead) {
-
     try {
-
-      const result =
-        await this.leadRepository.crear_lead(data);
-
+      const result = await this.leadRepository.crear_lead(data);
 
       if (!result) {
-        throw new Error(
-          'No se pudo crear el lead'
-        );
+        throw new Error('No se pudo crear el lead');
       }
 
+      // 🔔 guardar en BD + emitir en tiempo real
+      await this.notificacionesService.crearYEmitir({
+        id_asesor: data.id_asesor,
+        id_lead: result.id_lead,
+        tipo: 'NUEVO_LEAD',
+        titulo: 'Nuevo lead asignado',
+        mensaje: 'Tienes un lead nuevo, revísalo en tu listado',
+      });
 
       return result;
-
-
     } catch (error) {
-
-      console.log(
-        'Error al crear lead:',
-        error
-      );
-
+      console.log('Error al crear lead:', error);
       throw error;
     }
   }
+
   async listarClientesPotenciales(data: IListarClientesPotenciales) {
 
     try {
