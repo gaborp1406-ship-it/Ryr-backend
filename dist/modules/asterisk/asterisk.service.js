@@ -82,7 +82,32 @@ let AriService = AriService_1 = class AriService {
         `, [idTrabajador, id_etapa_lead, tipo_historial]);
         return result[0];
     }
+    async obtenerNumeroSalida(idTrabajador) {
+        const result = await this.dataSource.query(`
+      SELECT numero
+      FROM trabajador_numero_salida
+      WHERE id_trabajador = $1
+        AND activo = true
+      LIMIT 1
+    `, [idTrabajador]);
+        if (!result.length) {
+            throw new Error(`El trabajador ${idTrabajador} no tiene un número de salida asignado`);
+        }
+        return result[0].numero;
+    }
     async call(agent, phone, idTrabajador, id_etapa_lead, tipo_historial, channelId) {
+        const numeroSalidaResult = await this.dataSource.query(`
+      SELECT numero
+      FROM trabajador_numero_salida
+      WHERE id_trabajador = $1
+        AND activo = true
+      LIMIT 1
+    `, [idTrabajador]);
+        if (!numeroSalidaResult.length) {
+            throw new Error(`El trabajador ${idTrabajador} no tiene un número de salida asignado`);
+        }
+        const callerId = numeroSalidaResult[0].numero;
+        this.logger.log(`📞 Número de salida | trabajador=${idTrabajador} | callerId=${callerId}`);
         const fullPhone = phone.startsWith(PREFIX_PHONE)
             ? phone
             : `${PREFIX_PHONE}${phone}`;
@@ -91,7 +116,7 @@ let AriService = AriService_1 = class AriService {
                 endpoint: `PJSIP/${agent}`,
                 app: this.app,
                 appArgs: `outbound,${fullPhone}`,
-                callerId: agent,
+                callerId,
                 channelId,
             },
             auth: this.auth,
@@ -102,17 +127,22 @@ let AriService = AriService_1 = class AriService {
             ...response.data,
             phone: fullPhone,
             idRegistroLlamada: registro.id,
+            callerId,
         };
     }
-    async originate(endpoint, args) {
+    async originate(endpoint, args, callerId) {
         const channelId = (0, uuid_1.v4)();
+        const params = {
+            endpoint,
+            app: this.app,
+            appArgs: args,
+            channelId,
+        };
+        if (callerId) {
+            params.callerId = callerId;
+        }
         const response = await axios_1.default.post(`${this.url}/channels`, null, {
-            params: {
-                endpoint,
-                app: this.app,
-                appArgs: args,
-                channelId,
-            },
+            params,
             auth: this.auth,
         });
         return response.data;

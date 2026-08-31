@@ -279,7 +279,7 @@ let AriGateway = AriGateway_1 = class AriGateway {
         await this.ariService.addChannelToBridge(bridge.id, channel.id);
         let customerChannel;
         try {
-            customerChannel = await this.ariService.originate(`PJSIP/${phone}@itelbox-out`, `bridge,${bridge.id}`);
+            customerChannel = await this.ariService.originate(`PJSIP/${phone}@itelbox-out`, `bridge,${bridge.id}`, call.callerId);
         }
         catch (error) {
             this.logger.error(`Fallo al originar canal de cliente para ${phone}: ` +
@@ -372,7 +372,7 @@ let AriGateway = AriGateway_1 = class AriGateway {
                 await new Promise((resolve) => setTimeout(resolve, 800));
                 if (!this.isCallEnding(call)) {
                     try {
-                        const nuevoCustomerChannel = await this.ariService.originate(`PJSIP/${call.phone}@itelbox-out`, `bridge,${call.bridgeId}`);
+                        const nuevoCustomerChannel = await this.ariService.originate(`PJSIP/${call.phone}@itelbox-out`, `bridge,${call.bridgeId}`, call.callerId);
                         call.customerChannelId = nuevoCustomerChannel.id;
                         call.status = asterisk_constants_1.CALL_STATUS.DIALING_CUSTOMER;
                         this.linkChannel(call.agentChannelId, nuevoCustomerChannel.id);
@@ -469,7 +469,7 @@ let AriGateway = AriGateway_1 = class AriGateway {
                     return;
                 }
                 try {
-                    const nuevoCustomerChannel = await this.ariService.originate(`PJSIP/${call.phone}@itelbox-out`, `bridge,${call.bridgeId}`);
+                    const nuevoCustomerChannel = await this.ariService.originate(`PJSIP/${call.phone}@itelbox-out`, `bridge,${call.bridgeId}`, call.callerId);
                     call.customerChannelId = nuevoCustomerChannel.id;
                     call.status = asterisk_constants_1.CALL_STATUS.DIALING_CUSTOMER;
                     this.linkChannel(call.agentChannelId, nuevoCustomerChannel.id);

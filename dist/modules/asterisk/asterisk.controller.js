@@ -34,16 +34,19 @@ let AriController = class AriController {
     }
     async call(body) {
         const channelId = (0, uuid_1.v4)();
+        const callerId = await this.ariService.obtenerNumeroSalida(body.idTrabajador);
         this.ariGateway.registerCall({
             extension: body.agent,
             phone: body.phone,
             agentChannelId: channelId,
+            callerId,
         });
         try {
             const result = await this.ariService.call(body.agent, body.phone, body.idTrabajador, body.id_etapa_lead, body.tipo_historial, channelId);
             this.ariGateway.updateCall(channelId, {
                 phone: result.phone,
                 idRegistroLlamada: result.idRegistroLlamada,
+                callerId: result.callerId,
             });
             return {
                 ...result,

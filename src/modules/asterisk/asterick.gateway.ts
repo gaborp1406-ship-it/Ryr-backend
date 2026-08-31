@@ -23,7 +23,7 @@ interface ICallContext {
 
   agentChannelId: string;
   customerChannelId?: string;
-
+  callerId?: string;
   bridgeId?: string;
 
   idRegistroLlamada?: number;
@@ -194,7 +194,7 @@ export class AriGateway implements OnModuleInit, OnModuleDestroy {
     }
   }
   registerCall(
-    context: Pick<ICallContext, 'extension' | 'phone' | 'agentChannelId'>,
+    context: Pick<ICallContext, 'extension' | 'phone' | 'agentChannelId'  | 'callerId'>,
   ): void {
     const call: ICallContext = {
       ...context,
@@ -359,10 +359,11 @@ export class AriGateway implements OnModuleInit, OnModuleDestroy {
     let customerChannel: any;
 
     try {
-      customerChannel = await this.ariService.originate(
-        `PJSIP/${phone}@itelbox-out`,
-        `bridge,${bridge.id}`,
-      );
+  customerChannel = await this.ariService.originate(
+  `PJSIP/${phone}@itelbox-out`,
+  `bridge,${bridge.id}`,
+  call.callerId,
+);
     } catch (error: any) {
       this.logger.error(
         `Fallo al originar canal de cliente para ${phone}: ` +
@@ -507,10 +508,11 @@ export class AriGateway implements OnModuleInit, OnModuleDestroy {
 
         if (!this.isCallEnding(call)) {
           try {
-            const nuevoCustomerChannel = await this.ariService.originate(
-              `PJSIP/${call.phone}@itelbox-out`,
-              `bridge,${call.bridgeId}`,
-            );
+          const nuevoCustomerChannel = await this.ariService.originate(
+  `PJSIP/${call.phone}@itelbox-out`,
+  `bridge,${call.bridgeId}`,
+  call.callerId,
+);
 
             call.customerChannelId = nuevoCustomerChannel.id;
             call.status = CALL_STATUS.DIALING_CUSTOMER;
@@ -654,11 +656,11 @@ export class AriGateway implements OnModuleInit, OnModuleDestroy {
           return;
         }
         try {
-          const nuevoCustomerChannel = await this.ariService.originate(
-            `PJSIP/${call.phone}@itelbox-out`,
-            `bridge,${call.bridgeId}`,
-          );
-
+         const nuevoCustomerChannel = await this.ariService.originate(
+  `PJSIP/${call.phone}@itelbox-out`,
+  `bridge,${call.bridgeId}`,
+  call.callerId,
+);
           call.customerChannelId = nuevoCustomerChannel.id;
           call.status = CALL_STATUS.DIALING_CUSTOMER;
           this.linkChannel(call.agentChannelId, nuevoCustomerChannel.id);

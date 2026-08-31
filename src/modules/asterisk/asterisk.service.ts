@@ -92,67 +92,135 @@ export class AriService {
 
     return result[0];
   }
+async obtenerNumeroSalida(idTrabajador: number): Promise<string> {
+  const result = await this.dataSource.query(
+    `
+      SELECT numero
+      FROM trabajador_numero_salida
+      WHERE id_trabajador = $1
+        AND activo = true
+      LIMIT 1
+    `,
+    [idTrabajador],
+  );
 
-  async call(
-    agent: string,
-    phone: string,
-    idTrabajador: number,
-    id_etapa_lead: number,
-    tipo_historial: number,
-    channelId: string,
-  ) {
-    const fullPhone = phone.startsWith(PREFIX_PHONE)
-      ? phone
-      : `${PREFIX_PHONE}${phone}`;
-
-    const response = await axios.post(
-      `${this.url}/channels`,
-      null,
-      {
-        params: {
-          endpoint: `PJSIP/${agent}`,
-          app: this.app,
-          appArgs: `outbound,${fullPhone}`,
-          callerId: agent,
-          channelId,
-        },
-        auth: this.auth,
-      },
+  if (!result.length) {
+    throw new Error(
+      `El trabajador ${idTrabajador} no tiene un número de salida asignado`,
     );
-
-    const registro = await this.crearRegistroLlamada(
-      idTrabajador,
-      id_etapa_lead,
-      tipo_historial
-
-    );
-
-    this.logger.log(
-      `Registro llamada creado: ${JSON.stringify(registro)}`,
-    );
-
-    return {
-      ...response.data,
-      phone: fullPhone,
-      idRegistroLlamada: registro.id,
-    };
   }
 
-  async originate(endpoint: string, args: string) {
-    const channelId = uuid();
+  return result[0].numero;
+}
+async call(
+  agent: string,
+  phone: string,
+  idTrabajador: number,
+  id_etapa_lead: number,
+  tipo_historial: number,
+  channelId: string,
+) {
+  // ============================================================
+  // OBTENER NÚMERO DE SALIDA DEL ASESOR
+  // ============================================================
 
-    const response = await axios.post(`${this.url}/channels`, null, {
+  const numeroSalidaResult = await this.dataSource.query(
+    `
+      SELECT numero
+      FROM trabajador_numero_salida
+      WHERE id_trabajador = $1
+        AND activo = true
+      LIMIT 1
+    `,
+    [idTrabajador],
+  );
+
+  if (!numeroSalidaResult.length) {
+    throw new Error(
+      `El trabajador ${idTrabajador} no tiene un número de salida asignado`,
+    );
+  }
+
+  const callerId = numeroSalidaResult[0].numero;
+
+  this.logger.log(
+    `📞 Número de salida | trabajador=${idTrabajador} | callerId=${callerId}`,
+  );
+
+  // ============================================================
+  // TELÉFONO DESTINO
+  // ============================================================
+
+  const fullPhone = phone.startsWith(PREFIX_PHONE)
+    ? phone
+    : `${PREFIX_PHONE}${phone}`;
+
+  // ============================================================
+  // ORIGINAR LLAMADA
+  // ============================================================
+
+  const response = await axios.post(
+    `${this.url}/channels`,
+    null,
+    {
       params: {
-        endpoint,
+        endpoint: `PJSIP/${agent}`,
         app: this.app,
-        appArgs: args,
+        appArgs: `outbound,${fullPhone}`,
+
+        // Número que verá el cliente
+        callerId,
+
         channelId,
       },
-      auth: this.auth,
-    });
 
-    return response.data;
+      auth: this.auth,
+    },
+  );
+
+  // ============================================================
+  // REGISTRO BD
+  // ============================================================
+
+  const registro = await this.crearRegistroLlamada(
+    idTrabajador,
+    id_etapa_lead,
+    tipo_historial,
+  );
+
+  this.logger.log(
+    `Registro llamada creado: ${JSON.stringify(registro)}`,
+  );
+
+  return {
+    ...response.data,
+    phone: fullPhone,
+    idRegistroLlamada: registro.id,
+    callerId,
+  };
+}
+
+ async originate(endpoint: string, args: string, callerId?: string) {
+  const channelId = uuid();
+
+  const params: Record<string, any> = {
+    endpoint,
+    app: this.app,
+    appArgs: args,
+    channelId,
+  };
+
+  if (callerId) {
+    params.callerId = callerId;
   }
+
+  const response = await axios.post(`${this.url}/channels`, null, {
+    params,
+    auth: this.auth,
+  });
+
+  return response.data;
+}
 
   async createBridge() {
     const response = await axios.post(`${this.url}/bridges`, null, {
@@ -302,41 +370,39 @@ export class AriService {
   buildRecordingPath(recordingName: string): string {
     return `${this.recordingsBasePath}/${recordingName}.wav`;
   }
-async subirGrabacionSupabase(
-  grabacionNombre: string,
-  fileBuffer: Buffer,
-): Promise<string> {
-  const ahora = new Date();
-  const year = ahora.getFullYear();
-  const month = String(ahora.getMonth() + 1).padStart(2, '0');
-  const day = String(ahora.getDate()).padStart(2, '0');
-  const storagePath = `${year}/${month}/${day}/${grabacionNombre}.wav`;
+  async subirGrabacionSupabase(
+    grabacionNombre: string,
+    fileBuffer: Buffer,
+  ): Promise<string> {
+    const ahora = new Date();
+    const year = ahora.getFullYear();
+    const month = String(ahora.getMonth() + 1).padStart(2, '0');
+    const day = String(ahora.getDate()).padStart(2, '0');
+    const storagePath = `${year}/${month}/${day}/${grabacionNombre}.wav`;
 
-  this.logger.log(`☁️ Subiendo a Supabase: ${storagePath}`);
+    this.logger.log(`☁️ Subiendo a Supabase: ${storagePath}`);
 
-  const { data, error } = await this.supabase.storage
-    .from('grabaciones')
-    .upload(storagePath, fileBuffer, {
-      contentType: 'audio/wav',
-      upsert: false,
-    });
+    const { data, error } = await this.supabase.storage
+      .from('grabaciones')
+      .upload(storagePath, fileBuffer, {
+        contentType: 'audio/wav',
+        upsert: false,
+      });
 
-  if (error) {
-    this.logger.error(`❌ Supabase Storage: ${error.message}`);
-    throw error;
+    if (error) {
+      this.logger.error(`❌ Supabase Storage: ${error.message}`);
+      throw error;
+    }
+
+    const { data: publicUrlData } = this.supabase.storage
+      .from('grabaciones')
+      .getPublicUrl(data.path);
+
+    const publicUrl = publicUrlData.publicUrl;
+
+    this.logger.log(`✅ Subida correctamente: ${publicUrl}`);
+    return publicUrl;
   }
-
-  const { data: publicUrlData } = this.supabase.storage
-    .from('grabaciones')
-    .getPublicUrl(data.path);
-
-  const publicUrl = publicUrlData.publicUrl;
-
-  this.logger.log(`✅ Subida correctamente: ${publicUrl}`);
-  return publicUrl;
-}
-
-
 
   async iniciarGrabacionDb(idRegistroLlamada: number, grabacionNombre: string) {
     const result = await this.dataSource.query(
@@ -361,30 +427,30 @@ async subirGrabacionSupabase(
     }
   }
 
-async finalizarGrabacionDb(
-  idRegistroLlamada: number,
-  grabacionPath: string,
-  estado: 'completada' | 'error' = 'completada',
-) {
-  const result = await this.dataSource.query(
-    `
+  async finalizarGrabacionDb(
+    idRegistroLlamada: number,
+    grabacionPath: string,
+    estado: 'completada' | 'error' = 'completada',
+  ) {
+    const result = await this.dataSource.query(
+      `
       UPDATE com_leads_etapa_contacto_llamada
          SET grabacion_path = $1,
              grabacion_estado = $2,
              fecha_fin = CURRENT_TIMESTAMP
        WHERE id = $3
     `,
-    [grabacionPath, estado, idRegistroLlamada],
-  );
-
-  this.logger.log(
-    `📝 finalizarGrabacionDb: id=${idRegistroLlamada} estado=${estado} filas_afectadas=${result[1]}`,
-  );
-
-  if (result[1] === 0) {
-    this.logger.warn(
-      `⚠️ finalizarGrabacionDb no afectó ninguna fila. ¿Existe el registro id=${idRegistroLlamada}?`,
+      [grabacionPath, estado, idRegistroLlamada],
     );
+
+    this.logger.log(
+      `📝 finalizarGrabacionDb: id=${idRegistroLlamada} estado=${estado} filas_afectadas=${result[1]}`,
+    );
+
+    if (result[1] === 0) {
+      this.logger.warn(
+        `⚠️ finalizarGrabacionDb no afectó ninguna fila. ¿Existe el registro id=${idRegistroLlamada}?`,
+      );
+    }
   }
-}
 }

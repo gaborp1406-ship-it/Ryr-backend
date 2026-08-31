@@ -8,6 +8,7 @@ interface ICallContext {
     phone: string;
     agentChannelId: string;
     customerChannelId?: string;
+    callerId?: string;
     bridgeId?: string;
     idRegistroLlamada?: number;
     recordingName?: string;
@@ -40,7 +41,7 @@ export declare class AriGateway implements OnModuleInit, OnModuleDestroy {
     private connect;
     private startHeartbeat;
     private stopHeartbeat;
-    registerCall(context: Pick<ICallContext, 'extension' | 'phone' | 'agentChannelId'>): void;
+    registerCall(context: Pick<ICallContext, 'extension' | 'phone' | 'agentChannelId' | 'callerId'>): void;
     removeCall(agentChannelId: string): void;
     updateCall(channelId: string, data: Partial<ICallContext>): void;
     private linkChannel;

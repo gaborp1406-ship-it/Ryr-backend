@@ -28,49 +28,53 @@ export class AriController {
         return this.ariService.getInfo();
     }
 
-    @Post('call')
-    async call(
-        @Body() body: CallDto,
-    ) {
-        const channelId = uuid();
+   @Post('call')
+async call(
+  @Body() body: CallDto,
+) {
+  const channelId = uuid();
 
-        this.ariGateway.registerCall({
-            extension: body.agent,
-            phone: body.phone,
-            agentChannelId: channelId,
-        });
+  // Número que verá el cliente
+  const callerId = await this.ariService.obtenerNumeroSalida(
+    body.idTrabajador,
+  );
 
-        try {
-            const result = await this.ariService.call(
-                body.agent,
-                body.phone,
-                body.idTrabajador,
-                body.id_etapa_lead,
-                body.tipo_historial,
-                channelId,
-            );
+  this.ariGateway.registerCall({
+    extension: body.agent,
+    phone: body.phone,
+    agentChannelId: channelId,
+    callerId,
+  });
 
-            this.ariGateway.updateCall(
-                channelId,
-                {
-                    phone: result.phone,
-                    idRegistroLlamada:
-                        result.idRegistroLlamada,
-                },
-            );
+  try {
+    const result = await this.ariService.call(
+      body.agent,
+      body.phone,
+      body.idTrabajador,
+      body.id_etapa_lead,
+      body.tipo_historial,
+      channelId,
+    );
 
-            return {
-                ...result,
-                channelId,
-            };
-        } catch (error) {
-            // Si Asterisk rechazó la creación del canal, no dejamos el
-            // contexto huérfano en memoria (eso generaba estado "fantasma"
-            // que interfería con la próxima llamada).
-            this.ariGateway.removeCall(channelId);
-            throw error;
-        }
-    }
+    this.ariGateway.updateCall(
+      channelId,
+      {
+        phone: result.phone,
+        idRegistroLlamada: result.idRegistroLlamada,
+        callerId: result.callerId,
+      },
+    );
+
+    return {
+      ...result,
+      channelId,
+    };
+
+  } catch (error) {
+    this.ariGateway.removeCall(channelId);
+    throw error;
+  }
+}
 
     @Post('hangup')
     async hangup(

@@ -17,8 +17,9 @@ export declare class AriService {
     private isNotFound;
     getInfo(): Promise<any>;
     crearRegistroLlamada(idTrabajador: number, id_etapa_lead: number, tipo_historial: number): Promise<any>;
+    obtenerNumeroSalida(idTrabajador: number): Promise<string>;
     call(agent: string, phone: string, idTrabajador: number, id_etapa_lead: number, tipo_historial: number, channelId: string): Promise<any>;
-    originate(endpoint: string, args: string): Promise<any>;
+    originate(endpoint: string, args: string, callerId?: string): Promise<any>;
     createBridge(): Promise<any>;
     addChannelToBridge(bridgeId: string, channelId: string): Promise<any>;
     answer(channelId: string): Promise<void>;
