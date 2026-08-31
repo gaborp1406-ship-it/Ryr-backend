@@ -27,6 +27,9 @@ let LeadController = class LeadController {
     crearLead(data) {
         return this.leadService.crearLead(data);
     }
+    validarLeadDuplicado(data) {
+        return this.leadService.validarLeadDuplicado(data.dni, data.telefono);
+    }
     obtenerDetalleLead(id_lead) {
         return this.leadService.obtenerDetalleLead(id_lead);
     }
@@ -156,6 +159,14 @@ __decorate([
     __metadata("design:paramtypes", [Object]),
     __metadata("design:returntype", void 0)
 ], LeadController.prototype, "crearLead", null);
+__decorate([
+    (0, common_1.Post)('validar-duplicado'),
+    (0, common_1.UseGuards)(jwt_auth_guard_1.JwtAuthGuard),
+    __param(0, (0, common_1.Body)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [Object]),
+    __metadata("design:returntype", void 0)
+], LeadController.prototype, "validarLeadDuplicado", null);
 __decorate([
     (0, common_1.Get)('detalle/:id_lead'),
     (0, common_1.UseGuards)(jwt_auth_guard_1.JwtAuthGuard),

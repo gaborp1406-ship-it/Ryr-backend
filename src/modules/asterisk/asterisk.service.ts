@@ -6,7 +6,7 @@ import { v4 as uuid } from 'uuid';
 import * as fs from 'fs/promises';
 
 
-const PREFIX_PHONE = '366651';
+const PREFIX_PHONE = '369051';
 
 @Injectable()
 export class AriService {

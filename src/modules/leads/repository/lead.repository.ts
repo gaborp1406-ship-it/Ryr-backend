@@ -43,6 +43,29 @@ export class LeadRepository {
     return result[0];
   }
 
+
+  async validarLeadDuplicado(
+    dni: string,
+    telefono: string
+  ) {
+
+    const result = await this.dataSource.query(
+      `
+      SELECT *
+      FROM fn_validar_lead_duplicado(
+        $1,
+        $2
+      )
+    `,
+      [
+        dni,
+        telefono
+      ]
+    );
+
+    return result[0];
+  }
+
   async listar_clientes_potenciales(data: IListarClientesPotenciales) {
 
     const result: IClientePotencial[] =
@@ -562,7 +585,7 @@ export class LeadRepository {
     );
   }
 
-    async finalizarEtapaCierreDesistio(
+  async finalizarEtapaCierreDesistio(
     id_lead: number,
     motivo?: number,
   ) {
@@ -577,35 +600,35 @@ export class LeadRepository {
 
 
   async finalizarEtapaNegociacion(id_lead: number) {
-  return await this.dataSource.query(
-    `
+    return await this.dataSource.query(
+      `
       SELECT fn_finalizar_etapa_negociacion($1) AS resultado
     `,
-    [id_lead],
-  );
-}
+      [id_lead],
+    );
+  }
 
 
- async finalizarEtapaCierre(id_lead: number) {
-  return await this.dataSource.query(
-    `
+  async finalizarEtapaCierre(id_lead: number) {
+    return await this.dataSource.query(
+      `
       SELECT fn_finalizar_etapa_cierre($1) AS resultado
     `,
-    [id_lead],
-  );
-}
+      [id_lead],
+    );
+  }
 
 
- async finalizarActividad(id_actividad: number) {
-  return await this.dataSource.query(
-    `
+  async finalizarActividad(id_actividad: number) {
+    return await this.dataSource.query(
+      `
       SELECT fn_finalizar_actividad($1) AS resultado
     `,
-    [id_actividad],
-  );
-}
+      [id_actividad],
+    );
+  }
 
-  
+
   async registrarPrimerContacto(id_estado_contacto: number) {
     const result = await this.dataSource.query(
       `
@@ -635,21 +658,21 @@ export class LeadRepository {
   }
 
   async obtenerChecklistNegociacion(
-  id_lead: number,
-) {
-  return await this.dataSource.query(
-    `
+    id_lead: number,
+  ) {
+    return await this.dataSource.query(
+      `
       SELECT *
       FROM public.fn_obtener_checklist_negociacion($1)
     `,
-    [id_lead],
-  );
-}
+      [id_lead],
+    );
+  }
 
 
 
 
- async actualizarChecklistCierre(
+  async actualizarChecklistCierre(
     id_lead_etapa: number,
     campo: string,
     valor: boolean,
@@ -668,14 +691,14 @@ export class LeadRepository {
   }
 
   async obtenerChecklistCierre(
-  id_lead: number,
-) {
-  return await this.dataSource.query(
-    `
+    id_lead: number,
+  ) {
+    return await this.dataSource.query(
+      `
       SELECT *
       FROM public.fn_obtener_checklist_cierre($1)
     `,
-    [id_lead],
-  );
-}
+      [id_lead],
+    );
+  }
 }

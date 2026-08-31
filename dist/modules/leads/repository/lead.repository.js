@@ -44,6 +44,19 @@ let LeadRepository = class LeadRepository {
         ]);
         return result[0];
     }
+    async validarLeadDuplicado(dni, telefono) {
+        const result = await this.dataSource.query(`
+      SELECT *
+      FROM fn_validar_lead_duplicado(
+        $1,
+        $2
+      )
+    `, [
+            dni,
+            telefono
+        ]);
+        return result[0];
+    }
     async listar_clientes_potenciales(data) {
         const result = await this.dataSource.query(`
       SELECT *

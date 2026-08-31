@@ -5,6 +5,10 @@ export declare class LeadController {
     constructor(leadService: LeadService);
     listarAsesorDisponible(id_trabajador: number): Promise<import("./interface/leads.interface").ILeadDiario[] | undefined>;
     crearLead(data: ICrearLead): Promise<import("./interface/leads.interface").ILeadCreado>;
+    validarLeadDuplicado(data: {
+        dni: string;
+        telefono: string;
+    }): Promise<any>;
     obtenerDetalleLead(id_lead: number): Promise<any>;
     listarClientesPotenciales(data: IListarClientesPotenciales): Promise<import("./interface/leads.interface").IClientePotencial[]>;
     obtenerEtapaActualLead(id_lead: number): Promise<any>;

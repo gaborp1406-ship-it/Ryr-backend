@@ -1,14 +1,17 @@
 import { LeadRepository } from './repository/lead.repository';
 import { ICrearLead, IListarClientesPotenciales } from './interface/leads.interface';
 import { SupabaseClient } from '@supabase/supabase-js';
+import { NotificacionesService } from '../notificaciones/notificaciones.service';
 export declare class LeadService {
     private leadRepository;
+    private readonly notificacionesService;
     private readonly supabase;
-    constructor(leadRepository: LeadRepository, supabase: SupabaseClient);
+    constructor(leadRepository: LeadRepository, notificacionesService: NotificacionesService, supabase: SupabaseClient);
     private subirEvidenciaBase64;
     listarleadsdiarios(id_trabajador: number): Promise<import("./interface/leads.interface").ILeadDiario[] | undefined>;
     crearLead(data: ICrearLead): Promise<import("./interface/leads.interface").ILeadCreado>;
     listarClientesPotenciales(data: IListarClientesPotenciales): Promise<import("./interface/leads.interface").IClientePotencial[]>;
+    validarLeadDuplicado(dni: string, telefono: string): Promise<any>;
     obtenerDetalleLead(id_lead: number): Promise<any>;
     obtenerEtapaActualLead(id_lead: number): Promise<any>;
     finalizarEtapaLeadAsignacion(id_lead_etapa: number): Promise<any>;

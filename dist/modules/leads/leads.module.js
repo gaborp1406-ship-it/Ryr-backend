@@ -12,13 +12,19 @@ const leads_controller_1 = require("./leads.controller");
 const leads_service_1 = require("./leads.service");
 const lead_repository_1 = require("./repository/lead.repository");
 const supabase_provider_1 = require("./supabase.provider");
+const notificaciones_module_1 = require("../notificaciones/notificaciones.module");
 let LeadsModule = class LeadsModule {
 };
 exports.LeadsModule = LeadsModule;
 exports.LeadsModule = LeadsModule = __decorate([
     (0, common_1.Module)({
+        imports: [notificaciones_module_1.NotificacionesModule],
         controllers: [leads_controller_1.LeadController],
-        providers: [leads_service_1.LeadService, lead_repository_1.LeadRepository, supabase_provider_1.SupabaseProvider],
+        providers: [
+            leads_service_1.LeadService,
+            lead_repository_1.LeadRepository,
+            supabase_provider_1.SupabaseProvider,
+        ],
     })
 ], LeadsModule);
 //# sourceMappingURL=leads.module.js.map

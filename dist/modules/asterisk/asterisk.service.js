@@ -22,7 +22,7 @@ const supabase_js_1 = require("@supabase/supabase-js");
 const axios_1 = __importDefault(require("axios"));
 const typeorm_1 = require("typeorm");
 const uuid_1 = require("uuid");
-const PREFIX_PHONE = '366651';
+const PREFIX_PHONE = '369051';
 let AriService = AriService_1 = class AriService {
     dataSource;
     supabase;

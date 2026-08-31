@@ -16,11 +16,14 @@ exports.LeadService = void 0;
 const common_1 = require("@nestjs/common");
 const lead_repository_1 = require("./repository/lead.repository");
 const supabase_js_1 = require("@supabase/supabase-js");
+const notificaciones_service_1 = require("../notificaciones/notificaciones.service");
 let LeadService = class LeadService {
     leadRepository;
+    notificacionesService;
     supabase;
-    constructor(leadRepository, supabase) {
+    constructor(leadRepository, notificacionesService, supabase) {
         this.leadRepository = leadRepository;
+        this.notificacionesService = notificacionesService;
         this.supabase = supabase;
     }
     async subirEvidenciaBase64(base64) {
@@ -74,6 +77,13 @@ let LeadService = class LeadService {
             if (!result) {
                 throw new Error('No se pudo crear el lead');
             }
+            await this.notificacionesService.crearYEmitir({
+                id_asesor: data.id_asesor,
+                id_lead: result.id_lead,
+                tipo: 'NUEVO_LEAD',
+                titulo: 'Nuevo lead asignado',
+                mensaje: 'Tienes un lead nuevo, revísalo en tu listado',
+            });
             return result;
         }
         catch (error) {
@@ -87,6 +97,16 @@ let LeadService = class LeadService {
         }
         catch (error) {
             console.log(error);
+            throw error;
+        }
+    }
+    async validarLeadDuplicado(dni, telefono) {
+        try {
+            const result = await this.leadRepository.validarLeadDuplicado(dni, telefono);
+            return result;
+        }
+        catch (error) {
+            console.log('Error al validar lead duplicado:', error);
             throw error;
         }
     }
@@ -349,8 +369,9 @@ let LeadService = class LeadService {
 exports.LeadService = LeadService;
 exports.LeadService = LeadService = __decorate([
     (0, common_1.Injectable)(),
-    __param(1, (0, common_1.Inject)("SUPABASE_CLIENT")),
+    __param(2, (0, common_1.Inject)("SUPABASE_CLIENT")),
     __metadata("design:paramtypes", [lead_repository_1.LeadRepository,
+        notificaciones_service_1.NotificacionesService,
         supabase_js_1.SupabaseClient])
 ], LeadService);
 //# sourceMappingURL=leads.service.js.map
