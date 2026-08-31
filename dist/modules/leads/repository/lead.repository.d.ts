@@ -5,6 +5,7 @@ export declare class LeadRepository {
     constructor(dataSource: DataSource);
     gen_listar_lead_diarios(id_trabajador: number): Promise<ILeadDiario[]>;
     crear_lead(data: ICrearLead): Promise<ILeadCreado>;
+    validarLeadDuplicado(dni: string, telefono: string): Promise<any>;
     listar_clientes_potenciales(data: IListarClientesPotenciales): Promise<IClientePotencial[]>;
     obtenerEtapaActualLead(id_lead: number): Promise<any>;
     obtenerDetalleLead(id_lead: number): Promise<any>;

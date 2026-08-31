@@ -127,6 +127,32 @@ export class LeadService {
 
   }
 
+
+  async validarLeadDuplicado(
+    dni: string,
+    telefono: string
+  ) {
+
+    try {
+
+      const result =
+        await this.leadRepository.validarLeadDuplicado(
+          dni,
+          telefono
+        );
+
+      return result;
+
+    } catch (error) {
+
+      console.log(
+        'Error al validar lead duplicado:',
+        error
+      );
+
+      throw error;
+    }
+  }
   async obtenerDetalleLead(id_lead: number) {
     try {
       const result =
@@ -565,7 +591,7 @@ export class LeadService {
 
 
 
-    async finalizarEtapaNegociacionDesistio(
+  async finalizarEtapaNegociacionDesistio(
     id_lead: number,
     motivo?: number,
   ) {
@@ -573,7 +599,7 @@ export class LeadService {
       id_lead,
       motivo,
     );
-  }  async finalizarEtapaCierreDesistio(
+  } async finalizarEtapaCierreDesistio(
     id_lead: number,
     motivo?: number,
   ) {
@@ -586,54 +612,54 @@ export class LeadService {
 
 
   async finalizarEtapaNegociacion(id_lead: number) {
-  return await this.leadRepository.finalizarEtapaNegociacion(id_lead);
-}
+    return await this.leadRepository.finalizarEtapaNegociacion(id_lead);
+  }
   async finalizarActividad(id_actividad: number) {
-  return await this.leadRepository.finalizarActividad(id_actividad);
-}
+    return await this.leadRepository.finalizarActividad(id_actividad);
+  }
 
   async finalizarEtapaCierre(id_lead: number) {
-  return await this.leadRepository.finalizarEtapaCierre(id_lead);
-}
+    return await this.leadRepository.finalizarEtapaCierre(id_lead);
+  }
 
   async actualizarChecklistNegociacion(
-  id_lead_etapa: number,
-  campo: string,
-  valor: boolean,
-) {
-  return await this.leadRepository.actualizarChecklistNegociacion(
-    id_lead_etapa,
-    campo,
-    valor,
-  );
-}
+    id_lead_etapa: number,
+    campo: string,
+    valor: boolean,
+  ) {
+    return await this.leadRepository.actualizarChecklistNegociacion(
+      id_lead_etapa,
+      campo,
+      valor,
+    );
+  }
 
-async obtenerChecklistNegociacion(
-  id_lead: number,
-) {
-  return await this.leadRepository.obtenerChecklistNegociacion(
-    id_lead,
-  );
-}
+  async obtenerChecklistNegociacion(
+    id_lead: number,
+  ) {
+    return await this.leadRepository.obtenerChecklistNegociacion(
+      id_lead,
+    );
+  }
 
- async actualizarChecklistCierre(
-  id_lead_etapa: number,
-  campo: string,
-  valor: boolean,
-) {
-  return await this.leadRepository.actualizarChecklistCierre(
-    id_lead_etapa,
-    campo,
-    valor,
-  );
-}
+  async actualizarChecklistCierre(
+    id_lead_etapa: number,
+    campo: string,
+    valor: boolean,
+  ) {
+    return await this.leadRepository.actualizarChecklistCierre(
+      id_lead_etapa,
+      campo,
+      valor,
+    );
+  }
 
-async obtenerChecklistCierre(
-  id_lead: number,
-) {
-  return await this.leadRepository.obtenerChecklistCierre(
-    id_lead,
-  );
-}
+  async obtenerChecklistCierre(
+    id_lead: number,
+  ) {
+    return await this.leadRepository.obtenerChecklistCierre(
+      id_lead,
+    );
+  }
 
 }

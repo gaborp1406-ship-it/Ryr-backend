@@ -90,6 +90,16 @@ let LeadService = class LeadService {
             throw error;
         }
     }
+    async validarLeadDuplicado(dni, telefono) {
+        try {
+            const result = await this.leadRepository.validarLeadDuplicado(dni, telefono);
+            return result;
+        }
+        catch (error) {
+            console.log('Error al validar lead duplicado:', error);
+            throw error;
+        }
+    }
     async obtenerDetalleLead(id_lead) {
         try {
             const result = await this.leadRepository.obtenerDetalleLead(id_lead);

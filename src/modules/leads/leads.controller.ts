@@ -32,6 +32,22 @@ export class LeadController {
     return this.leadService.crearLead(data);
 
   }
+
+  @Post('validar-duplicado')
+  @UseGuards(JwtAuthGuard)
+  validarLeadDuplicado(
+    @Body() data: {
+      dni: string;
+      telefono: string;
+    }
+  ) {
+
+    return this.leadService.validarLeadDuplicado(
+      data.dni,
+      data.telefono
+    );
+
+  }
   @Get('detalle/:id_lead')
   @UseGuards(JwtAuthGuard)
   obtenerDetalleLead(
