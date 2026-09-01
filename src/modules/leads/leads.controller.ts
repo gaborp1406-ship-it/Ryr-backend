@@ -62,6 +62,16 @@ editarMensajeLeadEtapaContacto(
     data.mensaje
   );
 }
+
+@Get('leads-por-etapa-actual/:idEtapa')
+@UseGuards(JwtAuthGuard)
+obtenerLeadsPorEtapaActual(
+  @Param('idEtapa', ParseIntPipe) idEtapa: number
+) {
+  return this.leadService.obtenerLeadsPorEtapaActual(
+    idEtapa
+  );
+}
   @Get('detalle/:id_lead')
   @UseGuards(JwtAuthGuard)
   obtenerDetalleLead(

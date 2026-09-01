@@ -125,27 +125,47 @@ export class LeadService {
     }
 
   }
-async editarMensajeLeadEtapaContacto(
-  id: number,
-  mensaje: string
-) {
-  try {
-    const result =
-      await this.leadRepository.editarMensajeLeadEtapaContacto(
-        id,
-        mensaje
+  async editarMensajeLeadEtapaContacto(
+    id: number,
+    mensaje: string
+  ) {
+    try {
+      const result =
+        await this.leadRepository.editarMensajeLeadEtapaContacto(
+          id,
+          mensaje
+        );
+
+      return result;
+    } catch (error) {
+      console.log(
+        'Error al editar mensaje del lead etapa contacto:',
+        error
       );
 
-    return result;
-  } catch (error) {
-    console.log(
-      'Error al editar mensaje del lead etapa contacto:',
-      error
-    );
-
-    throw error;
+      throw error;
+    }
   }
-}
+
+  async obtenerLeadsPorEtapaActual(
+    idEtapa: number
+  ) {
+    try {
+      const result =
+        await this.leadRepository.obtenerLeadsPorEtapaActual(
+          idEtapa
+        );
+
+      return result;
+    } catch (error) {
+      console.log(
+        'Error al obtener leads por etapa actual:',
+        error
+      );
+
+      throw error;
+    }
+  }
 
   async validarLeadDuplicado(
     dni: string,

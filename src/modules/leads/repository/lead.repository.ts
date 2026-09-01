@@ -85,6 +85,24 @@ export class LeadRepository {
 
     return result[0];
   }
+
+  async obtenerLeadsPorEtapaActual(
+  idEtapa: number
+) {
+  const result = await this.dataSource.query(
+    `
+    SELECT *
+    FROM fn_obtener_leads_por_etapa_actual(
+      $1
+    )
+    `,
+    [
+      idEtapa
+    ]
+  );
+
+  return result;
+}
   async listar_clientes_potenciales(data: IListarClientesPotenciales) {
 
     const result: IClientePotencial[] =
