@@ -25,14 +25,21 @@ COPY src/ ./src/
 RUN npm run build
 
 # ===== Production =====
+# Nota: aquí cambiamos de node:22-alpine a node:22-bookworm-slim (Debian).
+# Alpine usa musl (no glibc) y scikit-learn/numpy/pandas casi no tienen
+# paquetes precompilados para musl, así que pip intenta compilarlos desde
+# cero y falla sin un compilador instalado. Debian sí tiene paquetes
+# precompilados ("wheels") para todo esto, instala en segundos.
 
-FROM node:22-alpine AS production
+FROM node:22-bookworm-slim AS production
 
 # --- Python para el servicio de predicción (ML) ---
-RUN apk add --no-cache python3 py3-pip
+RUN apt-get update \
+  && apt-get install -y --no-install-recommends python3 python3-venv python3-pip \
+  && rm -rf /var/lib/apt/lists/*
 
-RUN addgroup --system --gid 1001 nodejs
-RUN adduser --system --uid 1001 nestjs
+RUN addgroup --system --gid 1001 nodejs \
+  && adduser --system --uid 1001 --gid 1001 --no-create-home --disabled-login nestjs
 
 WORKDIR /app
 
