@@ -11,6 +11,7 @@ export declare class LeadService {
     listarleadsdiarios(id_trabajador: number): Promise<import("./interface/leads.interface").ILeadDiario[] | undefined>;
     crearLead(data: ICrearLead): Promise<import("./interface/leads.interface").ILeadCreado>;
     listarClientesPotenciales(data: IListarClientesPotenciales): Promise<import("./interface/leads.interface").IClientePotencial[]>;
+    editarMensajeLeadEtapaContacto(id: number, mensaje: string): Promise<any>;
     validarLeadDuplicado(dni: string, telefono: string): Promise<any>;
     obtenerDetalleLead(id_lead: number): Promise<any>;
     obtenerEtapaActualLead(id_lead: number): Promise<any>;

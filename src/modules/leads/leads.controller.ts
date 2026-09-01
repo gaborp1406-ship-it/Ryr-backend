@@ -48,6 +48,20 @@ export class LeadController {
     );
 
   }
+
+  @Post('editar-mensaje-lead-etapa-contacto')
+@UseGuards(JwtAuthGuard)
+editarMensajeLeadEtapaContacto(
+  @Body() data: {
+    id: number;
+    mensaje: string;
+  }
+) {
+  return this.leadService.editarMensajeLeadEtapaContacto(
+    data.id,
+    data.mensaje
+  );
+}
   @Get('detalle/:id_lead')
   @UseGuards(JwtAuthGuard)
   obtenerDetalleLead(

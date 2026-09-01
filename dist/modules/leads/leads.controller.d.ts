@@ -9,6 +9,10 @@ export declare class LeadController {
         dni: string;
         telefono: string;
     }): Promise<any>;
+    editarMensajeLeadEtapaContacto(data: {
+        id: number;
+        mensaje: string;
+    }): Promise<any>;
     obtenerDetalleLead(id_lead: number): Promise<any>;
     listarClientesPotenciales(data: IListarClientesPotenciales): Promise<import("./interface/leads.interface").IClientePotencial[]>;
     obtenerEtapaActualLead(id_lead: number): Promise<any>;

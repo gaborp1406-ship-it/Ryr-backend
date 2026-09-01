@@ -100,6 +100,16 @@ let LeadService = class LeadService {
             throw error;
         }
     }
+    async editarMensajeLeadEtapaContacto(id, mensaje) {
+        try {
+            const result = await this.leadRepository.editarMensajeLeadEtapaContacto(id, mensaje);
+            return result;
+        }
+        catch (error) {
+            console.log('Error al editar mensaje del lead etapa contacto:', error);
+            throw error;
+        }
+    }
     async validarLeadDuplicado(dni, telefono) {
         try {
             const result = await this.leadRepository.validarLeadDuplicado(dni, telefono);

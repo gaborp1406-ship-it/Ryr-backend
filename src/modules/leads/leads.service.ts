@@ -125,7 +125,27 @@ export class LeadService {
     }
 
   }
+async editarMensajeLeadEtapaContacto(
+  id: number,
+  mensaje: string
+) {
+  try {
+    const result =
+      await this.leadRepository.editarMensajeLeadEtapaContacto(
+        id,
+        mensaje
+      );
 
+    return result;
+  } catch (error) {
+    console.log(
+      'Error al editar mensaje del lead etapa contacto:',
+      error
+    );
+
+    throw error;
+  }
+}
 
   async validarLeadDuplicado(
     dni: string,

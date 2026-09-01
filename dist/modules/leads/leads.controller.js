@@ -30,6 +30,9 @@ let LeadController = class LeadController {
     validarLeadDuplicado(data) {
         return this.leadService.validarLeadDuplicado(data.dni, data.telefono);
     }
+    editarMensajeLeadEtapaContacto(data) {
+        return this.leadService.editarMensajeLeadEtapaContacto(data.id, data.mensaje);
+    }
     obtenerDetalleLead(id_lead) {
         return this.leadService.obtenerDetalleLead(id_lead);
     }
@@ -167,6 +170,14 @@ __decorate([
     __metadata("design:paramtypes", [Object]),
     __metadata("design:returntype", void 0)
 ], LeadController.prototype, "validarLeadDuplicado", null);
+__decorate([
+    (0, common_1.Post)('editar-mensaje-lead-etapa-contacto'),
+    (0, common_1.UseGuards)(jwt_auth_guard_1.JwtAuthGuard),
+    __param(0, (0, common_1.Body)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [Object]),
+    __metadata("design:returntype", void 0)
+], LeadController.prototype, "editarMensajeLeadEtapaContacto", null);
 __decorate([
     (0, common_1.Get)('detalle/:id_lead'),
     (0, common_1.UseGuards)(jwt_auth_guard_1.JwtAuthGuard),

@@ -57,6 +57,19 @@ let LeadRepository = class LeadRepository {
         ]);
         return result[0];
     }
+    async editarMensajeLeadEtapaContacto(id, mensaje) {
+        const result = await this.dataSource.query(`
+    SELECT *
+    FROM fn_editar_mensaje_lead_etapa_contacto(
+      $1,
+      $2
+    )
+    `, [
+            id,
+            mensaje
+        ]);
+        return result[0];
+    }
     async listar_clientes_potenciales(data) {
         const result = await this.dataSource.query(`
       SELECT *
