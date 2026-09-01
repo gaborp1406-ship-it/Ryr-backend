@@ -14,12 +14,9 @@ export class PrediccionPythonService implements OnModuleInit, OnModuleDestroy {
   private proceso: ChildProcess | null = null;
 
 
-  private readonly carpetaPython = join(
-    process.cwd(),
-    'src',
-    'modules',
-    'prediccion',
-  );
+  private readonly carpetaPython =
+    process.env.PREDICCION_DIR ??
+    join(process.cwd(), 'src', 'modules', 'prediccion');
   private readonly puerto = process.env.PREDICCION_API_PORT ?? '8000';
   private readonly comandoPython = process.env.PYTHON_BIN ?? 'python3';
 
