@@ -11,7 +11,7 @@ import { ProyectosModule } from './modules/proyectos/proyectos.module';
 import { AsesoresModule } from './modules/asesores/asesores.module';
 import { LeadsModule } from './modules/leads/leads.module';
 import { AsteriskModule } from './modules/asterisk/asterisk.module';
-import { PrediccionModule } from './modules/prediccion/prediccion.module';
+import { AngelModule } from './modules/angeltesis/angel.module';
 
 @Module({
   imports: [
@@ -41,7 +41,8 @@ import { PrediccionModule } from './modules/prediccion/prediccion.module';
     LeadsModule,
     AsteriskModule,
     OpcionesModule,
-    PrediccionModule
+    AngelModule
+
   ],
   controllers: [AppController],
   providers: [AppService],

@@ -3,25 +3,75 @@ import {
   Controller,
   Post,
   Get,
-  Query,
   UseGuards,
-  ParseIntPipe,
-  Param,
+  Query,
 } from '@nestjs/common';
 
-import { JwtAuthGuard } from '../auth/guard/jwt-auth.guard';
+
 import { AngelService } from './angel.service';
 
-@Controller('trabajador')
+import { CrearOrdenDto } from './dto/crear-orden.dto';
+
+import { CrearOrdenNombresDto } from './dto/crear-orden-nombres.dto';
+
+@Controller('angel')
 export class AngelController {
-  constructor(private readonly AngelService: AngelService) {}
+  constructor(
+    private readonly AngelService: AngelService,
+  ) {}
 
+// ==========================================================
+// LISTAR MATERIALES
+// ==========================================================
 
+@Get('materiales')
 
-  @Get('estados-conexion')
-  @UseGuards(JwtAuthGuard)
-  listarEstadosConexion() {
-    return this.AngelService.listarEstadosConexion();
+listarMateriales() {
+  return this.AngelService.listarMateriales();
+}
+
+// ==========================================================
+// LISTAR RIESGOS
+// ==========================================================
+
+@Get('riesgos')
+
+listarRiesgos() {
+  return this.AngelService.listarRiesgos();
+}
+@Get('ordenes')
+
+listarOrdenes(
+  @Query('fecha_inicio') fechaInicio?: string,
+  @Query('fecha_fin') fechaFin?: string,
+) {
+  return this.AngelService.listarOrdenes(
+    fechaInicio,
+    fechaFin,
+  );
+}
+
+  // ==========================================================
+  // CREAR ORDEN CON IDS
+  // ==========================================================
+
+  @Post('orden')
+
+  crearOrden(
+    @Body() body: CrearOrdenDto,
+  ) {
+    return this.AngelService.crearOrden(body);
   }
 
+  // ==========================================================
+  // CREAR ORDEN POR NOMBRES
+  // ==========================================================
+
+  @Post('orden/nombres')
+
+  crearOrdenPorNombres(
+    @Body() body: CrearOrdenNombresDto,
+  ) {
+    return this.AngelService.crearOrdenPorNombres(body);
+  }
 }

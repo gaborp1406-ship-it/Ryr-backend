@@ -1,6 +1,0 @@
-pandas
-openpyxl
-scikit-learn
-joblib
-fastapi
-uvicorn[standard]
