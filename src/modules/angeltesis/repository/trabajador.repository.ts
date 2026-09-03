@@ -247,7 +247,7 @@ export class AngelRepository {
       op.descripcion_trabajo,
       op.mano_obra,
       op.estado,
-      op.fecha_creacion,
+      op.fecha_creacion AT TIME ZONE 'America/Lima' AS fecha_creacion,
       op.analisis_ml,
       op.data_real,
 
