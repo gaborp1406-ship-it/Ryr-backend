@@ -27,16 +27,16 @@ export class AngelRepository {
       const ordenResult = await queryRunner.query(
         `
         INSERT INTO orden_produccion (
-          numero_orden,
+  
           descripcion_trabajo,
           mano_obra,
           estado
         )
-        VALUES (1, $2, $3, $4)
+        VALUES ( $1, $2, $3)
         RETURNING id
         `,
         [
-          numero_orden,
+
           descripcion_trabajo,
           mano_obra,
           estado,
@@ -106,17 +106,11 @@ export class AngelRepository {
     }
   }
 
-  // ==========================================================
-  // CREAR ORDEN POR NOMBRES
-  // ==========================================================
-
-  async crearOrdenPorNombres(
-    numero_orden: string,
-    descripcion_trabajo: string,
-    mano_obra: number,
+  async crearDatosReales(
+    idOrden: number,
+    manoObraReal: number,
     materiales: any[],
     riesgos: any[],
-    estado: string = 'PENDIENTE',
   ) {
     const queryRunner = this.dataSource.createQueryRunner();
 
@@ -125,98 +119,44 @@ export class AngelRepository {
 
     try {
       // ------------------------------------------------------
-      // 1. INSERTAR ORDEN
+      // 1. INSERTAR DATOS REALES
       // ------------------------------------------------------
 
-      const ordenResult = await queryRunner.query(
+      const datosResult = await queryRunner.query(
         `
-        INSERT INTO orden_produccion (
-          numero_orden,
-          descripcion_trabajo,
-          mano_obra,
-          estado
-        )
-        VALUES (1, $1, $2, $3)
-        RETURNING id
-        `,
+      INSERT INTO orden_datos_reales (
+        id_orden,
+        mano_obra_real
+      )
+      VALUES ($1, $2)
+      RETURNING id
+      `,
         [
-          numero_orden,
-          descripcion_trabajo,
-          mano_obra,
-          estado,
+          idOrden,
+          manoObraReal,
         ],
       );
 
-      const idOrden = ordenResult[0].id;
+      const idDatosReales = datosResult[0].id;
 
       // ------------------------------------------------------
-      // 2. MATERIALES
+      // 2. INSERTAR MATERIALES REALES
       // ------------------------------------------------------
 
-      for (const material of materiales) {
-        const nombreMaterial = this.normalizarTexto(
-          material.material,
-        );
-
-        // Buscar material
-        let materialResult = await queryRunner.query(
-          `
-          SELECT id
-          FROM catalogo_material
-          WHERE nombre_normalizado = $1
-          LIMIT 1
-          `,
-          [nombreMaterial],
-        );
-
-        let idMaterial: number;
-
-        // Si no existe -> crear
-        if (materialResult.length === 0) {
-          const nuevoMaterial = await queryRunner.query(
-            `
-            INSERT INTO catalogo_material (
-              codigo,
-              nombre,
-              nombre_normalizado,
-              unidad_medida,
-              activo
-            )
-            VALUES (
-              'MAT-' || LPAD(nextval('catalogo_material_id_seq')::text, 6, '0'),
-              $1,
-              $2,
-              $3,
-              TRUE
-            )
-            RETURNING id
-            `,
-            [
-              material.material.trim(),
-              nombreMaterial,
-              material.unidad_medida,
-            ],
-          );
-
-          idMaterial = nuevoMaterial[0].id;
-        } else {
-          idMaterial = materialResult[0].id;
-        }
-
-        // Guardar relación con orden
+      for (const material of materiales ?? []) {
         await queryRunner.query(
           `
-          INSERT INTO orden_produccion_material (
-            id_orden,
-            id_material,
-            cantidad,
-            unidad_medida
-          )
-          VALUES ($1, $2, $3, $4)
-          `,
+        INSERT INTO orden_datos_reales_material (
+          id_datos_reales,
+          id_material,
+          cantidad,
+          unidad_medida
+        )
+        VALUES ($1, $2, $3, $4)
+        `,
           [
-            idOrden,
-            idMaterial,
+            idDatosReales,
+            material.id_material,
             material.cantidad,
             material.unidad_medida,
           ],
@@ -224,84 +164,56 @@ export class AngelRepository {
       }
 
       // ------------------------------------------------------
-      // 3. RIESGOS
+      // 3. INSERTAR RIESGOS REALES
       // ------------------------------------------------------
 
-      for (const riesgo of riesgos) {
-        const nombreRiesgo = this.normalizarTexto(
-          riesgo.riesgo,
-        );
-
-        // Buscar riesgo
-        let riesgoResult = await queryRunner.query(
-          `
-          SELECT id
-          FROM catalogo_riesgo
-          WHERE nombre_normalizado = $1
-          LIMIT 1
-          `,
-          [nombreRiesgo],
-        );
-
-        let idRiesgo: number;
-
-        // Si no existe -> crear
-        if (riesgoResult.length === 0) {
-          const nuevoRiesgo = await queryRunner.query(
-            `
-            INSERT INTO catalogo_riesgo (
-              codigo,
-              nombre,
-              nombre_normalizado,
-              activo
-            )
-            VALUES (
-              'RIE-' || LPAD(nextval('catalogo_riesgo_id_seq')::text, 6, '0'),
-              $1,
-              $2,
-              TRUE
-            )
-            RETURNING id
-            `,
-            [
-              riesgo.riesgo.trim(),
-              nombreRiesgo,
-            ],
-          );
-
-          idRiesgo = nuevoRiesgo[0].id;
-        } else {
-          idRiesgo = riesgoResult[0].id;
-        }
-
-        // Guardar relación con orden
+      for (const riesgo of riesgos ?? []) {
         await queryRunner.query(
           `
-          INSERT INTO orden_produccion_riesgo (
-            id_orden,
-            id_riesgo,
-            observacion
-          )
-          VALUES ($1, $2, $3)
-          `,
+        INSERT INTO orden_datos_reales_riesgo (
+          id_datos_reales,
+          id_riesgo
+        )
+        VALUES ($1, $2)
+        `,
           [
-            idOrden,
-            idRiesgo,
-            riesgo.observacion ?? null,
+            idDatosReales,
+            riesgo.id_riesgo,
           ],
         );
       }
 
+      // ------------------------------------------------------
+      // 4. ACTUALIZAR DATA_REAL DE LA ORDEN
+      // ------------------------------------------------------
+
+      await queryRunner.query(
+        `
+      UPDATE orden_produccion
+      SET data_real = true
+      WHERE id = $1
+      `,
+        [idOrden],
+      );
+
+      // ------------------------------------------------------
+      // 5. CONFIRMAR TRANSACCIÓN
+      // ------------------------------------------------------
+
       await queryRunner.commitTransaction();
 
       return {
-        id: idOrden,
-        numero_orden,
-        mensaje: 'Orden creada correctamente',
+        id: idDatosReales,
+        id_orden: idOrden,
+        mano_obra_real: manoObraReal,
+        data_real: true,
+        mensaje: 'Datos reales registrados correctamente',
       };
+
     } catch (error) {
       await queryRunner.rollbackTransaction();
       throw error;
+
     } finally {
       await queryRunner.release();
     }
@@ -336,6 +248,8 @@ export class AngelRepository {
       op.mano_obra,
       op.estado,
       op.fecha_creacion,
+      op.analisis_ml,
+      op.data_real,
 
       COALESCE(
         (
@@ -420,6 +334,176 @@ export class AngelRepository {
     ORDER BY nombre ASC
   `);
   }
+
+
+  // ==========================================================
+  // GUARDAR ANÁLISIS ML (mano de obra, materiales, riesgos)
+  // ==========================================================
+
+  async guardarAnalisisMl(
+    idOrden: number,
+    manoObraPredicha: number,
+    versionModelo: string | null,
+    materiales: {
+      material: string;
+      cantidad?: number | null;
+      unidad?: string | null;
+      probabilidad?: number | null;
+    }[],
+    riesgos: {
+      riesgo: string;
+      probabilidad?: number | null;
+    }[],
+  ) {
+    const queryRunner = this.dataSource.createQueryRunner();
+
+    await queryRunner.connect();
+    await queryRunner.startTransaction();
+
+    const materialesNoEncontrados: string[] = [];
+    const riesgosNoEncontrados: string[] = [];
+
+    try {
+      // ------------------------------------------------------
+      // 1. INSERTAR ANÁLISIS ML (CABECERA)
+      // ------------------------------------------------------
+
+      const analisisResult = await queryRunner.query(
+        `
+        INSERT INTO orden_analisis_ml (
+          id_orden,
+          mano_obra_predicha,
+          version_modelo
+        )
+        VALUES ($1, $2, $3)
+        RETURNING id
+        `,
+        [idOrden, manoObraPredicha, versionModelo],
+      );
+
+      const idAnalisisMl = analisisResult[0].id;
+
+      // ------------------------------------------------------
+      // 2. RESOLVER Y GUARDAR MATERIALES POR NOMBRE
+      // ------------------------------------------------------
+
+      for (const material of materiales) {
+        const nombreNormalizado = this.normalizarTexto(
+          material.material,
+        );
+
+        const encontrado = await queryRunner.query(
+          `
+          SELECT id
+          FROM catalogo_material
+          WHERE nombre_normalizado = $1
+            AND activo = TRUE
+          LIMIT 1
+          `,
+          [nombreNormalizado],
+        );
+
+        if (encontrado.length === 0) {
+          materialesNoEncontrados.push(material.material);
+          continue;
+        }
+
+        const idMaterial = encontrado[0].id;
+
+        await queryRunner.query(
+          `
+          INSERT INTO orden_analisis_ml_material (
+            id_analisis_ml,
+            id_material,
+            cantidad,
+            unidad_medida,
+            probabilidad
+          )
+          VALUES ($1, $2, $3, $4, $5)
+          `,
+          [
+            idAnalisisMl,
+            idMaterial,
+            material.cantidad ?? null,
+            material.unidad ?? null,
+            material.probabilidad ?? null,
+          ],
+        );
+      }
+
+      // ------------------------------------------------------
+      // 3. RESOLVER Y GUARDAR RIESGOS POR NOMBRE
+      // ------------------------------------------------------
+
+      for (const riesgo of riesgos) {
+        const nombreNormalizado = this.normalizarTexto(
+          riesgo.riesgo,
+        );
+
+        const encontrado = await queryRunner.query(
+          `
+          SELECT id
+          FROM catalogo_riesgo
+          WHERE nombre_normalizado = $1
+            AND activo = TRUE
+          LIMIT 1
+          `,
+          [nombreNormalizado],
+        );
+
+        if (encontrado.length === 0) {
+          riesgosNoEncontrados.push(riesgo.riesgo);
+          continue;
+        }
+
+        const idRiesgo = encontrado[0].id;
+
+        await queryRunner.query(
+          `
+          INSERT INTO orden_analisis_ml_riesgo (
+            id_analisis_ml,
+            id_riesgo,
+            probabilidad
+          )
+          VALUES ($1, $2, $3)
+          `,
+          [idAnalisisMl, idRiesgo, riesgo.probabilidad ?? null],
+        );
+      }
+
+      // ------------------------------------------------------
+      // 4. ACTUALIZAR ORDEN_PRODUCCION - MARCAR ANALISIS_ML
+      // ------------------------------------------------------
+
+      await queryRunner.query(
+        `
+        UPDATE orden_produccion
+        SET analisis_ml = TRUE
+        WHERE id = $1
+        `,
+        [idOrden],
+      );
+
+      await queryRunner.commitTransaction();
+
+      return {
+        id_analisis_ml: idAnalisisMl,
+        id_orden: idOrden,
+        materiales_guardados:
+          materiales.length - materialesNoEncontrados.length,
+        materiales_no_encontrados: materialesNoEncontrados,
+        riesgos_guardados: riesgos.length - riesgosNoEncontrados.length,
+        riesgos_no_encontrados: riesgosNoEncontrados,
+        mensaje: 'Análisis ML guardado correctamente',
+      };
+    } catch (error) {
+      await queryRunner.rollbackTransaction();
+      throw error;
+    } finally {
+      await queryRunner.release();
+    }
+  }
+
   private normalizarTexto(texto: string): string {
     return texto
       .trim()
@@ -427,5 +511,35 @@ export class AngelRepository {
       .normalize('NFD')
       .replace(/[\u0300-\u036f]/g, '')
       .replace(/\s+/g, ' ');
+  }
+
+  // ==========================================================
+  // OBTENER DETALLE DE ORDEN + INDICADORES
+  // ==========================================================
+  async obtenerDetalleOrdenIndicadores(idOrden: number) {
+    const result = await this.dataSource.query(
+      `
+    SELECT public.fn_obtener_detalle_orden_indicadores($1) AS data
+    `,
+      [idOrden],
+    );
+
+    if (!result || result.length === 0) {
+      throw new Error('No se encontró información para la orden');
+    }
+
+    return result[0].data;
+  }
+
+  async obtenerDashboard() {
+    const result = await this.dataSource.query(`
+    SELECT public.fn_obtener_dashboard() AS data
+  `);
+
+    if (!result || result.length === 0) {
+      throw new Error('No se pudo obtener el dashboard');
+    }
+
+    return result[0].data;
   }
 }

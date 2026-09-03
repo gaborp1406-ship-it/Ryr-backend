@@ -9,53 +9,109 @@ import { AngelRepository } from './repository/trabajador.repository';
 export class AngelService {
   constructor(
     private angelRepository: AngelRepository,
-  ) {}
+  ) { }
 
-// ==========================================================
-// LISTAR MATERIALES
-// ==========================================================
+  // ==========================================================
+  // LISTAR MATERIALES
+  // ==========================================================
 
-async listarMateriales() {
+  async listarMateriales() {
+    try {
+      return await this.angelRepository.listarMateriales();
+    } catch (error) {
+      console.log('Error al listar materiales:', error);
+
+      throw new InternalServerErrorException(
+        'Error al listar los materiales',
+      );
+    }
+  }
+
+  // ==========================================================
+  // LISTAR RIESGOS
+  // ==========================================================
+
+  async listarRiesgos() {
+    try {
+      return await this.angelRepository.listarRiesgos();
+    } catch (error) {
+      console.log('Error al listar riesgos:', error);
+
+      throw new InternalServerErrorException(
+        'Error al listar los riesgos',
+      );
+    }
+  }
+  async listarOrdenes(
+    fechaInicio?: string,
+    fechaFin?: string,
+  ) {
+    try {
+      return await this.angelRepository.listarOrdenes(
+        fechaInicio,
+        fechaFin,
+      );
+    } catch (error) {
+      console.log('Error al listar órdenes:', error);
+
+      throw new InternalServerErrorException(
+        'Error al listar las órdenes',
+      );
+    }
+  }
+
+  async crearDatosReales(data: {
+    id_orden: number;
+    mano_obra_real: number;
+    materiales: any[];
+    riesgos: any[];
+  }) {
+    try {
+      return await this.angelRepository.crearDatosReales(
+        data.id_orden,
+        data.mano_obra_real,
+        data.materiales,
+        data.riesgos,
+      );
+    } catch (error) {
+      console.log(
+        'Error al registrar datos reales:',
+        error,
+      );
+
+      throw new InternalServerErrorException(
+        'Error al registrar los datos reales',
+      );
+    }
+  }
+
+async obtenerDashboard() {
   try {
-    return await this.angelRepository.listarMateriales();
+    return await this.angelRepository.obtenerDashboard();
   } catch (error) {
-    console.log('Error al listar materiales:', error);
+    console.log(
+      'Error al obtener dashboard:',
+      error,
+    );
 
     throw new InternalServerErrorException(
-      'Error al listar los materiales',
+      'Error al obtener los datos del dashboard',
     );
   }
 }
-
-// ==========================================================
-// LISTAR RIESGOS
-// ==========================================================
-
-async listarRiesgos() {
+async obtenerDetalleOrdenIndicadores(idOrden: number) {
   try {
-    return await this.angelRepository.listarRiesgos();
-  } catch (error) {
-    console.log('Error al listar riesgos:', error);
-
-    throw new InternalServerErrorException(
-      'Error al listar los riesgos',
-    );
-  }
-}
-async listarOrdenes(
-  fechaInicio?: string,
-  fechaFin?: string,
-) {
-  try {
-    return await this.angelRepository.listarOrdenes(
-      fechaInicio,
-      fechaFin,
+    return await this.angelRepository.obtenerDetalleOrdenIndicadores(
+      idOrden,
     );
   } catch (error) {
-    console.log('Error al listar órdenes:', error);
+    console.log(
+      'Error al obtener indicadores de la orden:',
+      error,
+    );
 
     throw new InternalServerErrorException(
-      'Error al listar las órdenes',
+      'Error al obtener los indicadores de la orden',
     );
   }
 }
@@ -84,37 +140,41 @@ async listarOrdenes(
       );
     }
   }
-
   // ==========================================================
-  // CREAR ORDEN POR NOMBRES
+  // GUARDAR ANÁLISIS ML
   // ==========================================================
 
-  async crearOrdenPorNombres(data: {
-    numero_orden: string;
-    descripcion_trabajo: string;
+  async guardarAnalisisMl(data: {
+    id_orden: number;
     mano_obra: number;
-    estado?: string;
-    materiales: any[];
-    riesgos: any[];
+    version_modelo?: string;
+    materiales: {
+      material: string;
+      cantidad?: number | null;
+      unidad?: string | null;
+      probabilidad?: number | null;
+    }[];
+    riesgos: {
+      riesgo: string;
+      probabilidad?: number | null;
+    }[];
   }) {
     try {
-      return await this.angelRepository.crearOrdenPorNombres(
-        data.numero_orden,
-        data.descripcion_trabajo,
+      return await this.angelRepository.guardarAnalisisMl(
+        data.id_orden,
         data.mano_obra,
+        data.version_modelo ?? null,
         data.materiales,
         data.riesgos,
-        data.estado,
       );
     } catch (error) {
-      console.log(
-        'Error al crear orden por nombres:',
-        error,
-      );
+      console.log('Error al guardar análisis ML:', error);
 
       throw new InternalServerErrorException(
-        'Error al crear la orden por nombres',
+        'Error al guardar el análisis ML',
       );
     }
   }
+
+
 }
