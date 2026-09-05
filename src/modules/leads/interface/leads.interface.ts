@@ -20,10 +20,20 @@ export interface ICrearLead {
 
 
 export interface ILeadCreado {
-  id_lead: number;
+  id_lead: number | null;
   id_cliente: number;
-  id_asesor: number;
-  fecha_creacion: string;
+  id_asesor: number | null;
+  fecha_creacion: Date | null;
+
+  accion: string;
+
+  debe_notificar: boolean;
+
+  id_lead_anterior: number | null;
+
+  id_asesor_anterior: number | null;
+
+  mensaje: string;
 }
 
 export interface IListarClientesPotenciales {

@@ -92,19 +92,61 @@ export class LeadService {
       const result = await this.leadRepository.crear_lead(data);
 
       if (!result) {
-        throw new Error('No se pudo crear el lead');
+        throw new Error('No se pudo procesar el lead');
       }
 
-      // 🔔 guardar en BD + emitir en tiempo real
-      await this.notificacionesService.crearYEmitir({
-        id_asesor: data.id_asesor,
-        id_lead: result.id_lead,
-        tipo: 'NUEVO_LEAD',
-        titulo: 'Nuevo lead asignado',
-        mensaje: 'Tienes un lead nuevo, revísalo en tu listado',
-      });
+      // =====================================================
+      // CLIENTE YA TIENE LEAD ACTIVO EN EL MISMO PROYECTO
+      // =====================================================
+
+      if (result.accion === 'ALERTA') {
+
+        if (
+          result.debe_notificar &&
+          result.id_asesor_anterior &&
+          result.id_lead_anterior
+        ) {
+
+          await this.notificacionesService.crearYEmitir({
+            id_asesor: result.id_asesor_anterior,
+            id_lead: result.id_lead_anterior,
+            tipo: 'CLIENTE_ACTIVO_MISMO_PROYECTO',
+            titulo: 'Cliente preguntando por otro proyecto',
+            mensaje: 'Marca al cliente como desistido',
+          });
+        }
+
+        return result;
+      }
+
+      // =====================================================
+      // NUEVO LEAD CREADO
+      // =====================================================
+
+      if (result.accion === 'CREADO') {
+
+        if (
+          result.debe_notificar &&
+          result.id_asesor &&
+          result.id_lead
+        ) {
+
+          await this.notificacionesService.crearYEmitir({
+            id_asesor: result.id_asesor,
+            id_lead: result.id_lead,
+            tipo: 'NUEVO_LEAD',
+            titulo: 'Nuevo lead asignado',
+            mensaje:
+              result.mensaje ||
+              'Tienes un lead nuevo, revísalo en tu listado',
+          });
+        }
+
+        return result;
+      }
 
       return result;
+
     } catch (error) {
       console.log('Error al crear lead:', error);
       throw error;
@@ -146,14 +188,48 @@ export class LeadService {
       throw error;
     }
   }
+  async listarEtapas() {
+    try {
+      const result =
+        await this.leadRepository.listarEtapas();
 
+      return result;
+    } catch (error) {
+      console.log(
+        'Error al listar etapas:',
+        error
+      );
+
+      throw error;
+    }
+  }
+
+  async reabrirLeadEtapa(idLeadEtapa: number) {
+    try {
+      const result =
+        await this.leadRepository.reabrirLeadEtapa(
+          idLeadEtapa
+        );
+
+      return result;
+    } catch (error) {
+      console.log(
+        'Error al reabrir lead:',
+        error
+      );
+
+      throw error;
+    }
+  }
   async obtenerLeadsPorEtapaActual(
-    idEtapa: number
+    idEtapa?: number,
+    idAgente?: number
   ) {
     try {
       const result =
         await this.leadRepository.obtenerLeadsPorEtapaActual(
-          idEtapa
+          idEtapa,
+          idAgente
         );
 
       return result;
@@ -416,6 +492,28 @@ export class LeadService {
 
   }
 
+
+   async obtenerInfoDesistioLeadOpo(
+    idLead: number
+  ) {
+
+    try {
+
+      return await this.leadRepository.obtenerInfoDesistioLeadOpo(
+        idLead
+      );
+
+    } catch (error) {
+
+      console.log(
+        'Error al obtener info desistio lead:',
+        error
+      );
+
+      throw error;
+    }
+
+  }
   async agendarReunion(
     data: {
       idAsesor: number;
@@ -701,4 +799,154 @@ export class LeadService {
     );
   }
 
+  private async subirArchivoBase64(
+    base64: string,
+    carpeta: string,
+  ): Promise<string> {
+
+    try {
+
+      const matches = base64.match(/^data:(.+);base64,(.+)$/);
+
+      let contentType = 'application/octet-stream';
+      let dataBase64 = base64;
+
+      if (matches) {
+        contentType = matches[1];
+        dataBase64 = matches[2];
+      }
+
+      const buffer = Buffer.from(dataBase64, 'base64');
+
+      const extension = contentType.split('/')[1] || 'bin';
+
+      const fileName = `${carpeta}/${Date.now()}-${Math.random()
+        .toString(36)
+        .substring(7)}.${extension}`;
+
+      const { error } = await this.supabase.storage
+        .from('leadsevidencia')
+        .upload(fileName, buffer, {
+          contentType,
+          upsert: true,
+        });
+
+      if (error) {
+        throw error;
+      }
+
+      const { data } = this.supabase.storage
+        .from('leadsevidencia')
+        .getPublicUrl(fileName);
+
+      return data.publicUrl;
+
+    } catch (error) {
+
+      console.log('Error subiendo archivo:', error);
+
+      throw error;
+    }
+  }
+
+  
+  async registrarDocumentoCierre(data: {
+    id_etapa_cierre: number;
+    nombre_documento: string;
+    url_documento: string;
+    tipo_documento?: string;
+  }) {
+
+    try {
+
+      let url = data.url_documento;
+
+      if (url && url.startsWith('data:')) {
+        url = await this.subirArchivoBase64(
+          url,
+          'documentos-cierre',
+        );
+      }
+
+      return await this.leadRepository.registrarDocumentoCierre({
+        ...data,
+        url_documento: url,
+      });
+
+    } catch (error) {
+
+      console.log('Error al registrar documento de cierre:', error);
+
+      throw error;
+    }
+  }
+
+  async obtenerDocumentosCierre(
+    id_etapa_cierre: number,
+  ) {
+    try {
+      return await this.leadRepository.obtenerDocumentosCierre(
+        id_etapa_cierre,
+      );
+    } catch (error) {
+      console.log(
+        'Error al obtener documentos de cierre:',
+        error,
+      );
+
+      throw error;
+    }
+  }
+
+  async eliminarDocumentoCierre(
+    id: number,
+  ) {
+    try {
+      return await this.leadRepository.eliminarDocumentoCierre(
+        id,
+      );
+    } catch (error) {
+      console.log(
+        'Error al eliminar documento de cierre:',
+        error,
+      );
+
+      throw error;
+    }
+  }
+  async guardarMensajeLeadEtapaContacto(
+    id_lead_etapa_contacto: number,
+    mensaje: string,
+  ) {
+    try {
+      return await this.leadRepository.guardarMensajeLeadEtapaContacto(
+        id_lead_etapa_contacto,
+        mensaje,
+      );
+    } catch (error) {
+      console.log(
+        'Error al guardar mensaje del lead etapa contacto:',
+        error,
+      );
+
+      throw error;
+    }
+  }
+
+  async obtenerHistorialMensajesLeadEtapaContacto(
+    id_lead_etapa_contacto: number,
+  ) {
+    try {
+      return await this.leadRepository.obtenerHistorialMensajesLeadEtapaContacto(
+        id_lead_etapa_contacto,
+      );
+    } catch (error) {
+      console.log(
+        'Error al obtener historial de mensajes del lead etapa contacto:',
+        error,
+      );
+
+      throw error;
+    }
+  }
 }

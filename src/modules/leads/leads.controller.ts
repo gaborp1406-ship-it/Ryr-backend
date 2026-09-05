@@ -6,7 +6,9 @@ import {
   UseGuards,
   Request,
   ParseIntPipe,
-  Param
+  Param,
+  Delete,
+  Query
 } from '@nestjs/common';
 import { JwtAuthGuard } from '../auth/guard/jwt-auth.guard';
 import { LeadService } from './leads.service';
@@ -50,28 +52,46 @@ export class LeadController {
   }
 
   @Post('editar-mensaje-lead-etapa-contacto')
-@UseGuards(JwtAuthGuard)
-editarMensajeLeadEtapaContacto(
-  @Body() data: {
-    id: number;
-    mensaje: string;
+  @UseGuards(JwtAuthGuard)
+  editarMensajeLeadEtapaContacto(
+    @Body() data: {
+      id: number;
+      mensaje: string;
+    }
+  ) {
+    return this.leadService.editarMensajeLeadEtapaContacto(
+      data.id,
+      data.mensaje
+    );
   }
-) {
-  return this.leadService.editarMensajeLeadEtapaContacto(
-    data.id,
-    data.mensaje
-  );
-}
 
-@Get('leads-por-etapa-actual/:idEtapa')
-@UseGuards(JwtAuthGuard)
-obtenerLeadsPorEtapaActual(
-  @Param('idEtapa', ParseIntPipe) idEtapa: number
-) {
-  return this.leadService.obtenerLeadsPorEtapaActual(
-    idEtapa
-  );
-}
+  @Get('leads-por-etapa-actual')
+  @UseGuards(JwtAuthGuard)
+  obtenerLeadsPorEtapaActual(
+    @Query('idEtapa') idEtapa?: string,
+    @Query('idAgente') idAgente?: string
+  ) {
+    return this.leadService.obtenerLeadsPorEtapaActual(
+      idEtapa ? parseInt(idEtapa, 10) : undefined,
+      idAgente ? parseInt(idAgente, 10) : undefined
+    );
+  }
+
+  @Post('reabrir-lead-etapa')
+  @UseGuards(JwtAuthGuard)
+  reabrirLeadEtapa(
+    @Body('idLeadEtapa') idLeadEtapa: number
+  ) {
+    return this.leadService.reabrirLeadEtapa(
+      idLeadEtapa
+    );
+  }
+
+  @Get('listar-etapas')
+  @UseGuards(JwtAuthGuard)
+  listarEtapas() {
+    return this.leadService.listarEtapas();
+  }
   @Get('detalle/:id_lead')
   @UseGuards(JwtAuthGuard)
   obtenerDetalleLead(
@@ -292,6 +312,16 @@ obtenerLeadsPorEtapaActual(
   ) {
 
     return this.leadService.obtenerInfoDesistioLead(idLead);
+
+  }
+
+    @Get('info-desistio-lead-opo/:idLead')
+  @UseGuards(JwtAuthGuard)
+  obtenerInfoDesistioLeadOpo(
+    @Param('idLead', ParseIntPipe) idLead: number,
+  ) {
+
+    return this.leadService.obtenerInfoDesistioLeadOpo(idLead);
 
   }
 
@@ -545,6 +575,59 @@ obtenerLeadsPorEtapaActual(
     @Param('id_actividad', ParseIntPipe) id_actividad: number,
   ) {
     return this.leadService.finalizarActividad(id_actividad);
+  }
+
+  @Post('registrar-documento-cierre')
+  async registrarDocumentoCierre(
+    @Body()
+    data: {
+      id_etapa_cierre: number;
+      nombre_documento: string;
+      url_documento: string;
+      tipo_documento?: string;
+    },
+  ) {
+    return await this.leadService.registrarDocumentoCierre(data);
+  }
+
+  @Get('obtener-documentos-cierre/:id_etapa_cierre')
+  async obtenerDocumentosCierre(
+    @Param('id_etapa_cierre', ParseIntPipe)
+    id_etapa_cierre: number,
+  ) {
+    return await this.leadService.obtenerDocumentosCierre(
+      id_etapa_cierre,
+    );
+  }
+  @Delete('eliminar-documento-cierre/:id')
+  async eliminarDocumentoCierre(
+    @Param('id', ParseIntPipe)
+    id: number,
+  ) {
+    return await this.leadService.eliminarDocumentoCierre(id);
+  }
+
+  @Post('guardar-mensaje-lead-etapa-contacto')
+  async guardarMensajeLeadEtapaContacto(
+    @Body() body: {
+      id_lead_etapa_contacto: number;
+      mensaje: string;
+    },
+  ) {
+    return await this.leadService.guardarMensajeLeadEtapaContacto(
+      body.id_lead_etapa_contacto,
+      body.mensaje,
+    );
+  }
+
+  @Get('obtener-historial-mensajes-lead-etapa-contacto/:id')
+  async obtenerHistorialMensajesLeadEtapaContacto(
+    @Param('id', ParseIntPipe)
+    id: number,
+  ) {
+    return await this.leadService.obtenerHistorialMensajesLeadEtapaContacto(
+      id,
+    );
   }
 }
 

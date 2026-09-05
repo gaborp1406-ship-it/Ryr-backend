@@ -13,32 +13,35 @@ export class LeadRepository {
 
     return result;
   }
-  async crear_lead(data: ICrearLead) {
+  async crear_lead(data: ICrearLead): Promise<ILeadCreado> {
 
     const result: ILeadCreado[] = await this.dataSource.query(
       `
-    SELECT * 
-    FROM fn_crear_lead(
-      $1,
-      $2,
-      $3,
-      $4,
-      $5,
-      $6,
-      $7
-    )
+      SELECT *
+      FROM fn_crear_lead_v2(
+        $1,
+        $2,
+        $3,
+        $4,
+        $5,
+        $6,
+        $7
+      )
     `,
       [
-        data.id_asesor,
+        data.id_asesor,          // trabajador que registra
         data.id_proyecto,
         data.nombre_cliente,
         data.dni_cliente,
         data.telefono_cliente,
         data.id_fuente,
-        data.usuario_creacion
-      ]
+        data.usuario_creacion,
+      ],
     );
 
+    if (!result.length) {
+      throw new Error('La función fn_crear_lead no devolvió información');
+    }
 
     return result[0];
   }
@@ -87,22 +90,37 @@ export class LeadRepository {
   }
 
   async obtenerLeadsPorEtapaActual(
-  idEtapa: number
-) {
-  const result = await this.dataSource.query(
-    `
+    idEtapa?: number,
+    idAgente?: number
+  ) {
+    const result = await this.dataSource.query(
+      `
     SELECT *
-    FROM fn_obtener_leads_por_etapa_actual(
-      $1
+    FROM public.fn_obtener_leads_por_etapa_actual(
+      $1,
+      $2
     )
     `,
-    [
-      idEtapa
-    ]
-  );
+      [
+        idEtapa ?? null,
+        idAgente ?? null
+      ]
+    );
 
-  return result;
-}
+    return result;
+  }
+
+  async reabrirLeadEtapa(idLeadEtapa: number) {
+    const result = await this.dataSource.query(
+      `
+    SELECT *
+    FROM public.fn_reabrir_lead_etapa($1)
+    `,
+      [idLeadEtapa]
+    );
+
+    return result;
+  }
   async listar_clientes_potenciales(data: IListarClientesPotenciales) {
 
     const result: IClientePotencial[] =
@@ -343,25 +361,44 @@ export class LeadRepository {
 
   }
 
-  async obtenerInfoDesistioLead(
-    idLead: number
-  ) {
+async obtenerInfoDesistioLead(
+  idLead: number
+) {
 
-
-    const result = await this.dataSource.query(
-      `
-      SELECT *
-      FROM fn_obtener_info_desistio_lead($1)
+  const result = await this.dataSource.query(
+    `
+    SELECT *
+    FROM fn_obtener_info_desistio_lead($1)
     `,
-      [
-        idLead
-      ]
-    );
+    [
+      idLead
+    ]
+  );
 
+  return result;
 
-    return result[0] ?? null;
+}
 
-  }
+async obtenerInfoDesistioLeadOpo(
+  idLead: number
+) {
+
+  const result = await this.dataSource.query(
+    `
+    SELECT *
+    FROM fn_obtener_info_desistio_oportunidad_lead($1)
+    `,
+    [
+      idLead
+    ]
+  );
+
+  return result;
+
+}
+
+  
+
 
   async agendarReunion(
     data: {
@@ -636,6 +673,7 @@ export class LeadRepository {
 
 
 
+
   async finalizarEtapaNegociacion(id_lead: number) {
     return await this.dataSource.query(
       `
@@ -737,5 +775,94 @@ export class LeadRepository {
     `,
       [id_lead],
     );
+  }
+
+  async registrarDocumentoCierre(data: {
+    id_etapa_cierre: number;
+    nombre_documento: string;
+    url_documento: string;
+    tipo_documento?: string;
+  }) {
+
+    return await this.dataSource.query(
+      `
+      SELECT *
+      FROM public.fn_registrar_documento_cierre(
+        $1,
+        $2,
+        $3,
+        $4
+      )
+    `,
+      [
+        data.id_etapa_cierre,
+        data.nombre_documento,
+        data.url_documento,
+        data.tipo_documento ?? null,
+      ],
+    );
+  }
+  async obtenerDocumentosCierre(id_etapa_cierre: number) {
+
+    return await this.dataSource.query(
+      `
+      SELECT *
+      FROM public.fn_obtener_documentos_cierre($1)
+    `,
+      [id_etapa_cierre],
+    );
+  }
+  async eliminarDocumentoCierre(
+    id: number,
+  ) {
+    return await this.dataSource.query(
+      `
+      SELECT *
+      FROM public.fn_eliminar_documento_cierre($1)
+    `,
+      [
+        id,
+      ],
+    );
+  }
+  async guardarMensajeLeadEtapaContacto(
+    id_lead_etapa_contacto: number,
+    mensaje: string,
+  ) {
+    return await this.dataSource.query(
+      `
+    SELECT *
+    FROM public.fn_guardar_mensaje_lead_etapa_contacto($1, $2)
+    `,
+      [
+        id_lead_etapa_contacto,
+        mensaje,
+      ],
+    );
+  }
+
+  async obtenerHistorialMensajesLeadEtapaContacto(
+    id_lead_etapa_contacto: number,
+  ) {
+    return await this.dataSource.query(
+      `
+    SELECT *
+    FROM public.fn_obtener_historial_mensajes_lead_etapa_contacto($1)
+    `,
+      [
+        id_lead_etapa_contacto,
+      ],
+    );
+  }
+
+  async listarEtapas() {
+    const result = await this.dataSource.query(
+      `
+    SELECT *
+    FROM public.fn_listar_etapas()
+    `
+    );
+
+    return result;
   }
 }
