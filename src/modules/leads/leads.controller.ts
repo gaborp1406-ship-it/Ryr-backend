@@ -315,7 +315,7 @@ export class LeadController {
 
   }
 
-    @Get('info-desistio-lead-opo/:idLead')
+  @Get('info-desistio-lead-opo/:idLead')
   @UseGuards(JwtAuthGuard)
   obtenerInfoDesistioLeadOpo(
     @Param('idLead', ParseIntPipe) idLead: number,
@@ -521,7 +521,7 @@ export class LeadController {
     campo: string,
 
     @Body('valor')
-    valor: boolean,
+    valor: boolean | number,
   ) {
     return this.leadService.actualizarChecklistNegociacion(
       id_lead_etapa,
@@ -529,7 +529,6 @@ export class LeadController {
       valor,
     );
   }
-
   @Get('etapa-negociacion/checklist/:id_lead')
   obtenerChecklistNegociacion(
     @Param('id_lead', ParseIntPipe)
@@ -628,6 +627,20 @@ export class LeadController {
     return await this.leadService.obtenerHistorialMensajesLeadEtapaContacto(
       id,
     );
+  }
+
+  @Post('actualizar-documento-negociacion')
+  async actualizarDocumentoNegociacion(
+    @Body()
+    data: {
+      id: number;
+      campo: 'url_precalificacion' | 'url_carta_aprobacion';
+      archivo: string;
+    },
+  ) {
+
+    return await this.leadService.actualizarDocumentoNegociacion(data);
+
   }
 }
 

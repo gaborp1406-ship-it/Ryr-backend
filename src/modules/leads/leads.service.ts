@@ -493,7 +493,7 @@ export class LeadService {
   }
 
 
-   async obtenerInfoDesistioLeadOpo(
+  async obtenerInfoDesistioLeadOpo(
     idLead: number
   ) {
 
@@ -758,18 +758,17 @@ export class LeadService {
   async finalizarEtapaCierre(id_lead: number) {
     return await this.leadRepository.finalizarEtapaCierre(id_lead);
   }
-
-  async actualizarChecklistNegociacion(
-    id_lead_etapa: number,
-    campo: string,
-    valor: boolean,
-  ) {
-    return await this.leadRepository.actualizarChecklistNegociacion(
-      id_lead_etapa,
-      campo,
-      valor,
-    );
-  }
+async actualizarChecklistNegociacion(
+  id_lead_etapa: number,
+  campo: string,
+  valor: boolean | number,
+) {
+  return await this.leadRepository.actualizarChecklistNegociacion(
+    id_lead_etapa,
+    campo,
+    valor,
+  );
+}
 
   async obtenerChecklistNegociacion(
     id_lead: number,
@@ -849,7 +848,7 @@ export class LeadService {
     }
   }
 
-  
+
   async registrarDocumentoCierre(data: {
     id_etapa_cierre: number;
     nombre_documento: string;
@@ -949,4 +948,47 @@ export class LeadService {
       throw error;
     }
   }
+
+  async actualizarDocumentoNegociacion(data: {
+    id: number;
+    campo: 'url_precalificacion' | 'url_carta_aprobacion';
+    archivo: string;
+  }) {
+
+    try {
+
+      // Validar campo
+      if (
+        data.campo !== 'url_precalificacion' &&
+        data.campo !== 'url_carta_aprobacion'
+      ) {
+        throw new Error(
+          'El campo debe ser url_precalificacion o url_carta_aprobacion',
+        );
+      }
+
+      // Subir archivo a Supabase
+      const url = await this.subirArchivoBase64(
+        data.archivo,
+        `documentos-negociacion/${data.id}`,
+      );
+
+      // Guardar URL en PostgreSQL
+      return await this.leadRepository.actualizarDocumentoNegociacion({
+        id: data.id,
+        campo: data.campo,
+        url,
+      });
+
+    } catch (error) {
+
+      console.log(
+        'Error al actualizar documento de negociación:',
+        error,
+      );
+
+      throw error;
+    }
+  }
+
 }

@@ -714,23 +714,23 @@ async obtenerInfoDesistioLeadOpo(
 
     return result[0];
   }
-  async actualizarChecklistNegociacion(
-    id_lead_etapa: number,
-    campo: string,
-    valor: boolean,
-  ) {
-    return await this.dataSource.query(
-      `
-      SELECT *
-      FROM public.fn_actualizar_checklist_negociacion($1, $2, $3)
+async actualizarChecklistNegociacion(
+  id_lead_etapa: number,
+  campo: string,
+  valor: boolean | number,
+) {
+  return await this.dataSource.query(
+    `
+    SELECT *
+    FROM public.fn_actualizar_checklist_negociacion($1, $2, $3)
     `,
-      [
-        id_lead_etapa,
-        campo,
-        valor,
-      ],
-    );
-  }
+    [
+      id_lead_etapa,
+      campo,
+      String(valor),
+    ],
+  );
+}
 
   async obtenerChecklistNegociacion(
     id_lead: number,
@@ -802,6 +802,29 @@ async obtenerInfoDesistioLeadOpo(
       ],
     );
   }
+
+
+  async actualizarDocumentoNegociacion(data: {
+  id: number;
+  campo: string;
+  url: string;
+}) {
+  return await this.dataSource.query(
+    `
+    SELECT *
+    FROM public.fn_actualizar_documento_negociacion(
+      $1,
+      $2,
+      $3
+    )
+    `,
+    [
+      data.id,
+      data.campo,
+      data.url,
+    ],
+  );
+}
   async obtenerDocumentosCierre(id_etapa_cierre: number) {
 
     return await this.dataSource.query(
