@@ -11,6 +11,7 @@ import { ProyectosModule } from './modules/proyectos/proyectos.module';
 import { AsesoresModule } from './modules/asesores/asesores.module';
 import { LeadsModule } from './modules/leads/leads.module';
 import { AsteriskModule } from './modules/asterisk/asterisk.module';
+import { DashboardModule } from './modules/dashboard/dashboard.module';
 
 @Module({
   imports: [
@@ -39,7 +40,8 @@ import { AsteriskModule } from './modules/asterisk/asterisk.module';
     AsesoresModule,
     LeadsModule,
     AsteriskModule,
-    OpcionesModule
+    OpcionesModule,
+    DashboardModule
 
   ],
   controllers: [AppController],

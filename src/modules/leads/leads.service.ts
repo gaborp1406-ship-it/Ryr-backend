@@ -314,6 +314,21 @@ export class LeadService {
     }
   }
 
+  async obtenerDetalleActividad(id_actividad: number) {
+  try {
+    const result =
+      await this.leadRepository.obtenerDetalleActividad(id_actividad);
+
+    if (!result || result.length === 0) {
+      throw new Error('No se encontró la actividad.');
+    }
+
+    return result;
+  } catch (error) {
+    console.log('Error al obtener el detalle de la actividad:', error);
+    throw error;
+  }
+}
 
   async obtenerEstadoContactoLead(id_lead: number) {
     try {
@@ -449,26 +464,7 @@ export class LeadService {
 
   }
 
-  async finalizarEtapaContactoDesistio(data: {
-    id_lead: number;
-    motivo?: number;
-  }) {
 
-    try {
-
-      return await this.leadRepository.finalizarEtapaContactoDesistio(data);
-
-    } catch (error) {
-
-      console.log(
-        'Error al finalizar etapa contacto desistio:',
-        error
-      );
-
-      throw error;
-    }
-
-  }
 
   async obtenerInfoDesistioLead(
     idLead: number
@@ -715,36 +711,65 @@ export class LeadService {
     return await this.leadRepository.finalizarEtapaAtencion(id_lead);
   }
 
-  async finalizarEtapaOportunidadDesistio(
-    id_lead: number,
-    motivo?: number,
-  ) {
-    return await this.leadRepository.finalizarEtapaOportunidadDesistio(
-      id_lead,
-      motivo,
-    );
-  }
 
 
 
 
-  async finalizarEtapaNegociacionDesistio(
-    id_lead: number,
-    motivo?: number,
-  ) {
-    return await this.leadRepository.finalizarEtapaNegociacionDesistio(
-      id_lead,
-      motivo,
-    );
-  } async finalizarEtapaCierreDesistio(
-    id_lead: number,
-    motivo?: number,
-  ) {
-    return await this.leadRepository.finalizarEtapaCierreDesistio(
-      id_lead,
-      motivo,
-    );
-  }
+
+
+
+async finalizarEtapaContactoDesistio(
+  id_lead: number,
+  motivo?: number,
+  motivo_otro?: string,
+) {
+  return await this.leadRepository.finalizarEtapaContactoDesistio(
+    id_lead,
+    motivo,
+    motivo_otro,
+  );
+}
+
+async finalizarEtapaOportunidadDesistio(
+  id_lead: number,
+  motivo?: number,
+  motivo_otro?: string,
+) {
+  return await this.leadRepository.finalizarEtapaOportunidadDesistio(
+    id_lead,
+    motivo,
+    motivo_otro,
+  );
+}
+
+async finalizarEtapaNegociacionDesistio(
+  id_lead: number,
+  motivo?: number,
+  motivo_otro?: string,
+) {
+  return await this.leadRepository.finalizarEtapaNegociacionDesistio(
+    id_lead,
+    motivo,
+    motivo_otro,
+  );
+}
+
+async finalizarEtapaCierreDesistio(
+  id_lead: number,
+  motivo?: number,
+  motivo_otro?: string,
+) {
+  return await this.leadRepository.finalizarEtapaCierreDesistio(
+    id_lead,
+    motivo,
+    motivo_otro,
+  );
+}
+
+
+
+
+
 
 
 
@@ -758,17 +783,17 @@ export class LeadService {
   async finalizarEtapaCierre(id_lead: number) {
     return await this.leadRepository.finalizarEtapaCierre(id_lead);
   }
-async actualizarChecklistNegociacion(
-  id_lead_etapa: number,
-  campo: string,
-  valor: boolean | number,
-) {
-  return await this.leadRepository.actualizarChecklistNegociacion(
-    id_lead_etapa,
-    campo,
-    valor,
-  );
-}
+  async actualizarChecklistNegociacion(
+    id_lead_etapa: number,
+    campo: string,
+    valor: boolean | number,
+  ) {
+    return await this.leadRepository.actualizarChecklistNegociacion(
+      id_lead_etapa,
+      campo,
+      valor,
+    );
+  }
 
   async obtenerChecklistNegociacion(
     id_lead: number,

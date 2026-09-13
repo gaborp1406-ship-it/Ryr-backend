@@ -43,6 +43,7 @@ export interface IListarClientesPotenciales {
   id_asesor?: number;
   id_fuente?: number;
   id_proyecto?: number;
+  id_fase?: number;
 }
 
 export interface IClientePotencial {
