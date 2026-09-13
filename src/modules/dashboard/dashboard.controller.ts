@@ -31,7 +31,6 @@ export class DashboardController {
 
     const fechaLimpia = fecha.trim();
 
-    // Formato exacto YYYY-MM-DD
     const regex = /^\d{4}-\d{2}-\d{2}$/;
 
     if (!regex.test(fechaLimpia)) {
@@ -40,7 +39,6 @@ export class DashboardController {
       );
     }
 
-    // Validar que realmente sea una fecha existente
     const [anio, mes, dia] = fechaLimpia
       .split('-')
       .map(Number);
@@ -143,8 +141,8 @@ export class DashboardController {
   @Get('actividades')
   @UseGuards(JwtAuthGuard)
   contarActividades(
-    @Query('fechaInicio') fechaInicio?: string,
-    @Query('fechaFin') fechaFin?: string,
+    @Query('fecha_inicio') fechaInicio?: string,
+    @Query('fecha_fin') fechaFin?: string,
   ) {
     const {
       fechaInicio: pFechaInicio,
@@ -159,13 +157,9 @@ export class DashboardController {
       pFechaFin,
     );
   }
+
   // =========================================================
   // DESISTIMIENTOS
-  //
-  // id_etapa:
-  // 3 = Desistio
-  // 8 = Desistio - Oportunidad
-  // null = ambos
   // =========================================================
   @Get('desistimientos')
   @UseGuards(JwtAuthGuard)
@@ -181,7 +175,6 @@ export class DashboardController {
         ? Number(idEtapa)
         : null;
 
-    // Validar id_etapa
     if (
       pIdEtapa !== null &&
       !Number.isInteger(pIdEtapa)
@@ -234,6 +227,350 @@ export class DashboardController {
     );
 
     return this.dashboardService.contarLeadsAtendidos(
+      pFechaInicio,
+      pFechaFin,
+    );
+  }
+
+  // =========================================================
+  // 1. LEADS EN CIERRE
+  // =========================================================
+  @Get('leads-cierre')
+  @UseGuards(JwtAuthGuard)
+  contarLeadsCierre(
+    @Query('fecha_inicio') fechaInicio?: string,
+    @Query('fecha_fin') fechaFin?: string,
+  ) {
+    const {
+      fechaInicio: pFechaInicio,
+      fechaFin: pFechaFin,
+    } = this.obtenerRangoFechas(
+      fechaInicio,
+      fechaFin,
+    );
+
+    return this.dashboardService.contarLeadsCierre(
+      pFechaInicio,
+      pFechaFin,
+    );
+  }
+
+  // =========================================================
+  // 2. TOTAL DE LEADS
+  // =========================================================
+  @Get('total-leads')
+  @UseGuards(JwtAuthGuard)
+  contarTotalLeads(
+    @Query('fecha_inicio') fechaInicio?: string,
+    @Query('fecha_fin') fechaFin?: string,
+  ) {
+    const {
+      fechaInicio: pFechaInicio,
+      fechaFin: pFechaFin,
+    } = this.obtenerRangoFechas(
+      fechaInicio,
+      fechaFin,
+    );
+
+    return this.dashboardService.contarTotalLeads(
+      pFechaInicio,
+      pFechaFin,
+    );
+  }
+
+  // =========================================================
+  // 3. CIERRES POR PROYECTO
+  // =========================================================
+  @Get('cierres-por-proyecto')
+  @UseGuards(JwtAuthGuard)
+  contarCierresPorProyecto(
+    @Query('fecha_inicio') fechaInicio?: string,
+    @Query('fecha_fin') fechaFin?: string,
+  ) {
+    const {
+      fechaInicio: pFechaInicio,
+      fechaFin: pFechaFin,
+    } = this.obtenerRangoFechas(
+      fechaInicio,
+      fechaFin,
+    );
+
+    return this.dashboardService.contarCierresPorProyecto(
+      pFechaInicio,
+      pFechaFin,
+    );
+  }
+
+  // =========================================================
+  // 4. CIERRES POR FUENTE
+  // =========================================================
+  @Get('cierres-por-fuente')
+  @UseGuards(JwtAuthGuard)
+  contarCierresPorFuente(
+    @Query('fecha_inicio') fechaInicio?: string,
+    @Query('fecha_fin') fechaFin?: string,
+  ) {
+    const {
+      fechaInicio: pFechaInicio,
+      fechaFin: pFechaFin,
+    } = this.obtenerRangoFechas(
+      fechaInicio,
+      fechaFin,
+    );
+
+    return this.dashboardService.contarCierresPorFuente(
+      pFechaInicio,
+      pFechaFin,
+    );
+  }
+
+  // =========================================================
+  // 5. CIERRES POR ASESOR
+  // =========================================================
+  @Get('cierres-por-asesor')
+  @UseGuards(JwtAuthGuard)
+  contarCierresPorAsesor(
+    @Query('fecha_inicio') fechaInicio?: string,
+    @Query('fecha_fin') fechaFin?: string,
+  ) {
+    const {
+      fechaInicio: pFechaInicio,
+      fechaFin: pFechaFin,
+    } = this.obtenerRangoFechas(
+      fechaInicio,
+      fechaFin,
+    );
+
+    return this.dashboardService.contarCierresPorAsesor(
+      pFechaInicio,
+      pFechaFin,
+    );
+  }
+
+  // =========================================================
+  // 6. TOTAL DE LEADS POR FUENTE
+  // =========================================================
+  @Get('total-leads-por-fuente')
+  @UseGuards(JwtAuthGuard)
+  contarTotalLeadsPorFuente(
+    @Query('fecha_inicio') fechaInicio?: string,
+    @Query('fecha_fin') fechaFin?: string,
+  ) {
+    const {
+      fechaInicio: pFechaInicio,
+      fechaFin: pFechaFin,
+    } = this.obtenerRangoFechas(
+      fechaInicio,
+      fechaFin,
+    );
+
+    return this.dashboardService.contarTotalLeadsPorFuente(
+      pFechaInicio,
+      pFechaFin,
+    );
+  }
+
+  // =========================================================
+  // 7. TASA DE CIERRE
+  // =========================================================
+  @Get('tasa-cierre')
+  @UseGuards(JwtAuthGuard)
+  contarTasaCierre(
+    @Query('fecha_inicio') fechaInicio?: string,
+    @Query('fecha_fin') fechaFin?: string,
+  ) {
+    const {
+      fechaInicio: pFechaInicio,
+      fechaFin: pFechaFin,
+    } = this.obtenerRangoFechas(
+      fechaInicio,
+      fechaFin,
+    );
+
+    return this.dashboardService.contarTasaCierre(
+      pFechaInicio,
+      pFechaFin,
+    );
+  }
+
+  @Get('leads-negociacion')
+  @UseGuards(JwtAuthGuard)
+  contarLeadsNegociacion(
+    @Query('fecha_inicio') fechaInicio?: string,
+    @Query('fecha_fin') fechaFin?: string,
+  ) {
+    const {
+      fechaInicio: pFechaInicio,
+      fechaFin: pFechaFin,
+    } = this.obtenerRangoFechas(
+      fechaInicio,
+      fechaFin,
+    );
+
+    return this.dashboardService.contarLeadsNegociacion(
+      pFechaInicio,
+      pFechaFin,
+    );
+  }
+
+  @Get('negociacion-por-fuente')
+  @UseGuards(JwtAuthGuard)
+  contarNegociacionPorFuente(
+    @Query('fecha_inicio') fechaInicio?: string,
+    @Query('fecha_fin') fechaFin?: string,
+  ) {
+    const {
+      fechaInicio: pFechaInicio,
+      fechaFin: pFechaFin,
+    } = this.obtenerRangoFechas(
+      fechaInicio,
+      fechaFin,
+    );
+
+    return this.dashboardService.contarNegociacionPorFuente(
+      pFechaInicio,
+      pFechaFin,
+    );
+  }
+
+  @Get('negociacion-por-proyecto')
+  @UseGuards(JwtAuthGuard)
+  contarNegociacionPorProyecto(
+    @Query('fecha_inicio') fechaInicio?: string,
+    @Query('fecha_fin') fechaFin?: string,
+  ) {
+    const {
+      fechaInicio: pFechaInicio,
+      fechaFin: pFechaFin,
+    } = this.obtenerRangoFechas(
+      fechaInicio,
+      fechaFin,
+    );
+
+    return this.dashboardService.contarNegociacionPorProyecto(
+      pFechaInicio,
+      pFechaFin,
+    );
+  }
+
+  @Get('negociacion-por-asesor')
+  @UseGuards(JwtAuthGuard)
+  contarNegociacionPorAsesor(
+    @Query('fecha_inicio') fechaInicio?: string,
+    @Query('fecha_fin') fechaFin?: string,
+  ) {
+    const {
+      fechaInicio: pFechaInicio,
+      fechaFin: pFechaFin,
+    } = this.obtenerRangoFechas(
+      fechaInicio,
+      fechaFin,
+    );
+
+    return this.dashboardService.contarNegociacionPorAsesor(
+      pFechaInicio,
+      pFechaFin,
+    );
+  }
+
+  @Get('listar-leads-negociacion')
+  @UseGuards(JwtAuthGuard)
+  listarLeadsNegociacion(
+    @Query('fecha_inicio') fechaInicio?: string,
+    @Query('fecha_fin') fechaFin?: string,
+  ) {
+    const {
+      fechaInicio: pFechaInicio,
+      fechaFin: pFechaFin,
+    } = this.obtenerRangoFechas(
+      fechaInicio,
+      fechaFin,
+    );
+
+    return this.dashboardService.listarLeadsNegociacion(
+      pFechaInicio,
+      pFechaFin,
+    );
+  }
+
+  @Get('contacto-por-asesor')
+  @UseGuards(JwtAuthGuard)
+  contactoPorAsesor(
+    @Query('fecha_inicio') fechaInicio?: string,
+    @Query('fecha_fin') fechaFin?: string,
+  ) {
+    const {
+      fechaInicio: pFechaInicio,
+      fechaFin: pFechaFin,
+    } = this.obtenerRangoFechas(
+      fechaInicio,
+      fechaFin,
+    );
+
+    return this.dashboardService.contactoPorAsesor(
+      pFechaInicio,
+      pFechaFin,
+    );
+  }
+
+
+  @Get('rangos-contacto')
+  @UseGuards(JwtAuthGuard)
+  rangosContacto(
+    @Query('fecha_inicio') fechaInicio?: string,
+    @Query('fecha_fin') fechaFin?: string,
+  ) {
+    const {
+      fechaInicio: pFechaInicio,
+      fechaFin: pFechaFin,
+    } = this.obtenerRangoFechas(
+      fechaInicio,
+      fechaFin,
+    );
+
+    return this.dashboardService.rangosContacto(
+      pFechaInicio,
+      pFechaFin,
+    );
+  }
+
+
+  @Get('resumen-contacto')
+  @UseGuards(JwtAuthGuard)
+  resumenContacto(
+    @Query('fecha_inicio') fechaInicio?: string,
+    @Query('fecha_fin') fechaFin?: string,
+  ) {
+    const {
+      fechaInicio: pFechaInicio,
+      fechaFin: pFechaFin,
+    } = this.obtenerRangoFechas(
+      fechaInicio,
+      fechaFin,
+    );
+
+    return this.dashboardService.resumenContacto(
+      pFechaInicio,
+      pFechaFin,
+    );
+  }
+
+
+  @Get('leads-contactados-asesor')
+  @UseGuards(JwtAuthGuard)
+  leadsContactadosAsesor(
+    @Query('fecha_inicio') fechaInicio?: string,
+    @Query('fecha_fin') fechaFin?: string,
+  ) {
+    const {
+      fechaInicio: pFechaInicio,
+      fechaFin: pFechaFin,
+    } = this.obtenerRangoFechas(
+      fechaInicio,
+      fechaFin,
+    );
+
+    return this.dashboardService.leadsContactadosAsesor(
       pFechaInicio,
       pFechaFin,
     );
