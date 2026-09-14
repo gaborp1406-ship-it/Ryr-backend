@@ -9,7 +9,7 @@ export class AuthRepository {
 
   async login(usuario: string, contrasenia: string) {
     const result: AuthResponse[] = await this.dataSource.query(
-      `SELECT * FROM seg_authenticate($1, $2)`,
+      `SELECT * FROM public.seg_authenticate($1, $2)`,
       [usuario, contrasenia],
     );
     return result[0];
@@ -17,7 +17,7 @@ export class AuthRepository {
 
   async seg_usuario_get(id_usuario: number) {
     const result: Usuario[] = await this.dataSource.query(
-      `SELECT * FROM seg_usuario_get($1)`,
+      `SELECT * FROM public.seg_usuario_get($1)`,
       [id_usuario],
     );
     return result;
@@ -27,7 +27,7 @@ export class AuthRepository {
     id_usuario: number,
   ): Promise<CheckStatusUsuario[] | null> {
     const result = await this.dataSource.query<CheckStatusQueryResult[]>(
-      `SELECT seg_usuario_checkstatus($1) AS data`,
+      `SELECT public.seg_usuario_checkstatus($1) AS data`,
       [id_usuario],
     );
     return result[0]?.data ?? null;
