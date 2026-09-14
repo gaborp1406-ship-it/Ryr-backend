@@ -69,11 +69,15 @@ export class LeadController {
   @UseGuards(JwtAuthGuard)
   obtenerLeadsPorEtapaActual(
     @Query('idEtapa') idEtapa?: string,
-    @Query('idAgente') idAgente?: string
+    @Query('idAgente') idAgente?: string,
+    @Query('fechaInicio') fechaInicio?: string,
+    @Query('fechaFin') fechaFin?: string
   ) {
     return this.leadService.obtenerLeadsPorEtapaActual(
       idEtapa ? parseInt(idEtapa, 10) : undefined,
-      idAgente ? parseInt(idAgente, 10) : undefined
+      idAgente ? parseInt(idAgente, 10) : undefined,
+      fechaInicio,
+      fechaFin
     );
   }
 
@@ -117,12 +121,12 @@ export class LeadController {
 
 
   @Get('obtener-detalle-actividad/:id_actividad')
-@UseGuards(JwtAuthGuard)
-obtenerDetalleActividad(
-  @Param('id_actividad', ParseIntPipe) id_actividad: number,
-) {
-  return this.leadService.obtenerDetalleActividad(id_actividad);
-}
+  @UseGuards(JwtAuthGuard)
+  obtenerDetalleActividad(
+    @Param('id_actividad', ParseIntPipe) id_actividad: number,
+  ) {
+    return this.leadService.obtenerDetalleActividad(id_actividad);
+  }
   @Post('finalizar-etapa/:id_lead_etapa')
   @UseGuards(JwtAuthGuard)
   finalizarEtapaLead(
@@ -254,73 +258,73 @@ obtenerDetalleActividad(
 
 
 
-@Post('finalizar-etapa-contacto-desistio')
-@UseGuards(JwtAuthGuard)
-finalizarEtapaContactoDesistio(
-  @Body()
-  data: {
-    id_lead: number;
-    motivo?: number;
-    motivo_otro?: string;
-  },
-) {
-  return this.leadService.finalizarEtapaContactoDesistio(
-    data.id_lead,
-    data.motivo,
-    data.motivo_otro,
-  );
-}
+  @Post('finalizar-etapa-contacto-desistio')
+  @UseGuards(JwtAuthGuard)
+  finalizarEtapaContactoDesistio(
+    @Body()
+    data: {
+      id_lead: number;
+      motivo?: number;
+      motivo_otro?: string;
+    },
+  ) {
+    return this.leadService.finalizarEtapaContactoDesistio(
+      data.id_lead,
+      data.motivo,
+      data.motivo_otro,
+    );
+  }
 
-@Post('finalizar-etapa-oportunidad-desistio')
-@UseGuards(JwtAuthGuard)
-finalizarEtapaOportunidadDesistio(
-  @Body()
-  data: {
-    id_lead: number;
-    motivo?: number;
-    motivo_otro?: string;
-  },
-) {
-  return this.leadService.finalizarEtapaOportunidadDesistio(
-    data.id_lead,
-    data.motivo,
-    data.motivo_otro,
-  );
-}
+  @Post('finalizar-etapa-oportunidad-desistio')
+  @UseGuards(JwtAuthGuard)
+  finalizarEtapaOportunidadDesistio(
+    @Body()
+    data: {
+      id_lead: number;
+      motivo?: number;
+      motivo_otro?: string;
+    },
+  ) {
+    return this.leadService.finalizarEtapaOportunidadDesistio(
+      data.id_lead,
+      data.motivo,
+      data.motivo_otro,
+    );
+  }
 
-@Post('finalizar-etapa-negociacion-desistio')
-@UseGuards(JwtAuthGuard)
-finalizarEtapaNegociacionDesistio(
-  @Body()
-  data: {
-    id_lead: number;
-    motivo?: number;
-    motivo_otro?: string;
-  },
-) {
-  return this.leadService.finalizarEtapaNegociacionDesistio(
-    data.id_lead,
-    data.motivo,
-    data.motivo_otro,
-  );
-}
+  @Post('finalizar-etapa-negociacion-desistio')
+  @UseGuards(JwtAuthGuard)
+  finalizarEtapaNegociacionDesistio(
+    @Body()
+    data: {
+      id_lead: number;
+      motivo?: number;
+      motivo_otro?: string;
+    },
+  ) {
+    return this.leadService.finalizarEtapaNegociacionDesistio(
+      data.id_lead,
+      data.motivo,
+      data.motivo_otro,
+    );
+  }
 
-@Post('finalizar-etapa-cierre-desistio')
-@UseGuards(JwtAuthGuard)
-finalizarEtapaCierreDesistio(
-  @Body()
-  data: {
-    id_lead: number;
-    motivo?: number;
-    motivo_otro?: string;
-  },
-) {
-  return this.leadService.finalizarEtapaCierreDesistio(
-    data.id_lead,
-    data.motivo,
-    data.motivo_otro,
-  );
-}
+  @Post('finalizar-etapa-cierre-desistio')
+  @UseGuards(JwtAuthGuard)
+  finalizarEtapaCierreDesistio(
+    @Body()
+    data: {
+      id_lead: number;
+      motivo?: number;
+      motivo_otro?: string;
+    },
+  ) {
+    return this.leadService.finalizarEtapaCierreDesistio(
+      data.id_lead,
+      data.motivo,
+      data.motivo_otro,
+    );
+  }
 
 
 

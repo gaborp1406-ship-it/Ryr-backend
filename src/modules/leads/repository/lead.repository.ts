@@ -89,26 +89,32 @@ export class LeadRepository {
     return result[0];
   }
 
-  async obtenerLeadsPorEtapaActual(
-    idEtapa?: number,
-    idAgente?: number
-  ) {
-    const result = await this.dataSource.query(
-      `
-    SELECT *
-    FROM public.fn_obtener_leads_por_etapa_actual(
-      $1,
-      $2
-    )
+async obtenerLeadsPorEtapaActual(
+  idEtapa?: number,
+  idAgente?: number,
+  fechaInicio?: string,
+  fechaFin?: string
+) {
+  const result = await this.dataSource.query(
+    `
+      SELECT *
+      FROM public.fn_obtener_leads_por_etapa_actual(
+        $1,
+        $2,
+        $3,
+        $4
+      )
     `,
-      [
-        idEtapa ?? null,
-        idAgente ?? null
-      ]
-    );
+    [
+      idEtapa ?? null,
+      idAgente ?? null,
+      fechaInicio ?? null,
+      fechaFin ?? null
+    ]
+  );
 
-    return result;
-  }
+  return result;
+}
 
   async reabrirLeadEtapa(idLeadEtapa: number) {
     const result = await this.dataSource.query(

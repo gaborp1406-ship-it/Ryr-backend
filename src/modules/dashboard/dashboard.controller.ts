@@ -90,6 +90,31 @@ export class DashboardController {
   }
 
   // =========================================================
+  // VALIDAR ID ASESOR
+  // =========================================================
+  private validarIdAsesor(
+    idAsesor: string | undefined,
+  ): number | null {
+    if (
+      idAsesor === undefined ||
+      idAsesor === null ||
+      idAsesor.trim() === ''
+    ) {
+      return null;
+    }
+
+    const pIdAsesor = Number(idAsesor);
+
+    if (!Number.isInteger(pIdAsesor)) {
+      throw new BadRequestException(
+        'id_asesor debe ser un número entero',
+      );
+    }
+
+    return pIdAsesor;
+  }
+
+  // =========================================================
   // LEADS POR ETAPA
   // =========================================================
   @Get('leads-por-etapa')
@@ -97,6 +122,7 @@ export class DashboardController {
   contarLeadsPorEtapa(
     @Query('fecha_inicio') fechaInicio?: string,
     @Query('fecha_fin') fechaFin?: string,
+    @Query('id_asesor') idAsesor?: string,
   ) {
     const {
       fechaInicio: pFechaInicio,
@@ -106,9 +132,12 @@ export class DashboardController {
       fechaFin,
     );
 
+    const pIdAsesor = this.validarIdAsesor(idAsesor);
+
     return this.dashboardService.contarLeadsPorEtapa(
       pFechaInicio,
       pFechaFin,
+      pIdAsesor,
     );
   }
 
@@ -120,6 +149,7 @@ export class DashboardController {
   contarLeadsPorFase(
     @Query('fecha_inicio') fechaInicio?: string,
     @Query('fecha_fin') fechaFin?: string,
+    @Query('id_asesor') idAsesor?: string,
   ) {
     const {
       fechaInicio: pFechaInicio,
@@ -129,9 +159,12 @@ export class DashboardController {
       fechaFin,
     );
 
+    const pIdAsesor = this.validarIdAsesor(idAsesor);
+
     return this.dashboardService.contarLeadsPorFase(
       pFechaInicio,
       pFechaFin,
+      pIdAsesor,
     );
   }
 
@@ -143,6 +176,7 @@ export class DashboardController {
   contarActividades(
     @Query('fecha_inicio') fechaInicio?: string,
     @Query('fecha_fin') fechaFin?: string,
+    @Query('id_asesor') idAsesor?: string,
   ) {
     const {
       fechaInicio: pFechaInicio,
@@ -152,9 +186,12 @@ export class DashboardController {
       fechaFin,
     );
 
+    const pIdAsesor = this.validarIdAsesor(idAsesor);
+
     return this.dashboardService.contarActividades(
       pFechaInicio,
       pFechaFin,
+      pIdAsesor,
     );
   }
 
@@ -167,6 +204,7 @@ export class DashboardController {
     @Query('id_etapa') idEtapa?: string,
     @Query('fecha_inicio') fechaInicio?: string,
     @Query('fecha_fin') fechaFin?: string,
+    @Query('id_asesor') idAsesor?: string,
   ) {
     const pIdEtapa =
       idEtapa !== undefined &&
@@ -202,10 +240,13 @@ export class DashboardController {
       fechaFin,
     );
 
+    const pIdAsesor = this.validarIdAsesor(idAsesor);
+
     return this.dashboardService.contarDesistimientos(
       pIdEtapa,
       pFechaInicio,
       pFechaFin,
+      pIdAsesor,
     );
   }
 
@@ -217,6 +258,7 @@ export class DashboardController {
   contarLeadsAtendidos(
     @Query('fecha_inicio') fechaInicio?: string,
     @Query('fecha_fin') fechaFin?: string,
+    @Query('id_asesor') idAsesor?: string,
   ) {
     const {
       fechaInicio: pFechaInicio,
@@ -226,9 +268,12 @@ export class DashboardController {
       fechaFin,
     );
 
+    const pIdAsesor = this.validarIdAsesor(idAsesor);
+
     return this.dashboardService.contarLeadsAtendidos(
       pFechaInicio,
       pFechaFin,
+      pIdAsesor,
     );
   }
 
@@ -240,6 +285,7 @@ export class DashboardController {
   contarLeadsCierre(
     @Query('fecha_inicio') fechaInicio?: string,
     @Query('fecha_fin') fechaFin?: string,
+    @Query('id_asesor') idAsesor?: string,
   ) {
     const {
       fechaInicio: pFechaInicio,
@@ -249,9 +295,12 @@ export class DashboardController {
       fechaFin,
     );
 
+    const pIdAsesor = this.validarIdAsesor(idAsesor);
+
     return this.dashboardService.contarLeadsCierre(
       pFechaInicio,
       pFechaFin,
+      pIdAsesor,
     );
   }
 
@@ -263,6 +312,7 @@ export class DashboardController {
   contarTotalLeads(
     @Query('fecha_inicio') fechaInicio?: string,
     @Query('fecha_fin') fechaFin?: string,
+    @Query('id_asesor') idAsesor?: string,
   ) {
     const {
       fechaInicio: pFechaInicio,
@@ -272,9 +322,12 @@ export class DashboardController {
       fechaFin,
     );
 
+    const pIdAsesor = this.validarIdAsesor(idAsesor);
+
     return this.dashboardService.contarTotalLeads(
       pFechaInicio,
       pFechaFin,
+      pIdAsesor,
     );
   }
 
@@ -286,6 +339,7 @@ export class DashboardController {
   contarCierresPorProyecto(
     @Query('fecha_inicio') fechaInicio?: string,
     @Query('fecha_fin') fechaFin?: string,
+    @Query('id_asesor') idAsesor?: string,
   ) {
     const {
       fechaInicio: pFechaInicio,
@@ -295,9 +349,12 @@ export class DashboardController {
       fechaFin,
     );
 
+    const pIdAsesor = this.validarIdAsesor(idAsesor);
+
     return this.dashboardService.contarCierresPorProyecto(
       pFechaInicio,
       pFechaFin,
+      pIdAsesor,
     );
   }
 
@@ -309,6 +366,7 @@ export class DashboardController {
   contarCierresPorFuente(
     @Query('fecha_inicio') fechaInicio?: string,
     @Query('fecha_fin') fechaFin?: string,
+    @Query('id_asesor') idAsesor?: string,
   ) {
     const {
       fechaInicio: pFechaInicio,
@@ -318,9 +376,12 @@ export class DashboardController {
       fechaFin,
     );
 
+    const pIdAsesor = this.validarIdAsesor(idAsesor);
+
     return this.dashboardService.contarCierresPorFuente(
       pFechaInicio,
       pFechaFin,
+      pIdAsesor,
     );
   }
 
@@ -332,6 +393,7 @@ export class DashboardController {
   contarCierresPorAsesor(
     @Query('fecha_inicio') fechaInicio?: string,
     @Query('fecha_fin') fechaFin?: string,
+    @Query('id_asesor') idAsesor?: string,
   ) {
     const {
       fechaInicio: pFechaInicio,
@@ -341,9 +403,12 @@ export class DashboardController {
       fechaFin,
     );
 
+    const pIdAsesor = this.validarIdAsesor(idAsesor);
+
     return this.dashboardService.contarCierresPorAsesor(
       pFechaInicio,
       pFechaFin,
+      pIdAsesor,
     );
   }
 
@@ -355,6 +420,7 @@ export class DashboardController {
   contarTotalLeadsPorFuente(
     @Query('fecha_inicio') fechaInicio?: string,
     @Query('fecha_fin') fechaFin?: string,
+    @Query('id_asesor') idAsesor?: string,
   ) {
     const {
       fechaInicio: pFechaInicio,
@@ -364,9 +430,12 @@ export class DashboardController {
       fechaFin,
     );
 
+    const pIdAsesor = this.validarIdAsesor(idAsesor);
+
     return this.dashboardService.contarTotalLeadsPorFuente(
       pFechaInicio,
       pFechaFin,
+      pIdAsesor,
     );
   }
 
@@ -378,6 +447,7 @@ export class DashboardController {
   contarTasaCierre(
     @Query('fecha_inicio') fechaInicio?: string,
     @Query('fecha_fin') fechaFin?: string,
+    @Query('id_asesor') idAsesor?: string,
   ) {
     const {
       fechaInicio: pFechaInicio,
@@ -387,9 +457,12 @@ export class DashboardController {
       fechaFin,
     );
 
+    const pIdAsesor = this.validarIdAsesor(idAsesor);
+
     return this.dashboardService.contarTasaCierre(
       pFechaInicio,
       pFechaFin,
+      pIdAsesor,
     );
   }
 
@@ -398,6 +471,7 @@ export class DashboardController {
   contarLeadsNegociacion(
     @Query('fecha_inicio') fechaInicio?: string,
     @Query('fecha_fin') fechaFin?: string,
+    @Query('id_asesor') idAsesor?: string,
   ) {
     const {
       fechaInicio: pFechaInicio,
@@ -407,9 +481,12 @@ export class DashboardController {
       fechaFin,
     );
 
+    const pIdAsesor = this.validarIdAsesor(idAsesor);
+
     return this.dashboardService.contarLeadsNegociacion(
       pFechaInicio,
       pFechaFin,
+      pIdAsesor,
     );
   }
 
@@ -418,6 +495,7 @@ export class DashboardController {
   contarNegociacionPorFuente(
     @Query('fecha_inicio') fechaInicio?: string,
     @Query('fecha_fin') fechaFin?: string,
+    @Query('id_asesor') idAsesor?: string,
   ) {
     const {
       fechaInicio: pFechaInicio,
@@ -427,9 +505,12 @@ export class DashboardController {
       fechaFin,
     );
 
+    const pIdAsesor = this.validarIdAsesor(idAsesor);
+
     return this.dashboardService.contarNegociacionPorFuente(
       pFechaInicio,
       pFechaFin,
+      pIdAsesor,
     );
   }
 
@@ -438,6 +519,7 @@ export class DashboardController {
   contarNegociacionPorProyecto(
     @Query('fecha_inicio') fechaInicio?: string,
     @Query('fecha_fin') fechaFin?: string,
+    @Query('id_asesor') idAsesor?: string,
   ) {
     const {
       fechaInicio: pFechaInicio,
@@ -447,9 +529,12 @@ export class DashboardController {
       fechaFin,
     );
 
+    const pIdAsesor = this.validarIdAsesor(idAsesor);
+
     return this.dashboardService.contarNegociacionPorProyecto(
       pFechaInicio,
       pFechaFin,
+      pIdAsesor,
     );
   }
 
@@ -458,6 +543,7 @@ export class DashboardController {
   contarNegociacionPorAsesor(
     @Query('fecha_inicio') fechaInicio?: string,
     @Query('fecha_fin') fechaFin?: string,
+    @Query('id_asesor') idAsesor?: string,
   ) {
     const {
       fechaInicio: pFechaInicio,
@@ -467,9 +553,12 @@ export class DashboardController {
       fechaFin,
     );
 
+    const pIdAsesor = this.validarIdAsesor(idAsesor);
+
     return this.dashboardService.contarNegociacionPorAsesor(
       pFechaInicio,
       pFechaFin,
+      pIdAsesor,
     );
   }
 
@@ -478,6 +567,7 @@ export class DashboardController {
   listarLeadsNegociacion(
     @Query('fecha_inicio') fechaInicio?: string,
     @Query('fecha_fin') fechaFin?: string,
+    @Query('id_asesor') idAsesor?: string,
   ) {
     const {
       fechaInicio: pFechaInicio,
@@ -487,9 +577,12 @@ export class DashboardController {
       fechaFin,
     );
 
+    const pIdAsesor = this.validarIdAsesor(idAsesor);
+
     return this.dashboardService.listarLeadsNegociacion(
       pFechaInicio,
       pFechaFin,
+      pIdAsesor,
     );
   }
 
@@ -498,6 +591,7 @@ export class DashboardController {
   contactoPorAsesor(
     @Query('fecha_inicio') fechaInicio?: string,
     @Query('fecha_fin') fechaFin?: string,
+    @Query('id_asesor') idAsesor?: string,
   ) {
     const {
       fechaInicio: pFechaInicio,
@@ -507,9 +601,12 @@ export class DashboardController {
       fechaFin,
     );
 
+    const pIdAsesor = this.validarIdAsesor(idAsesor);
+
     return this.dashboardService.contactoPorAsesor(
       pFechaInicio,
       pFechaFin,
+      pIdAsesor,
     );
   }
 
@@ -519,6 +616,7 @@ export class DashboardController {
   rangosContacto(
     @Query('fecha_inicio') fechaInicio?: string,
     @Query('fecha_fin') fechaFin?: string,
+    @Query('id_asesor') idAsesor?: string,
   ) {
     const {
       fechaInicio: pFechaInicio,
@@ -528,9 +626,12 @@ export class DashboardController {
       fechaFin,
     );
 
+    const pIdAsesor = this.validarIdAsesor(idAsesor);
+
     return this.dashboardService.rangosContacto(
       pFechaInicio,
       pFechaFin,
+      pIdAsesor,
     );
   }
 
@@ -540,6 +641,7 @@ export class DashboardController {
   resumenContacto(
     @Query('fecha_inicio') fechaInicio?: string,
     @Query('fecha_fin') fechaFin?: string,
+    @Query('id_asesor') idAsesor?: string,
   ) {
     const {
       fechaInicio: pFechaInicio,
@@ -549,9 +651,12 @@ export class DashboardController {
       fechaFin,
     );
 
+    const pIdAsesor = this.validarIdAsesor(idAsesor);
+
     return this.dashboardService.resumenContacto(
       pFechaInicio,
       pFechaFin,
+      pIdAsesor,
     );
   }
 
@@ -561,6 +666,7 @@ export class DashboardController {
   leadsContactadosAsesor(
     @Query('fecha_inicio') fechaInicio?: string,
     @Query('fecha_fin') fechaFin?: string,
+    @Query('id_asesor') idAsesor?: string,
   ) {
     const {
       fechaInicio: pFechaInicio,
@@ -570,9 +676,12 @@ export class DashboardController {
       fechaFin,
     );
 
+    const pIdAsesor = this.validarIdAsesor(idAsesor);
+
     return this.dashboardService.leadsContactadosAsesor(
       pFechaInicio,
       pFechaFin,
+      pIdAsesor,
     );
   }
 }

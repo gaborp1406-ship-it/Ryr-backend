@@ -17,12 +17,14 @@ export class DashboardService {
   async contarLeadsPorEtapa(
     fechaInicio: string | null,
     fechaFin: string | null,
+    idAsesor: number | null,
   ) {
     try {
       return await this.dashboardRepository
         .fn_contar_clientes_potenciales_por_etapa(
           fechaInicio,
           fechaFin,
+          idAsesor,
         );
     } catch (error) {
       console.error(
@@ -42,12 +44,14 @@ export class DashboardService {
   async contarLeadsPorFase(
     fechaInicio: string | null,
     fechaFin: string | null,
+    idAsesor: number | null,
   ) {
     try {
       return await this.dashboardRepository
         .fn_contar_clientes_potenciales_por_fase(
           fechaInicio,
           fechaFin,
+          idAsesor,
         );
     } catch (error) {
       console.error(
@@ -67,12 +71,14 @@ export class DashboardService {
   async contarActividades(
     fechaInicio: string | null,
     fechaFin: string | null,
+    idAsesor: number | null,
   ) {
     try {
       return await this.dashboardRepository
         .fn_contar_actividades_dashboard(
           fechaInicio,
           fechaFin,
+          idAsesor,
         );
     } catch (error) {
       console.error(
@@ -93,6 +99,7 @@ export class DashboardService {
     idEtapa: number | null,
     fechaInicio: string | null,
     fechaFin: string | null,
+    idAsesor: number | null,
   ) {
     try {
       return await this.dashboardRepository
@@ -100,6 +107,7 @@ export class DashboardService {
           idEtapa,
           fechaInicio,
           fechaFin,
+          idAsesor
         );
     } catch (error) {
       console.error(
@@ -119,12 +127,14 @@ export class DashboardService {
   async contarLeadsAtendidos(
     fechaInicio: string | null,
     fechaFin: string | null,
+    idAsesor: number | null,
   ) {
     try {
       return await this.dashboardRepository
         .fn_contar_leads_atendidos_dashboard(
-          fechaInicio,
+         fechaInicio,
           fechaFin,
+          idAsesor,
         );
     } catch (error) {
       console.error(
@@ -144,12 +154,14 @@ export class DashboardService {
   async contarLeadsCierre(
     fechaInicio: string | null,
     fechaFin: string | null,
+    idAsesor: number | null,
   ) {
     try {
       return await this.dashboardRepository
         .fn_dashboard_leads_cierre(
-          fechaInicio,
+         fechaInicio,
           fechaFin,
+          idAsesor,
         );
     } catch (error) {
       console.error(
@@ -169,12 +181,14 @@ export class DashboardService {
   async contarTotalLeads(
     fechaInicio: string | null,
     fechaFin: string | null,
+    idAsesor: number | null,
   ) {
     try {
       return await this.dashboardRepository
         .fn_dashboard_total_leads(
           fechaInicio,
           fechaFin,
+          idAsesor,
         );
     } catch (error) {
       console.error(
@@ -194,12 +208,14 @@ export class DashboardService {
   async contarCierresPorProyecto(
     fechaInicio: string | null,
     fechaFin: string | null,
+    idAsesor: number | null,
   ) {
     try {
       return await this.dashboardRepository
         .fn_dashboard_cierres_por_proyecto(
-          fechaInicio,
+           fechaInicio,
           fechaFin,
+          idAsesor,
         );
     } catch (error) {
       console.error(
@@ -219,12 +235,14 @@ export class DashboardService {
   async contarCierresPorFuente(
     fechaInicio: string | null,
     fechaFin: string | null,
+    idAsesor: number | null,
   ) {
     try {
       return await this.dashboardRepository
         .fn_dashboard_cierres_por_fuente(
-          fechaInicio,
+           fechaInicio,
           fechaFin,
+          idAsesor,
         );
     } catch (error) {
       console.error(
@@ -244,12 +262,14 @@ export class DashboardService {
   async contarCierresPorAsesor(
     fechaInicio: string | null,
     fechaFin: string | null,
+    idAsesor: number | null,
   ) {
     try {
       return await this.dashboardRepository
         .fn_dashboard_cierres_por_asesor(
-          fechaInicio,
+           fechaInicio,
           fechaFin,
+          idAsesor,
         );
     } catch (error) {
       console.error(
@@ -269,12 +289,14 @@ export class DashboardService {
   async contarTotalLeadsPorFuente(
     fechaInicio: string | null,
     fechaFin: string | null,
+    idAsesor: number | null,
   ) {
     try {
       return await this.dashboardRepository
         .fn_dashboard_total_leads_por_fuente(
           fechaInicio,
           fechaFin,
+          idAsesor,
         );
     } catch (error) {
       console.error(
@@ -294,12 +316,14 @@ export class DashboardService {
   async contarTasaCierre(
     fechaInicio: string | null,
     fechaFin: string | null,
+    idAsesor: number | null,
   ) {
     try {
       return await this.dashboardRepository
         .fn_dashboard_tasa_cierre(
           fechaInicio,
           fechaFin,
+          idAsesor,
         );
     } catch (error) {
       console.error(
@@ -316,12 +340,14 @@ export class DashboardService {
   async contarLeadsNegociacion(
     fechaInicio: string | null,
     fechaFin: string | null,
+    idAsesor: number | null,
   ) {
     try {
       return await this.dashboardRepository
         .fn_dashboard_leads_negociacion(
           fechaInicio,
           fechaFin,
+          idAsesor,
         );
     } catch (error) {
       console.error(
@@ -338,12 +364,14 @@ export class DashboardService {
   async contarNegociacionPorFuente(
     fechaInicio: string | null,
     fechaFin: string | null,
+    idAsesor: number | null,
   ) {
     try {
       return await this.dashboardRepository
         .fn_dashboard_negociacion_por_fuente(
           fechaInicio,
           fechaFin,
+          idAsesor,
         );
     } catch (error) {
       console.error(
@@ -360,12 +388,14 @@ export class DashboardService {
   async contarNegociacionPorProyecto(
     fechaInicio: string | null,
     fechaFin: string | null,
+    idAsesor: number | null,
   ) {
     try {
       return await this.dashboardRepository
         .fn_dashboard_negociacion_por_proyecto(
-          fechaInicio,
+         fechaInicio,
           fechaFin,
+          idAsesor,
         );
     } catch (error) {
       console.error(
@@ -382,12 +412,14 @@ export class DashboardService {
   async contarNegociacionPorAsesor(
     fechaInicio: string | null,
     fechaFin: string | null,
+    idAsesor: number | null,
   ) {
     try {
       return await this.dashboardRepository
         .fn_dashboard_negociacion_por_asesor(
-          fechaInicio,
+         fechaInicio,
           fechaFin,
+          idAsesor,
         );
     } catch (error) {
       console.error(
@@ -404,12 +436,14 @@ export class DashboardService {
   async listarLeadsNegociacion(
     fechaInicio: string | null,
     fechaFin: string | null,
+    idAsesor: number | null,
   ) {
     try {
       return await this.dashboardRepository
         .fn_dashboard_listar_leads_negociacion(
           fechaInicio,
           fechaFin,
+          idAsesor,
         );
     } catch (error) {
       console.error(
@@ -426,12 +460,14 @@ export class DashboardService {
   async contactoPorAsesor(
     fechaInicio: string | null,
     fechaFin: string | null,
+    idAsesor: number | null,
   ) {
     try {
       return await this.dashboardRepository
         .fn_dashboard_contacto_por_asesor(
-          fechaInicio,
+         fechaInicio,
           fechaFin,
+          idAsesor,
         );
     } catch (error) {
       console.error(
@@ -449,12 +485,14 @@ export class DashboardService {
   async rangosContacto(
     fechaInicio: string | null,
     fechaFin: string | null,
+    idAsesor: number | null,
   ) {
     try {
       return await this.dashboardRepository
         .fn_dashboard_rangos_contacto(
-          fechaInicio,
+         fechaInicio,
           fechaFin,
+          idAsesor,
         );
     } catch (error) {
       console.error(
@@ -472,12 +510,14 @@ export class DashboardService {
   async resumenContacto(
     fechaInicio: string | null,
     fechaFin: string | null,
+    idAsesor: number | null,
   ) {
     try {
       return await this.dashboardRepository
         .fn_dashboard_resumen_contacto(
-          fechaInicio,
+         fechaInicio,
           fechaFin,
+          idAsesor,
         );
     } catch (error) {
       console.error(
@@ -495,12 +535,14 @@ export class DashboardService {
   async leadsContactadosAsesor(
     fechaInicio: string | null,
     fechaFin: string | null,
+    idAsesor: number | null,
   ) {
     try {
       return await this.dashboardRepository
         .fn_dashboard_leads_contactados_asesor(
           fechaInicio,
           fechaFin,
+          idAsesor,
         );
     } catch (error) {
       console.error(

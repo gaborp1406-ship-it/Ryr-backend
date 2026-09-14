@@ -24,15 +24,11 @@ export interface ILeadCreado {
   id_cliente: number;
   id_asesor: number | null;
   fecha_creacion: Date | null;
-
   accion: string;
-
   debe_notificar: boolean;
-
   id_lead_anterior: number | null;
-
   id_asesor_anterior: number | null;
-
+  id_usuario_notificacion: number | null;
   mensaje: string;
 }
 
