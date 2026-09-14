@@ -3,8 +3,7 @@ import { SupabaseClient } from '@supabase/supabase-js';
 import axios from 'axios';
 import { DataSource } from 'typeorm';
 import { v4 as uuid } from 'uuid';
-import * as fs from 'fs/promises';
-
+import { spawn } from 'child_process';
 
 const PREFIX_PHONE = '369051';
 
@@ -18,7 +17,9 @@ export class AriService {
   private readonly password: string;
   private readonly app: string;
   private readonly recordingsBasePath: string;
-  constructor(private dataSource: DataSource,
+
+  constructor(
+    private dataSource: DataSource,
 
     @Inject('SUPABASE_CLIENT')
     private readonly supabase: SupabaseClient,
@@ -28,21 +29,37 @@ export class AriService {
     this.username = this.getEnv('ARI_USERNAME');
     this.password = this.getEnv('ARI_PASSWORD');
     this.app = this.getEnv('ARI_APP');
+
     this.recordingsBasePath =
-      process.env.ARI_RECORDINGS_PATH || '/var/spool/asterisk/recording';
+      process.env.ARI_RECORDINGS_PATH ||
+      '/var/spool/asterisk/recording';
   }
+
+  // ============================================================
+  // ENV
+  // ============================================================
 
   private getEnv(key: string): string {
     const value = process.env[key];
+
     if (!value) {
       throw new Error(`Falta la variable de entorno ${key}`);
     }
+
     return value;
   }
+
+  // ============================================================
+  // ARI URL
+  // ============================================================
 
   private get url() {
     return `http://${this.host}:${this.port}/ari`;
   }
+
+  // ============================================================
+  // ARI AUTH
+  // ============================================================
 
   private get auth() {
     return {
@@ -51,238 +68,329 @@ export class AriService {
     };
   }
 
-  // Un canal que ya no existe en Asterisk responde 404.
-  // Lo tratamos como "éxito" en operaciones de limpieza (hangup/deleteBridge)
-  // para no llenar los logs de ruido ni relanzar errores que ya no importan.
+  // ============================================================
+  // 404
+  // ============================================================
+
   private isNotFound(error: any): boolean {
     return error?.response?.status === 404;
   }
 
+  // ============================================================
+  // INFO ASTERISK
+  // ============================================================
+
   async getInfo() {
     const response = await axios.get(
       `${this.url}/asterisk/info`,
-
       {
         auth: this.auth,
       },
     );
+
     return response.data;
   }
+
+  // ============================================================
+  // CREAR REGISTRO LLAMADA
+  // ============================================================
 
   async crearRegistroLlamada(
     idTrabajador: number,
     id_etapa_lead: number,
-    tipo_historial: number
-
-
+    tipo_historial: number,
   ) {
     const result = await this.dataSource.query(
       `
         SELECT *
         FROM ari_crear_registro_llamada(
-            $1,
-            $2,
-            $3
-          
-       
+          $1,
+          $2,
+          $3
         )
-        `,
-      [idTrabajador, id_etapa_lead, tipo_historial],
+      `,
+      [
+        idTrabajador,
+        id_etapa_lead,
+        tipo_historial,
+      ],
     );
 
     return result[0];
   }
-async obtenerNumeroSalida(idTrabajador: number): Promise<string> {
-  const result = await this.dataSource.query(
-    `
-      SELECT numero
-      FROM trabajador_numero_salida
-      WHERE id_trabajador = $1
-        AND activo = true
-      LIMIT 1
-    `,
-    [idTrabajador],
-  );
 
-  if (!result.length) {
-    throw new Error(
-      `El trabajador ${idTrabajador} no tiene un número de salida asignado`,
+  // ============================================================
+  // OBTENER NÚMERO DE SALIDA
+  // ============================================================
+
+  async obtenerNumeroSalida(
+    idTrabajador: number,
+  ): Promise<string> {
+    const result = await this.dataSource.query(
+      `
+        SELECT numero
+        FROM trabajador_numero_salida
+        WHERE id_trabajador = $1
+          AND activo = true
+        LIMIT 1
+      `,
+      [idTrabajador],
     );
+
+    if (!result.length) {
+      throw new Error(
+        `El trabajador ${idTrabajador} no tiene un número de salida asignado`,
+      );
+    }
+
+    return result[0].numero;
   }
 
-  return result[0].numero;
-}
-async call(
-  agent: string,
-  phone: string,
-  idTrabajador: number,
-  id_etapa_lead: number,
-  tipo_historial: number,
-  channelId: string,
-) {
   // ============================================================
-  // OBTENER NÚMERO DE SALIDA DEL ASESOR
+  // LLAMADA
   // ============================================================
 
-  const numeroSalidaResult = await this.dataSource.query(
-    `
-      SELECT numero
-      FROM trabajador_numero_salida
-      WHERE id_trabajador = $1
-        AND activo = true
-      LIMIT 1
-    `,
-    [idTrabajador],
-  );
+  async call(
+    agent: string,
+    phone: string,
+    idTrabajador: number,
+    id_etapa_lead: number,
+    tipo_historial: number,
+    channelId: string,
+  ) {
+    // ============================================================
+    // OBTENER NÚMERO DE SALIDA DEL ASESOR
+    // ============================================================
 
-  if (!numeroSalidaResult.length) {
-    throw new Error(
-      `El trabajador ${idTrabajador} no tiene un número de salida asignado`,
+    const numeroSalidaResult =
+      await this.dataSource.query(
+        `
+          SELECT numero
+          FROM trabajador_numero_salida
+          WHERE id_trabajador = $1
+            AND activo = true
+          LIMIT 1
+        `,
+        [idTrabajador],
+      );
+
+    if (!numeroSalidaResult.length) {
+      throw new Error(
+        `El trabajador ${idTrabajador} no tiene un número de salida asignado`,
+      );
+    }
+
+    const callerId = numeroSalidaResult[0].numero;
+
+    this.logger.log(
+      `📞 Número de salida | trabajador=${idTrabajador} | callerId=${callerId}`,
     );
-  }
 
-  const callerId = numeroSalidaResult[0].numero;
+    // ============================================================
+    // TELÉFONO DESTINO
+    // ============================================================
 
-  this.logger.log(
-    `📞 Número de salida | trabajador=${idTrabajador} | callerId=${callerId}`,
-  );
+    const fullPhone = phone.startsWith(PREFIX_PHONE)
+      ? phone
+      : `${PREFIX_PHONE}${phone}`;
 
-  // ============================================================
-  // TELÉFONO DESTINO
-  // ============================================================
+    // ============================================================
+    // ORIGINAR LLAMADA
+    // ============================================================
 
-  const fullPhone = phone.startsWith(PREFIX_PHONE)
-    ? phone
-    : `${PREFIX_PHONE}${phone}`;
+    const response = await axios.post(
+      `${this.url}/channels`,
+      null,
+      {
+        params: {
+          endpoint: `PJSIP/${agent}`,
+          app: this.app,
+          appArgs: `outbound,${fullPhone}`,
 
-  // ============================================================
-  // ORIGINAR LLAMADA
-  // ============================================================
+          // Número que verá el cliente
+          callerId,
 
-  const response = await axios.post(
-    `${this.url}/channels`,
-    null,
-    {
-      params: {
-        endpoint: `PJSIP/${agent}`,
-        app: this.app,
-        appArgs: `outbound,${fullPhone}`,
+          channelId,
+        },
 
-        // Número que verá el cliente
-        callerId,
-
-        channelId,
+        auth: this.auth,
       },
+    );
 
-      auth: this.auth,
-    },
-  );
+    // ============================================================
+    // REGISTRO BD
+    // ============================================================
 
-  // ============================================================
-  // REGISTRO BD
-  // ============================================================
+    const registro =
+      await this.crearRegistroLlamada(
+        idTrabajador,
+        id_etapa_lead,
+        tipo_historial,
+      );
 
-  const registro = await this.crearRegistroLlamada(
-    idTrabajador,
-    id_etapa_lead,
-    tipo_historial,
-  );
+    this.logger.log(
+      `Registro llamada creado: ${JSON.stringify(registro)}`,
+    );
 
-  this.logger.log(
-    `Registro llamada creado: ${JSON.stringify(registro)}`,
-  );
-
-  return {
-    ...response.data,
-    phone: fullPhone,
-    idRegistroLlamada: registro.id,
-    callerId,
-  };
-}
-
- async originate(endpoint: string, args: string, callerId?: string) {
-  const channelId = uuid();
-
-  const params: Record<string, any> = {
-    endpoint,
-    app: this.app,
-    appArgs: args,
-    channelId,
-  };
-
-  if (callerId) {
-    params.callerId = callerId;
+    return {
+      ...response.data,
+      phone: fullPhone,
+      idRegistroLlamada: registro.id,
+      callerId,
+    };
   }
 
-  const response = await axios.post(`${this.url}/channels`, null, {
-    params,
-    auth: this.auth,
-  });
+  // ============================================================
+  // ORIGINATE GENÉRICO
+  // ============================================================
 
-  return response.data;
-}
+  async originate(
+    endpoint: string,
+    args: string,
+    callerId?: string,
+  ) {
+    const channelId = uuid();
 
-  async createBridge() {
-    const response = await axios.post(`${this.url}/bridges`, null, {
-      params: { type: 'mixing' },
-      auth: this.auth,
-    });
+    const params: Record<string, any> = {
+      endpoint,
+      app: this.app,
+      appArgs: args,
+      channelId,
+    };
+
+    if (callerId) {
+      params.callerId = callerId;
+    }
+
+    const response = await axios.post(
+      `${this.url}/channels`,
+      null,
+      {
+        params,
+        auth: this.auth,
+      },
+    );
+
     return response.data;
   }
 
-  async addChannelToBridge(bridgeId: string, channelId: string) {
+  // ============================================================
+  // CREAR BRIDGE
+  // ============================================================
+
+  async createBridge() {
+    const response = await axios.post(
+      `${this.url}/bridges`,
+      null,
+      {
+        params: {
+          type: 'mixing',
+        },
+        auth: this.auth,
+      },
+    );
+
+    return response.data;
+  }
+
+  // ============================================================
+  // AGREGAR CANAL AL BRIDGE
+  // ============================================================
+
+  async addChannelToBridge(
+    bridgeId: string,
+    channelId: string,
+  ) {
     const response = await axios.post(
       `${this.url}/bridges/${bridgeId}/addChannel`,
       null,
-      { params: { channel: channelId }, auth: this.auth },
+      {
+        params: {
+          channel: channelId,
+        },
+        auth: this.auth,
+      },
     );
+
     return response.data;
   }
 
+  // ============================================================
+  // ANSWER
+  // ============================================================
+
   async answer(channelId: string) {
     try {
-      await axios.post(`${this.url}/channels/${channelId}/answer`, null, {
-        auth: this.auth,
-      });
+      await axios.post(
+        `${this.url}/channels/${channelId}/answer`,
+        null,
+        {
+          auth: this.auth,
+        },
+      );
     } catch (error: any) {
       if (this.isNotFound(error)) {
         // El canal colgó justo antes de poder contestarlo.
         return;
       }
+
       throw error;
     }
   }
+
+  // ============================================================
+  // HANGUP
+  // ============================================================
 
   async hangup(channelId: string) {
     try {
       const response = await axios.delete(
         `${this.url}/channels/${channelId}`,
-        { auth: this.auth },
+        {
+          auth: this.auth,
+        },
       );
+
       return response.data;
     } catch (error: any) {
       if (this.isNotFound(error)) {
-
-        return { alreadyGone: true };
+        return {
+          alreadyGone: true,
+        };
       }
+
       throw error;
     }
   }
+
+  // ============================================================
+  // DELETE BRIDGE
+  // ============================================================
 
   async deleteBridge(bridgeId: string) {
     try {
       const response = await axios.delete(
         `${this.url}/bridges/${bridgeId}`,
-        { auth: this.auth },
+        {
+          auth: this.auth,
+        },
       );
+
       return response.data;
     } catch (error: any) {
       if (this.isNotFound(error)) {
-        return { alreadyGone: true };
+        return {
+          alreadyGone: true,
+        };
       }
+
       throw error;
     }
   }
+
+  // ============================================================
+  // INICIAR GRABACIÓN DEL BRIDGE
+  // ============================================================
 
   async startBridgeRecording(
     bridgeId: string,
@@ -294,10 +402,16 @@ async call(
       {
         params: {
           name: recordingName,
+
+          // Asterisk genera WAV temporalmente.
+          // Luego nosotros lo convertimos a MP3
+          // antes de subirlo a Supabase.
           format: 'wav',
+
           ifExists: 'overwrite',
           beep: false,
         },
+
         auth: this.auth,
       },
     );
@@ -308,7 +422,14 @@ async call(
 
     return response.data;
   }
-  async stopBridgeRecording(recordingName: string) {
+
+  // ============================================================
+  // DETENER GRABACIÓN
+  // ============================================================
+
+  async stopBridgeRecording(
+    recordingName: string,
+  ) {
     try {
       const response = await axios.post(
         `${this.url}/recordings/live/${recordingName}/stop`,
@@ -329,127 +450,459 @@ async call(
           `⚠️ Grabación ${recordingName} ya no existe`,
         );
 
-        return { alreadyGone: true };
+        return {
+          alreadyGone: true,
+        };
       }
 
       throw error;
     }
   }
 
-  async existeGrabacionStored(recordingName: string): Promise<boolean> {
+  // ============================================================
+  // VERIFICAR GRABACIÓN STORED
+  // ============================================================
+
+  async existeGrabacionStored(
+    recordingName: string,
+  ): Promise<boolean> {
     try {
-      await axios.get(`${this.url}/recordings/stored/${recordingName}`, {
-        auth: this.auth,
-      });
+      await axios.get(
+        `${this.url}/recordings/stored/${recordingName}`,
+        {
+          auth: this.auth,
+        },
+      );
+
       return true;
     } catch (error: any) {
-      if (this.isNotFound(error)) return false;
+      if (this.isNotFound(error)) {
+        return false;
+      }
+
       throw error;
     }
   }
 
-  async descargarGrabacionARI(recordingName: string): Promise<Buffer> {
+  // ============================================================
+  // DESCARGAR WAV DESDE ASTERISK
+  // ============================================================
+
+  async descargarGrabacionARI(
+    recordingName: string,
+  ): Promise<Buffer> {
     const response = await axios.get(
       `${this.url}/recordings/stored/${recordingName}/file`,
-      { auth: this.auth, responseType: 'arraybuffer' },
+      {
+        auth: this.auth,
+        responseType: 'arraybuffer',
+      },
     );
+
     return Buffer.from(response.data);
   }
 
-  async eliminarGrabacionStoredARI(recordingName: string): Promise<void> {
+  // ============================================================
+  // ELIMINAR GRABACIÓN DE ASTERISK
+  // ============================================================
+
+  async eliminarGrabacionStoredARI(
+    recordingName: string,
+  ): Promise<void> {
     try {
-      await axios.delete(`${this.url}/recordings/stored/${recordingName}`, {
-        auth: this.auth,
-      });
+      await axios.delete(
+        `${this.url}/recordings/stored/${recordingName}`,
+        {
+          auth: this.auth,
+        },
+      );
     } catch (error: any) {
       if (!this.isNotFound(error)) {
-        this.logger.warn(`No se pudo borrar grabación en Asterisk: ${recordingName}`);
+        this.logger.warn(
+          `No se pudo borrar grabación en Asterisk: ${recordingName}`,
+        );
       }
     }
   }
-  buildRecordingPath(recordingName: string): string {
+
+  // ============================================================
+  // PATH GRABACIÓN WAV
+  // ============================================================
+
+  buildRecordingPath(
+    recordingName: string,
+  ): string {
     return `${this.recordingsBasePath}/${recordingName}.wav`;
   }
+
+  // ============================================================
+  // CONVERTIR WAV -> MP3
+  // ============================================================
+
+  private async convertirWavAMp3(
+    wavBuffer: Buffer,
+  ): Promise<Buffer> {
+    return new Promise<Buffer>(
+      (resolve, reject) => {
+        const ffmpeg = spawn(
+          'ffmpeg',
+          [
+            '-hide_banner',
+            '-loglevel',
+            'error',
+
+            // Entrada desde STDIN
+            '-i',
+            'pipe:0',
+
+            // Codec MP3
+            '-codec:a',
+            'libmp3lame',
+
+            // Bitrate para voz
+            '-b:a',
+            '32k',
+
+            // Voz telefónica
+            '-ar',
+            '8000',
+
+            // Mono
+            '-ac',
+            '1',
+
+            // Salida MP3 por STDOUT
+            '-f',
+            'mp3',
+            'pipe:1',
+          ],
+          {
+            stdio: [
+              'pipe',
+              'pipe',
+              'pipe',
+            ],
+          },
+        );
+
+        const chunks: Buffer[] = [];
+
+        let errorOutput = '';
+
+        // ========================================================
+        // STDOUT
+        // ========================================================
+
+        ffmpeg.stdout.on(
+          'data',
+          (chunk: Buffer) => {
+            chunks.push(
+              Buffer.from(chunk),
+            );
+          },
+        );
+
+        // ========================================================
+        // STDERR
+        // ========================================================
+
+        ffmpeg.stderr.on(
+          'data',
+          (chunk: Buffer) => {
+            errorOutput += chunk.toString();
+          },
+        );
+
+        // ========================================================
+        // ERROR
+        // ========================================================
+
+        ffmpeg.on(
+          'error',
+          (error) => {
+            reject(
+              new Error(
+                `No se pudo ejecutar FFmpeg: ${error.message}`,
+              ),
+            );
+          },
+        );
+
+        // ========================================================
+        // FINALIZACIÓN
+        // ========================================================
+
+        ffmpeg.on(
+          'close',
+          (code) => {
+            if (code !== 0) {
+              reject(
+                new Error(
+                  `FFmpeg terminó con código ${code}: ${errorOutput}`,
+                ),
+              );
+
+              return;
+            }
+
+            const mp3Buffer =
+              Buffer.concat(chunks);
+
+            if (!mp3Buffer.length) {
+              reject(
+                new Error(
+                  'FFmpeg generó un MP3 vacío',
+                ),
+              );
+
+              return;
+            }
+
+            resolve(mp3Buffer);
+          },
+        );
+
+        // ========================================================
+        // ENVIAR WAV A FFMPEG
+        // ========================================================
+
+        ffmpeg.stdin.on(
+          'error',
+          (error: any) => {
+            // EPIPE puede ocurrir si FFmpeg termina
+            // antes de consumir todo el input.
+            if (error?.code !== 'EPIPE') {
+              reject(error);
+            }
+          },
+        );
+
+        ffmpeg.stdin.end(wavBuffer);
+      },
+    );
+  }
+
+  // ============================================================
+  // SUBIR GRABACIÓN A SUPABASE
+  //
+  // FLUJO:
+  //
+  // WAV recibido
+  //      ↓
+  // FFmpeg
+  //      ↓
+  // MP3 32 kbps
+  //      ↓
+  // Supabase
+  //
+  // El Gateway NO necesita modificarse.
+  // ============================================================
+
   async subirGrabacionSupabase(
     grabacionNombre: string,
     fileBuffer: Buffer,
   ): Promise<string> {
-    const ahora = new Date();
-    const year = ahora.getFullYear();
-    const month = String(ahora.getMonth() + 1).padStart(2, '0');
-    const day = String(ahora.getDate()).padStart(2, '0');
-    const storagePath = `${year}/${month}/${day}/${grabacionNombre}.wav`;
+    try {
+      this.logger.log(
+        `🎙️ WAV recibido: ${grabacionNombre} | ` +
+        `${(fileBuffer.length / 1024 / 1024).toFixed(2)} MB`,
+      );
 
-    this.logger.log(`☁️ Subiendo a Supabase: ${storagePath}`);
+      // ========================================================
+      // CONVERTIR WAV -> MP3
+      // ========================================================
 
-    const { data, error } = await this.supabase.storage
-      .from('grabaciones')
-      .upload(storagePath, fileBuffer, {
-        contentType: 'audio/wav',
-        upsert: false,
-      });
+      this.logger.log(
+        `🔄 Convirtiendo ${grabacionNombre}.wav -> ${grabacionNombre}.mp3`,
+      );
 
-    if (error) {
-      this.logger.error(`❌ Supabase Storage: ${error.message}`);
+      const mp3Buffer =
+        await this.convertirWavAMp3(
+          fileBuffer,
+        );
+
+      this.logger.log(
+        `✅ Conversión completada: ` +
+        `${(mp3Buffer.length / 1024 / 1024).toFixed(2)} MB`,
+      );
+
+      // ========================================================
+      // FECHA
+      // ========================================================
+
+      const ahora = new Date();
+
+      const year =
+        ahora.getFullYear();
+
+      const month =
+        String(
+          ahora.getMonth() + 1,
+        ).padStart(2, '0');
+
+      const day =
+        String(
+          ahora.getDate(),
+        ).padStart(2, '0');
+
+      // ========================================================
+      // PATH SUPABASE
+      // ========================================================
+
+      const storagePath =
+        `${year}/${month}/${day}/${grabacionNombre}.mp3`;
+
+      this.logger.log(
+        `☁️ Subiendo MP3 a Supabase: ${storagePath}`,
+      );
+
+      // ========================================================
+      // SUBIR MP3
+      // ========================================================
+
+      const {
+        data,
+        error,
+      } =
+        await this.supabase.storage
+          .from('grabaciones')
+          .upload(
+            storagePath,
+            mp3Buffer,
+            {
+              contentType: 'audio/mpeg',
+              upsert: false,
+            },
+          );
+
+      if (error) {
+        this.logger.error(
+          `❌ Supabase Storage: ${error.message}`,
+        );
+
+        throw error;
+      }
+
+      // ========================================================
+      // URL PÚBLICA
+      // ========================================================
+
+      const {
+        data: publicUrlData,
+      } =
+        this.supabase.storage
+          .from('grabaciones')
+          .getPublicUrl(
+            data.path,
+          );
+
+      const publicUrl =
+        publicUrlData.publicUrl;
+
+      // ========================================================
+      // LOG
+      // ========================================================
+
+      this.logger.log(
+        `✅ MP3 subido correctamente: ${publicUrl}`,
+      );
+
+      this.logger.log(
+        `📦 Tamaño final MP3: ` +
+        `${(mp3Buffer.length / 1024 / 1024).toFixed(2)} MB`,
+      );
+
+      return publicUrl;
+    } catch (error: any) {
+      this.logger.error(
+        `❌ Error procesando grabación ${grabacionNombre}:`,
+        error?.stack || error,
+      );
+
       throw error;
     }
-
-    const { data: publicUrlData } = this.supabase.storage
-      .from('grabaciones')
-      .getPublicUrl(data.path);
-
-    const publicUrl = publicUrlData.publicUrl;
-
-    this.logger.log(`✅ Subida correctamente: ${publicUrl}`);
-    return publicUrl;
   }
 
-  async iniciarGrabacionDb(idRegistroLlamada: number, grabacionNombre: string) {
-    const result = await this.dataSource.query(
-      `
-      UPDATE com_leads_etapa_contacto_llamada
-         SET grabacion_nombre = $1,
-             grabacion_estado = 'grabando',
-             fecha_inicio = COALESCE(fecha_inicio, CURRENT_TIMESTAMP)
-       WHERE id = $2
-    `,
-      [grabacionNombre, idRegistroLlamada],
-    );
+  // ============================================================
+  // INICIAR GRABACIÓN EN BD
+  // ============================================================
+
+  async iniciarGrabacionDb(
+    idRegistroLlamada: number,
+    grabacionNombre: string,
+  ) {
+    const result =
+      await this.dataSource.query(
+        `
+          UPDATE com_leads_etapa_contacto_llamada
+             SET grabacion_nombre = $1,
+                 grabacion_estado = 'grabando',
+                 fecha_inicio =
+                   COALESCE(
+                     fecha_inicio,
+                     CURRENT_TIMESTAMP
+                   )
+           WHERE id = $2
+        `,
+        [
+          grabacionNombre,
+          idRegistroLlamada,
+        ],
+      );
 
     this.logger.log(
-      `📝 iniciarGrabacionDb: id=${idRegistroLlamada} nombre=${grabacionNombre} filas_afectadas=${result[1]}`,
+      `📝 iniciarGrabacionDb: ` +
+      `id=${idRegistroLlamada} ` +
+      `nombre=${grabacionNombre} ` +
+      `filas_afectadas=${result[1]}`,
     );
 
     if (result[1] === 0) {
       this.logger.warn(
-        `⚠️ iniciarGrabacionDb no afectó ninguna fila. ¿Existe el registro id=${idRegistroLlamada}?`,
+        `⚠️ iniciarGrabacionDb no afectó ninguna fila. ` +
+        `¿Existe el registro id=${idRegistroLlamada}?`,
       );
     }
   }
 
+  // ============================================================
+  // FINALIZAR GRABACIÓN EN BD
+  // ============================================================
+
   async finalizarGrabacionDb(
     idRegistroLlamada: number,
     grabacionPath: string,
-    estado: 'completada' | 'error' = 'completada',
+    estado:
+      | 'completada'
+      | 'error' = 'completada',
   ) {
-    const result = await this.dataSource.query(
-      `
-      UPDATE com_leads_etapa_contacto_llamada
-         SET grabacion_path = $1,
-             grabacion_estado = $2,
-             fecha_fin = CURRENT_TIMESTAMP
-       WHERE id = $3
-    `,
-      [grabacionPath, estado, idRegistroLlamada],
-    );
+    const result =
+      await this.dataSource.query(
+        `
+          UPDATE com_leads_etapa_contacto_llamada
+             SET grabacion_path = $1,
+                 grabacion_estado = $2,
+                 fecha_fin = CURRENT_TIMESTAMP
+           WHERE id = $3
+        `,
+        [
+          grabacionPath,
+          estado,
+          idRegistroLlamada,
+        ],
+      );
 
     this.logger.log(
-      `📝 finalizarGrabacionDb: id=${idRegistroLlamada} estado=${estado} filas_afectadas=${result[1]}`,
+      `📝 finalizarGrabacionDb: ` +
+      `id=${idRegistroLlamada} ` +
+      `estado=${estado} ` +
+      `filas_afectadas=${result[1]}`,
     );
 
     if (result[1] === 0) {
       this.logger.warn(
-        `⚠️ finalizarGrabacionDb no afectó ninguna fila. ¿Existe el registro id=${idRegistroLlamada}?`,
+        `⚠️ finalizarGrabacionDb no afectó ninguna fila. ` +
+        `¿Existe el registro id=${idRegistroLlamada}?`,
       );
     }
   }
