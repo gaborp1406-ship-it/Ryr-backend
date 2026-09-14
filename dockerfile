@@ -28,6 +28,8 @@ RUN npm run build
 
 FROM node:22-alpine AS production
 
+RUN apk add --no-cache ffmpeg
+
 RUN addgroup --system --gid 1001 nodejs
 RUN adduser --system --uid 1001 nestjs
 
