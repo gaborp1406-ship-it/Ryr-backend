@@ -698,131 +698,51 @@ export class AriService {
   // El Gateway NO necesita modificarse.
   // ============================================================
 
-  async subirGrabacionSupabase(
-    grabacionNombre: string,
-    fileBuffer: Buffer,
-  ): Promise<string> {
-    try {
-      this.logger.log(
-        `🎙️ WAV recibido: ${grabacionNombre} | ` +
-        `${(fileBuffer.length / 1024 / 1024).toFixed(2)} MB`,
-      );
+async subirGrabacionSupabase(
+  grabacionNombre: string,
+  fileBuffer: Buffer,
+): Promise<string> {
+  const mp3Buffer = await this.convertirWavAMp3(fileBuffer);
 
-      // ========================================================
-      // CONVERTIR WAV -> MP3
-      // ========================================================
+  const now = new Date();
 
-      this.logger.log(
-        `🔄 Convirtiendo ${grabacionNombre}.wav -> ${grabacionNombre}.mp3`,
-      );
+  const year = now.getFullYear();
+  const month = String(now.getMonth() + 1).padStart(2, '0');
+  const day = String(now.getDate()).padStart(2, '0');
 
-      const mp3Buffer =
-        await this.convertirWavAMp3(
-          fileBuffer,
-        );
+  const storagePath =
+    `${year}/${month}/${day}/${grabacionNombre}.mp3`;
 
-      this.logger.log(
-        `✅ Conversión completada: ` +
-        `${(mp3Buffer.length / 1024 / 1024).toFixed(2)} MB`,
-      );
+  const { data, error } = await this.supabase.storage
+    .from('grabaciones')
+    .upload(storagePath, mp3Buffer, {
+      contentType: 'audio/mpeg',
+      upsert: false,
+    });
 
-      // ========================================================
-      // FECHA
-      // ========================================================
-
-      const ahora = new Date();
-
-      const year =
-        ahora.getFullYear();
-
-      const month =
-        String(
-          ahora.getMonth() + 1,
-        ).padStart(2, '0');
-
-      const day =
-        String(
-          ahora.getDate(),
-        ).padStart(2, '0');
-
-      // ========================================================
-      // PATH SUPABASE
-      // ========================================================
-
-      const storagePath =
-        `${year}/${month}/${day}/${grabacionNombre}.mp3`;
-
-      this.logger.log(
-        `☁️ Subiendo MP3 a Supabase: ${storagePath}`,
-      );
-
-      // ========================================================
-      // SUBIR MP3
-      // ========================================================
-
-      const {
-        data,
-        error,
-      } =
-        await this.supabase.storage
-          .from('grabaciones')
-          .upload(
-            storagePath,
-            mp3Buffer,
-            {
-              contentType: 'audio/mpeg',
-              upsert: false,
-            },
-          );
-
-      if (error) {
-        this.logger.error(
-          `❌ Supabase Storage: ${error.message}`,
-        );
-
-        throw error;
-      }
-
-      // ========================================================
-      // URL PÚBLICA
-      // ========================================================
-
-      const {
-        data: publicUrlData,
-      } =
-        this.supabase.storage
-          .from('grabaciones')
-          .getPublicUrl(
-            data.path,
-          );
-
-      const publicUrl =
-        publicUrlData.publicUrl;
-
-      // ========================================================
-      // LOG
-      // ========================================================
-
-      this.logger.log(
-        `✅ MP3 subido correctamente: ${publicUrl}`,
-      );
-
-      this.logger.log(
-        `📦 Tamaño final MP3: ` +
-        `${(mp3Buffer.length / 1024 / 1024).toFixed(2)} MB`,
-      );
-
-      return publicUrl;
-    } catch (error: any) {
-      this.logger.error(
-        `❌ Error procesando grabación ${grabacionNombre}:`,
-        error?.stack || error,
-      );
-
-      throw error;
-    }
+  if (error) {
+    throw new Error(
+      `Error subiendo grabación a Supabase: ${error.message}`,
+    );
   }
 
+  const { data: publicUrlData } =
+    this.supabase.storage
+      .from('grabaciones')
+      .getPublicUrl(data.path);
+
+  const publicUrl = publicUrlData.publicUrl;
+
+  this.logger.log(
+    `☁️ Supabase storage path: ${data.path}`,
+  );
+
+  this.logger.log(
+    `🔗 Supabase public URL: ${publicUrl}`,
+  );
+
+  return publicUrl;
+}
   // ============================================================
   // INICIAR GRABACIÓN EN BD
   // ============================================================

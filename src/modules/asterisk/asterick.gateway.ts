@@ -194,7 +194,7 @@ export class AriGateway implements OnModuleInit, OnModuleDestroy {
     }
   }
   registerCall(
-    context: Pick<ICallContext, 'extension' | 'phone' | 'agentChannelId'  | 'callerId'>,
+    context: Pick<ICallContext, 'extension' | 'phone' | 'agentChannelId' | 'callerId'>,
   ): void {
     const call: ICallContext = {
       ...context,
@@ -359,11 +359,11 @@ export class AriGateway implements OnModuleInit, OnModuleDestroy {
     let customerChannel: any;
 
     try {
-  customerChannel = await this.ariService.originate(
-  `PJSIP/${phone}@itelbox-out`,
-  `bridge,${bridge.id}`,
-  call.callerId,
-);
+      customerChannel = await this.ariService.originate(
+        `PJSIP/${phone}@itelbox-out`,
+        `bridge,${bridge.id}`,
+        call.callerId,
+      );
     } catch (error: any) {
       this.logger.error(
         `Fallo al originar canal de cliente para ${phone}: ` +
@@ -508,11 +508,11 @@ export class AriGateway implements OnModuleInit, OnModuleDestroy {
 
         if (!this.isCallEnding(call)) {
           try {
-          const nuevoCustomerChannel = await this.ariService.originate(
-  `PJSIP/${call.phone}@itelbox-out`,
-  `bridge,${call.bridgeId}`,
-  call.callerId,
-);
+            const nuevoCustomerChannel = await this.ariService.originate(
+              `PJSIP/${call.phone}@itelbox-out`,
+              `bridge,${call.bridgeId}`,
+              call.callerId,
+            );
 
             call.customerChannelId = nuevoCustomerChannel.id;
             call.status = CALL_STATUS.DIALING_CUSTOMER;
@@ -656,11 +656,11 @@ export class AriGateway implements OnModuleInit, OnModuleDestroy {
           return;
         }
         try {
-         const nuevoCustomerChannel = await this.ariService.originate(
-  `PJSIP/${call.phone}@itelbox-out`,
-  `bridge,${call.bridgeId}`,
-  call.callerId,
-);
+          const nuevoCustomerChannel = await this.ariService.originate(
+            `PJSIP/${call.phone}@itelbox-out`,
+            `bridge,${call.bridgeId}`,
+            call.callerId,
+          );
           call.customerChannelId = nuevoCustomerChannel.id;
           call.status = CALL_STATUS.DIALING_CUSTOMER;
           this.linkChannel(call.agentChannelId, nuevoCustomerChannel.id);
@@ -806,29 +806,71 @@ export class AriGateway implements OnModuleInit, OnModuleDestroy {
     if (!call.recordingName) return;
 
     try {
+      // 1. Detener grabación en Asterisk
       await this.ariService.stopBridgeRecording(call.recordingName);
-      this.logger.log(`🛑 Grabación detenida: ${call.recordingName}`);
 
+      this.logger.log(
+        `🛑 Grabación detenida: ${call.recordingName}`,
+      );
+
+      // 2. Esperar hasta que Asterisk la tenga disponible
       await this.esperarGrabacionStored(call.recordingName);
 
-      if (call.idRegistroLlamada) {
-        const fileBuffer = await this.ariService.descargarGrabacionARI(call.recordingName);
-        const storagePath = await this.ariService.subirGrabacionSupabase(
+      if (!call.idRegistroLlamada) {
+        this.logger.warn(
+          `⚠️ Grabación ${call.recordingName} no tiene idRegistroLlamada`,
+        );
+        return;
+      }
+
+      // 3. Descargar WAV desde Asterisk
+      const fileBuffer =
+        await this.ariService.descargarGrabacionARI(
+          call.recordingName,
+        );
+
+      this.logger.log(
+        `📥 Grabación descargada desde Asterisk: ${call.recordingName}`,
+      );
+
+      // 4. Subir a Supabase
+      // Esta función debe devolver el PUBLIC URL
+      const publicUrl =
+        await this.ariService.subirGrabacionSupabase(
           call.recordingName,
           fileBuffer,
         );
-        this.logger.log(`☁️ Grabación subida a Supabase: ${storagePath}`);
 
-        await this.ariService.finalizarGrabacionDb(
-          call.idRegistroLlamada,
-          storagePath,
-          'completada',
-        );
+      this.logger.log(
+        `☁️ Grabación subida a Supabase: ${publicUrl}`,
+      );
 
-        await this.ariService.eliminarGrabacionStoredARI(call.recordingName);
-      }
+      // 5. Guardar el PUBLIC URL en la BD
+      await this.ariService.finalizarGrabacionDb(
+        call.idRegistroLlamada,
+        publicUrl,
+        'completada',
+      );
+
+      this.logger.log(
+        `🔗 URL de grabación guardada en BD: ${publicUrl}`,
+      );
+
+      // 6. Eliminar grabación temporal de Asterisk
+      await this.ariService.eliminarGrabacionStoredARI(
+        call.recordingName,
+      );
+
+      this.logger.log(
+        `🗑️ Grabación eliminada de Asterisk: ${call.recordingName}`,
+      );
+
     } catch (error: any) {
-      this.logger.error(`❌ Error procesando grabación ${call.recordingName}: ${error?.message}`);
+      this.logger.error(
+        `❌ Error procesando grabación ${call.recordingName}: ${error?.message
+        }`,
+        error?.stack,
+      );
 
       if (call.idRegistroLlamada) {
         try {
@@ -837,8 +879,11 @@ export class AriGateway implements OnModuleInit, OnModuleDestroy {
             call.recordingName,
             'error',
           );
-        } catch {
-          // noop
+        } catch (dbError: any) {
+          this.logger.error(
+            `❌ No se pudo actualizar estado de grabación en BD: ${dbError?.message
+            }`,
+          );
         }
       }
     }
