@@ -45,7 +45,7 @@ export class LeadService {
 
 
       const { error } = await this.supabase.storage
-        .from("leadsevidencia")
+        .from("leadevidencia")
         .upload(fileName, buffer, {
           contentType,
           upsert: true,
@@ -58,7 +58,7 @@ export class LeadService {
 
 
       const { data } = this.supabase.storage
-        .from("leadsevidencia")
+        .from("leadevidencia")
         .getPublicUrl(fileName);
 
 
@@ -911,7 +911,7 @@ async obtenerLeadsPorEtapaActual(
         .substring(7)}.${extension}`;
 
       const { error } = await this.supabase.storage
-        .from('leadsevidencia')
+        .from('leadevidencia')
         .upload(fileName, buffer, {
           contentType,
           upsert: true,
@@ -922,7 +922,7 @@ async obtenerLeadsPorEtapaActual(
       }
 
       const { data } = this.supabase.storage
-        .from('leadsevidencia')
+        .from('leadevidencia')
         .getPublicUrl(fileName);
 
       return data.publicUrl;
