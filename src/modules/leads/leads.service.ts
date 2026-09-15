@@ -89,126 +89,137 @@ export class LeadService {
   }
 
 
-async crearLead(data: ICrearLead) {
-  try {
-    const result = await this.leadRepository.crear_lead(data);
+  async crearLead(data: ICrearLead) {
+    try {
+      const result = await this.leadRepository.crear_lead(data);
 
-    if (!result) {
-      throw new Error('No se pudo procesar el lead');
-    }
-
-    // =====================================================
-    // 1. CLIENTE YA TIENE LEAD ACTIVO EN EL MISMO PROYECTO
-    // =====================================================
-    if (result.accion === 'ALERTA') {
-      if (
-        result.debe_notificar &&
-        result.id_asesor_anterior &&
-        result.id_lead_anterior
-      ) {
-        await this.notificacionesService.crearYEmitir({
-          id_asesor: result.id_asesor_anterior,
-          id_lead: result.id_lead_anterior,
-          tipo: 'CLIENTE_ACTIVO_MISMO_PROYECTO',
-          titulo: 'Cliente preguntando nuevamente',
-          mensaje:
-            'El cliente está preguntando nuevamente por el proyecto. Contáctalo.',
-        });
+      if (!result) {
+        throw new Error('No se pudo procesar el lead');
       }
 
-      return result;
-    }
+      // =====================================================
+      // 1. CLIENTE YA TIENE LEAD ACTIVO EN EL MISMO PROYECTO
+      // =====================================================
+      if (result.accion === 'ALERTA') {
+        if (
+          result.debe_notificar &&
+          result.id_asesor_anterior &&
+          result.id_lead_anterior
+        ) {
+          await this.notificacionesService.crearYEmitir({
+            id_asesor: result.id_asesor_anterior,
+            id_lead: result.id_lead_anterior,
+            tipo: 'CLIENTE_ACTIVO_MISMO_PROYECTO',
+            titulo: 'Cliente preguntando nuevamente',
+            mensaje:
+              'El cliente está preguntando nuevamente por el proyecto. Contáctalo.',
+          });
+        }
 
-    // =====================================================
-    // 2. NUEVO LEAD - OTRO PROYECTO
-    //
-    // El asesor que ya tenía al cliente está ACTIVO.
-    // Se creó el nuevo lead y se le notifica.
-    // =====================================================
-    if (result.accion === 'CREADO_NUEVO_PROYECTO') {
-      if (
-        result.debe_notificar &&
-        result.id_asesor &&
-        result.id_lead
-      ) {
-        await this.notificacionesService.crearYEmitir({
-          id_asesor: result.id_asesor,
-          id_lead: result.id_lead,
-          tipo: 'NUEVO_LEAD',
-          titulo: 'Cliente preguntando por otro proyecto',
-          mensaje:
-            result.mensaje ||
-            'El cliente está interesado en otro proyecto. Revisa el nuevo lead.',
-        });
+        return result;
       }
 
-      return result;
-    }
+      // =====================================================
+      // 2. NUEVO LEAD - OTRO PROYECTO
+      //
+      // El asesor que ya tenía al cliente está ACTIVO.
+      // Se creó el nuevo lead y se le notifica.
+      // =====================================================
+      if (result.accion === 'CREADO_NUEVO_PROYECTO') {
+        if (
+          result.debe_notificar &&
+          result.id_asesor &&
+          result.id_lead
+        ) {
+          await this.notificacionesService.crearYEmitir({
+            id_asesor: result.id_asesor,
+            id_lead: result.id_lead,
+            tipo: 'NUEVO_LEAD',
+            titulo: 'Cliente preguntando por otro proyecto',
+            mensaje:
+              result.mensaje ||
+              'El cliente está interesado en otro proyecto. Revisa el nuevo lead.',
+          });
+        }
 
-    // =====================================================
-    // 3. ASESOR ANTERIOR NO ESTÁ ACTIVO
-    //
-    // NO se crea el nuevo lead.
-    //
-    // La función devuelve:
-    // id_usuario_notificacion = p_usuario_creacion
-    //
-    // Se notifica al usuario que intentó registrar el lead
-    // para que pueda crearlo posteriormente.
-    // =====================================================
- if (result.accion === 'PENDIENTE_ASESOR_NO_ACTIVO') {
-  if (
-    result.debe_notificar &&
-    result.id_usuario_notificacion &&
-    result.id_lead_anterior
-  ) {
-    await this.notificacionesService.crearYEmitir({
-      id_asesor: result.id_usuario_notificacion,
-      id_lead: result.id_lead_anterior,
-      tipo: 'LEAD_PENDIENTE_ASESOR_NO_ACTIVO',
-      titulo: 'Lead pendiente de registro',
-      mensaje:
-        result.mensaje ||
-        'El asesor que atiende actualmente al cliente no se encuentra activo. El nuevo lead queda pendiente de registro.',
-    });
+        return result;
+      }
+
+      // =====================================================
+      // 3. ASESOR ANTERIOR NO ESTÁ ACTIVO
+      //
+      // NO se crea el nuevo lead.
+      //
+      // La función devuelve:
+      // id_usuario_notificacion = p_usuario_creacion
+      //
+      // Se notifica al usuario que intentó registrar el lead
+      // para que pueda crearlo posteriormente.
+      // =====================================================
+      if (result.accion === 'PENDIENTE_ASESOR_NO_ACTIVO') {
+        if (
+          result.debe_notificar &&
+          result.id_usuario_notificacion &&
+          result.id_lead_anterior
+        ) {
+          await this.notificacionesService.crearYEmitir({
+            id_asesor: result.id_usuario_notificacion,
+            id_lead: result.id_lead_anterior,
+            tipo: 'LEAD_PENDIENTE_ASESOR_NO_ACTIVO',
+            titulo: 'Lead pendiente de registro',
+            mensaje:
+              result.mensaje ||
+              'El asesor que atiende actualmente al cliente no se encuentra activo. El nuevo lead queda pendiente de registro.',
+          });
+        }
+
+        return result;
+      }
+      if (result.accion === 'SIN_ASESOR_ACTIVO') {
+        // NO SE ENVÍA NOTIFICACIÓN
+        // Solo se devuelve el resultado al frontend
+
+        return result;
+      }
+      // =====================================================
+      // 4. NUEVO LEAD NORMAL
+      // =====================================================
+      if (result.accion === 'CREADO') {
+        if (
+          result.debe_notificar &&
+          result.id_asesor &&
+          result.id_lead
+        ) {
+          await this.notificacionesService.crearYEmitir({
+            id_asesor: result.id_asesor,
+            id_lead: result.id_lead,
+            tipo: 'NUEVO_LEAD',
+            titulo: 'Nuevo lead asignado',
+            mensaje:
+              result.mensaje ||
+              'Tienes un nuevo lead asignado. Revísalo en tu listado.',
+          });
+        }
+
+        return result;
+      }
+
+      // =====================================================
+      // 4. NO HAY ASESORES ACTIVOS
+      // =====================================================
+
+
+
+      // =====================================================
+      // CASO NO CONTEMPLADO
+      // =====================================================
+      return result;
+
+    } catch (error) {
+      console.log('Error al crear lead:', error);
+      throw error;
+    }
   }
-
-  return result;
-}
-
-    // =====================================================
-    // 4. NUEVO LEAD NORMAL
-    // =====================================================
-    if (result.accion === 'CREADO') {
-      if (
-        result.debe_notificar &&
-        result.id_asesor &&
-        result.id_lead
-      ) {
-        await this.notificacionesService.crearYEmitir({
-          id_asesor: result.id_asesor,
-          id_lead: result.id_lead,
-          tipo: 'NUEVO_LEAD',
-          titulo: 'Nuevo lead asignado',
-          mensaje:
-            result.mensaje ||
-            'Tienes un nuevo lead asignado. Revísalo en tu listado.',
-        });
-      }
-
-      return result;
-    }
-
-    // =====================================================
-    // CASO NO CONTEMPLADO
-    // =====================================================
-    return result;
-
-  } catch (error) {
-    console.log('Error al crear lead:', error);
-    throw error;
-  }
-}
 
 
   async listarClientesPotenciales(data: IListarClientesPotenciales) {
@@ -279,31 +290,31 @@ async crearLead(data: ICrearLead) {
       throw error;
     }
   }
-async obtenerLeadsPorEtapaActual(
-  idEtapa?: number,
-  idAgente?: number,
-  fechaInicio?: string,
-  fechaFin?: string
-) {
-  try {
-    const result =
-      await this.leadRepository.obtenerLeadsPorEtapaActual(
-        idEtapa,
-        idAgente,
-        fechaInicio,
-        fechaFin
+  async obtenerLeadsPorEtapaActual(
+    idEtapa?: number,
+    idAgente?: number,
+    fechaInicio?: string,
+    fechaFin?: string
+  ) {
+    try {
+      const result =
+        await this.leadRepository.obtenerLeadsPorEtapaActual(
+          idEtapa,
+          idAgente,
+          fechaInicio,
+          fechaFin
+        );
+
+      return result;
+    } catch (error) {
+      console.log(
+        'Error al obtener leads por etapa actual:',
+        error
       );
 
-    return result;
-  } catch (error) {
-    console.log(
-      'Error al obtener leads por etapa actual:',
-      error
-    );
-
-    throw error;
+      throw error;
+    }
   }
-}
 
   async validarLeadDuplicado(
     dni: string,
