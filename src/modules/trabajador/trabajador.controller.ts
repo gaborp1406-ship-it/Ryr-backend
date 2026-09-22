@@ -49,19 +49,19 @@ export class TrabajadorController {
     );
   }
 
-  @Get(':id/historial-estado')
-  @UseGuards(JwtAuthGuard)
-  historialEstadoTrabajador(
-    @Param('id', ParseIntPipe) id: number,
-    @Query('id_estado') id_estado?: string,
-    @Query('fecha_desde') fecha_desde?: string,
-    @Query('fecha_hasta') fecha_hasta?: string,
-  ) {
-    return this.TrabajadorService.historialEstadoTrabajador(
-      id,
-      id_estado ? Number(id_estado) : undefined,
-      fecha_desde,
-      fecha_hasta,
-    );
-  }
+@Get('historial-estado')
+@UseGuards(JwtAuthGuard)
+historialEstadoTrabajador(
+  @Query('id_trabajador') id_trabajador?: string,
+  @Query('id_estado') id_estado?: string,
+  @Query('fecha_desde') fecha_desde?: string,
+  @Query('fecha_hasta') fecha_hasta?: string,
+) {
+  return this.TrabajadorService.historialEstadoTrabajador(
+    id_trabajador ? Number(id_trabajador) : undefined,
+    id_estado ? Number(id_estado) : undefined,
+    fecha_desde,
+    fecha_hasta,
+  );
+}
 }

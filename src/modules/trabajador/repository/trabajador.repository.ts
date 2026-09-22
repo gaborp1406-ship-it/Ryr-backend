@@ -35,22 +35,22 @@ export class TrabajadorRepository {
     );
     return result;
   }
+async fn_historial_estado_trabajador(
+  id_trabajador?: number | null,
+  id_estado?: number | null,
+  fecha_desde?: string | null,
+  fecha_hasta?: string | null,
+) {
+  const result = await this.dataSource.query(
+    `SELECT * FROM fn_historial_estado_trabajador($1, $2, $3, $4)`,
+    [
+      id_trabajador ?? null,
+      id_estado ?? null,
+      fecha_desde ?? null,
+      fecha_hasta ?? null,
+    ],
+  );
 
-  async fn_historial_estado_trabajador(
-    id_trabajador: number,
-    id_estado?: number | null,
-    fecha_desde?: string | null,
-    fecha_hasta?: string | null,
-  ) {
-    const result = await this.dataSource.query(
-      `SELECT * FROM fn_historial_estado_trabajador($1, $2, $3, $4)`,
-      [
-        id_trabajador,
-        id_estado ?? null,
-        fecha_desde ?? null,
-        fecha_hasta ?? null,
-      ],
-    );
-    return result;
-  }
+  return result;
+}
 }

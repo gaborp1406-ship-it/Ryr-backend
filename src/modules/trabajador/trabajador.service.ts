@@ -78,24 +78,25 @@ export class TrabajadorService {
     }
   }
 
-  async historialEstadoTrabajador(
-    id_trabajador: number,
-    id_estado?: number,
-    fecha_desde?: string,
-    fecha_hasta?: string,
-  ) {
-    try {
-      return await this.trabajadorRepository.fn_historial_estado_trabajador(
-        id_trabajador,
-        id_estado ?? null,
-        fecha_desde ?? null,
-        fecha_hasta ?? null,
-      );
-    } catch (error) {
-      console.log('Error al obtener historial de estado:', error);
-      throw new InternalServerErrorException(
-        'Error al obtener historial de estado',
-      );
-    }
+async historialEstadoTrabajador(
+  id_trabajador?: number,
+  id_estado?: number,
+  fecha_desde?: string,
+  fecha_hasta?: string,
+) {
+  try {
+    return await this.trabajadorRepository.fn_historial_estado_trabajador(
+      id_trabajador ?? null,
+      id_estado ?? null,
+      fecha_desde ?? null,
+      fecha_hasta ?? null,
+    );
+  } catch (error) {
+    console.log('Error al obtener historial de estado:', error);
+
+    throw new InternalServerErrorException(
+      'Error al obtener historial de estado',
+    );
   }
+}
 }
