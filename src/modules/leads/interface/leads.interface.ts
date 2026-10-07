@@ -16,6 +16,7 @@ export interface ICrearLead {
   telefono_cliente: string;
   id_fuente: number;
   usuario_creacion: number;
+  es_reintento?: boolean; // true cuando viene del botón "Derivar"
 }
 
 
