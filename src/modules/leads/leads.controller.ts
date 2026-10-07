@@ -12,7 +12,7 @@ import {
 } from '@nestjs/common';
 import { JwtAuthGuard } from '../auth/guard/jwt-auth.guard';
 import { LeadService } from './leads.service';
-import type { ICrearLead, IListarClientesPotenciales } from './interface/leads.interface';
+import type { IActualizarLeadDniProyecto, ICrearLead, IListarClientesPotenciales, IListarEtapas } from './interface/leads.interface';
 @Controller('lead')
 export class LeadController {
   constructor(private readonly leadService: LeadService) { }
@@ -91,10 +91,12 @@ export class LeadController {
     );
   }
 
-  @Get('listar-etapas')
+  @Post('listar-etapas')
   @UseGuards(JwtAuthGuard)
-  listarEtapas() {
-    return this.leadService.listarEtapas();
+  listarEtapas(
+    @Body() data: IListarEtapas,
+  ) {
+    return this.leadService.listarEtapas(data);
   }
   @Get('detalle/:id_lead')
   @UseGuards(JwtAuthGuard)
@@ -109,6 +111,12 @@ export class LeadController {
     @Body() data: IListarClientesPotenciales,
   ) {
     return this.leadService.listarClientesPotenciales(data);
+  }
+
+  @Post('actualizar-dni-proyecto')
+  @UseGuards(JwtAuthGuard)
+  actualizarLeadDniProyecto(@Body() data: IActualizarLeadDniProyecto) {
+    return this.leadService.actualizarLeadDniProyecto(data);
   }
 
   @Get('obtener-etapa-actual/:id_lead')

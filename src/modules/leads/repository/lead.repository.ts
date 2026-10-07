@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { DataSource } from 'typeorm';
-import { IClientePotencial, ICrearLead, ILeadCreado, ILeadDiario, IListarClientesPotenciales } from '../interface/leads.interface';
+import { IActualizarLeadDniProyecto, IClientePotencial, ICrearLead, IEtapa, ILeadCreado, ILeadDiario, IListarClientesPotenciales, IListarEtapas } from '../interface/leads.interface';
 @Injectable()
 export class LeadRepository {
   constructor(private dataSource: DataSource) { }
@@ -18,7 +18,7 @@ export class LeadRepository {
     const result: ILeadCreado[] = await this.dataSource.query(
       `
       SELECT *
-      FROM fn_crear_lead_v3(
+      FROM fn_crear_lead_v4(
         $1,
         $2,
         $3,
@@ -89,14 +89,14 @@ export class LeadRepository {
     return result[0];
   }
 
-async obtenerLeadsPorEtapaActual(
-  idEtapa?: number,
-  idAgente?: number,
-  fechaInicio?: string,
-  fechaFin?: string
-) {
-  const result = await this.dataSource.query(
-    `
+  async obtenerLeadsPorEtapaActual(
+    idEtapa?: number,
+    idAgente?: number,
+    fechaInicio?: string,
+    fechaFin?: string
+  ) {
+    const result = await this.dataSource.query(
+      `
       SELECT *
       FROM public.fn_obtener_leads_por_etapa_actual(
         $1,
@@ -105,16 +105,16 @@ async obtenerLeadsPorEtapaActual(
         $4
       )
     `,
-    [
-      idEtapa ?? null,
-      idAgente ?? null,
-      fechaInicio ?? null,
-      fechaFin ?? null
-    ]
-  );
+      [
+        idEtapa ?? null,
+        idAgente ?? null,
+        fechaInicio ?? null,
+        fechaFin ?? null
+      ]
+    );
 
-  return result;
-}
+    return result;
+  }
 
   async reabrirLeadEtapa(idLeadEtapa: number) {
     const result = await this.dataSource.query(
@@ -127,11 +127,11 @@ async obtenerLeadsPorEtapaActual(
 
     return result;
   }
-async listar_clientes_potenciales(data: IListarClientesPotenciales) {
+  async listar_clientes_potenciales(data: IListarClientesPotenciales) {
 
-  const result: IClientePotencial[] =
-    await this.dataSource.query(
-      `
+    const result: IClientePotencial[] =
+      await this.dataSource.query(
+        `
       SELECT *
       FROM com_listar_clientes_potenciales(
         $1,
@@ -140,22 +140,55 @@ async listar_clientes_potenciales(data: IListarClientesPotenciales) {
         $4,
         $5,
         $6,
-        $7
+        $7,
+        $8
       )
       `,
-      [
-        data.busqueda ?? null,
-        data.fecha_inicio ?? null,
-        data.fecha_fin ?? null,
-        data.id_asesor ?? null,
-        data.id_fuente ?? null,
-        data.id_proyecto ?? null,
-        data.id_fase ?? null,
-      ],
-    );
+        [
+          data.busqueda ?? null,
+          data.fecha_inicio ?? null,
+          data.fecha_fin ?? null,
+          data.id_asesor ?? null,
+          data.id_fuente ?? null,
+          data.id_proyecto ?? null,
+          data.id_fase ?? null,
+          data.id_etapa ?? null, // NUEVO
+        ],
+      );
 
-  return result;
+    return result;
+  }
+
+  // NUEVO
+  async listar_etapas(data: IListarEtapas) {
+
+    const result: IEtapa[] =
+      await this.dataSource.query(
+        `
+      SELECT *
+      FROM com_listar_etapas($1)
+      `,
+        [data.id_fase ?? null],
+      );
+
+    return result;
+  }
+
+async actualizar_lead_dni_proyecto(data: IActualizarLeadDniProyecto) {
+  await this.dataSource.query(
+    `SELECT fn_actualizar_lead_dni_proyecto($1, $2, $3, $4)`,
+    [
+      data.id_lead,
+      data.dni_cliente ?? null,
+      data.id_proyecto,
+      data.usuario_modificacion,
+    ],
+  );
+
+  return { mensaje: 'Datos actualizados correctamente.' };
 }
+
+
   async obtenerEtapaActualLead(id_lead: number) {
     const result = await this.dataSource.query(
       `
@@ -170,16 +203,16 @@ async listar_clientes_potenciales(data: IListarClientesPotenciales) {
 
 
   async obtenerDetalleActividad(id_actividad: number) {
-  const result = await this.dataSource.query(
-    `
+    const result = await this.dataSource.query(
+      `
     SELECT *
     FROM fn_obtener_detalle_actividad_asesor($1)
     `,
-    [id_actividad],
-  );
+      [id_actividad],
+    );
 
-  return result;
-}
+    return result;
+  }
 
   async obtenerDetalleLead(id_lead: number) {
     const result = await this.dataSource.query(
@@ -930,14 +963,5 @@ async listar_clientes_potenciales(data: IListarClientesPotenciales) {
     );
   }
 
-  async listarEtapas() {
-    const result = await this.dataSource.query(
-      `
-    SELECT *
-    FROM public.fn_listar_etapas()
-    `
-    );
 
-    return result;
-  }
 }

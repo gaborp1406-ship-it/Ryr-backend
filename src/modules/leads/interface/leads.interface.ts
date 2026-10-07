@@ -3,7 +3,7 @@ export interface ILeadDiario {
   asesor: string;
   proyecto: string;
   nombre_cliente: string;
-  dni_cliente: string;
+   dni_cliente: string | null;
   telefono_cliente: string;
   fuente: string;
 }
@@ -12,7 +12,7 @@ export interface ICrearLead {
   id_asesor: number;
   id_proyecto: number;
   nombre_cliente: string;
-  dni_cliente: string;
+  dni_cliente?: string | null; // opcional
   telefono_cliente: string;
   id_fuente: number;
   usuario_creacion: number;
@@ -41,11 +41,23 @@ export interface IListarClientesPotenciales {
   id_fuente?: number;
   id_proyecto?: number;
   id_fase?: number;
+  id_etapa?: number; // NUEVO
+}
+
+// NUEVO
+export interface IListarEtapas {
+  id_fase?: number | null;
+}
+
+// NUEVO
+export interface IEtapa {
+  id: number;
+  nombre: string;
 }
 
 export interface IClientePotencial {
   id_lead: number;
-  dni_cliente: string;
+  dni_cliente: string | null;
   cliente: string;
   id_fuente: number;
   fuente: string;
@@ -54,4 +66,10 @@ export interface IClientePotencial {
   id_asesor: number;
   nombre_asesor: string;
   fecha_asignacion: string;
+}
+export interface IActualizarLeadDniProyecto {
+  id_lead: number;
+  dni_cliente: string | null;
+  id_proyecto: number;
+  usuario_modificacion: number;
 }

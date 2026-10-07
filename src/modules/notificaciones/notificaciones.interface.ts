@@ -2,7 +2,7 @@ export interface IDatosLeadPendiente {
   id_asesor: number;
   id_proyecto: number;
   nombre_cliente: string;
-  dni_cliente: string;
+   dni_cliente?: string | null;
   telefono_cliente: string;
   id_fuente: number;
   usuario_creacion: number;
