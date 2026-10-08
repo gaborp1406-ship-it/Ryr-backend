@@ -73,3 +73,14 @@ export interface IActualizarLeadDniProyecto {
   id_proyecto: number;
   usuario_modificacion: number;
 }
+export interface IReasignarLead {
+  id_lead: number;
+  id_asesor_nuevo: number;
+  usuario_modificacion: number;
+  motivo?: string;        // 'SIN_RESPUESTA', 'CARGA_TRABAJO', 'MANUAL'...
+  observacion?: string;
+}
+export interface IReasignarLeadResultado {
+  reasignado: boolean;
+  id_asesor_anterior: number | null;
+}

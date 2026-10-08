@@ -12,7 +12,7 @@ import {
 } from '@nestjs/common';
 import { JwtAuthGuard } from '../auth/guard/jwt-auth.guard';
 import { LeadService } from './leads.service';
-import type { IActualizarLeadDniProyecto, ICrearLead, IListarClientesPotenciales, IListarEtapas } from './interface/leads.interface';
+import type { IActualizarLeadDniProyecto, ICrearLead, IListarClientesPotenciales, IListarEtapas, IReasignarLead } from './interface/leads.interface';
 @Controller('lead')
 export class LeadController {
   constructor(private readonly leadService: LeadService) { }
@@ -112,6 +112,12 @@ export class LeadController {
   ) {
     return this.leadService.listarClientesPotenciales(data);
   }
+
+  @Post('reasignar-lead')
+@UseGuards(JwtAuthGuard)
+reasignarLead(@Body() data: IReasignarLead) {
+  return this.leadService.reasignarLead(data);
+}
 
   @Post('actualizar-dni-proyecto')
   @UseGuards(JwtAuthGuard)

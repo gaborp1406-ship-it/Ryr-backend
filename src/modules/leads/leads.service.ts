@@ -1,6 +1,6 @@
-import { Inject, Injectable } from '@nestjs/common';
+import { BadRequestException, Inject, Injectable } from '@nestjs/common';
 import { LeadRepository } from './repository/lead.repository';
-import { IActualizarLeadDniProyecto, ICrearLead, IListarClientesPotenciales, IListarEtapas } from './interface/leads.interface';
+import { IActualizarLeadDniProyecto, ICrearLead, IListarClientesPotenciales, IListarEtapas, IReasignarLead } from './interface/leads.interface';
 import { SupabaseClient } from '@supabase/supabase-js';
 import { NotificacionesGateway } from '../notificaciones/notificaciones.gateway';
 import { NotificacionesService } from '../notificaciones/notificaciones.service';
@@ -256,6 +256,31 @@ export class LeadService {
 
   }
 
+
+  async reasignarLead(data: IReasignarLead) {
+  try {
+    const result = await this.leadRepository.reasignar_lead(data);
+
+    if (!result.reasignado) {
+      throw new BadRequestException(
+        'No se reasignó el lead: no existe o ya está asignado a ese asesor.',
+      );
+    }
+
+    await this.notificacionesService.crearYEmitir({
+      id_asesor: data.id_asesor_nuevo,
+      id_lead: data.id_lead,
+      tipo: 'NUEVO_LEAD',
+      titulo: 'Nuevo lead asignado',
+      mensaje: 'Tienes un nuevo lead asignado. Revísalo en tu listado.',
+    });
+
+    return { mensaje: 'Lead reasignado correctamente.' };
+  } catch (error) {
+    console.log(error);
+    throw error;
+  }
+}
   async actualizarLeadDniProyecto(data: IActualizarLeadDniProyecto) {
   try {
     return await this.leadRepository.actualizar_lead_dni_proyecto(data);

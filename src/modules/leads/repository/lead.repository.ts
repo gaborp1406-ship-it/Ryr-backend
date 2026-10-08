@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { DataSource } from 'typeorm';
-import { IActualizarLeadDniProyecto, IClientePotencial, ICrearLead, IEtapa, ILeadCreado, ILeadDiario, IListarClientesPotenciales, IListarEtapas } from '../interface/leads.interface';
+import { IActualizarLeadDniProyecto, IClientePotencial, ICrearLead, IEtapa, ILeadCreado, ILeadDiario, IListarClientesPotenciales, IListarEtapas, IReasignarLead, IReasignarLeadResultado } from '../interface/leads.interface';
 @Injectable()
 export class LeadRepository {
   constructor(private dataSource: DataSource) { }
@@ -188,6 +188,21 @@ async actualizar_lead_dni_proyecto(data: IActualizarLeadDniProyecto) {
   return { mensaje: 'Datos actualizados correctamente.' };
 }
 
+
+async reasignar_lead(data: IReasignarLead) {
+  const result: IReasignarLeadResultado[] = await this.dataSource.query(
+    `SELECT * FROM fn_reasignar_lead($1, $2, $3, $4, $5)`,
+    [
+      data.id_lead,
+      data.id_asesor_nuevo,
+      data.usuario_modificacion,
+      data.motivo ?? 'SIN_RESPUESTA',
+      data.observacion ?? null,
+    ],
+  );
+
+  return result[0];
+}
 
   async obtenerEtapaActualLead(id_lead: number) {
     const result = await this.dataSource.query(
