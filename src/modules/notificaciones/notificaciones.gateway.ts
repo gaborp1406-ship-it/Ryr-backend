@@ -38,4 +38,12 @@ export class NotificacionesGateway
       .to(`asesor_${idAsesor}`)
       .emit('nueva-notificacion', notificacion);
   }
+
+  // NUEVO: evento silencioso (no se guarda, no suena, no aparece en la campanita)
+  // El front solo quita el lead de la lista.
+  emitirLeadPerdido(idAsesor: number, idLead: number) {
+    this.server
+      .to(`asesor_${idAsesor}`)
+      .emit('lead-perdido', { id_lead: idLead });
+  }
 }

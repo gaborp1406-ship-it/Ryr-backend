@@ -2,7 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { DataSource } from 'typeorm';
 import { ICrearNotificacion, INotificacion } from './notificaciones.interface';
 
-
+// SIN CAMBIOS (lo dejo completo por referencia)
 @Injectable()
 export class NotificacionesRepository {
   constructor(private readonly dataSource: DataSource) { }
@@ -40,6 +40,7 @@ export class NotificacionesRepository {
       [idAsesor],
     );
   }
+
   async eliminar(id: number): Promise<void> {
     await this.dataSource.query(
       `DELETE FROM com_notificaciones WHERE id = $1`,
@@ -53,6 +54,7 @@ export class NotificacionesRepository {
       [idAsesor],
     );
   }
+
   async marcarLeida(id: number): Promise<void> {
     await this.dataSource.query(
       `UPDATE com_notificaciones SET leida = TRUE WHERE id = $1`,

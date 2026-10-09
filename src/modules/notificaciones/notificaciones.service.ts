@@ -20,6 +20,11 @@ export class NotificacionesService {
     return notificacion;
   }
 
+  // NUEVO: avisa en silencio que el asesor perdió un lead (sin guardar en BD)
+  emitirLeadPerdido(idAsesor: number, idLead: number) {
+    this.notificacionesGateway.emitirLeadPerdido(idAsesor, idLead);
+  }
+
   async listar(idAsesor: number) {
     return this.notificacionesRepository.listarPorAsesor(idAsesor);
   }
@@ -27,13 +32,15 @@ export class NotificacionesService {
   async marcarLeida(id: number) {
     return this.notificacionesRepository.marcarLeida(id);
   }
-async eliminar(id: number) {
-  return this.notificacionesRepository.eliminar(id);
-}
 
-async eliminarTodasLeidas(idAsesor: number) {
-  return this.notificacionesRepository.eliminarTodasLeidas(idAsesor);
-}
+  async eliminar(id: number) {
+    return this.notificacionesRepository.eliminar(id);
+  }
+
+  async eliminarTodasLeidas(idAsesor: number) {
+    return this.notificacionesRepository.eliminarTodasLeidas(idAsesor);
+  }
+
   async marcarTodasLeidas(idAsesor: number) {
     return this.notificacionesRepository.marcarTodasLeidas(idAsesor);
   }
