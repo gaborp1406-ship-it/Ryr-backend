@@ -4,6 +4,7 @@ import { IActualizarLeadDniProyecto, ICrearLead, IListarClientesPotenciales, ILi
 import { SupabaseClient } from '@supabase/supabase-js';
 import { NotificacionesGateway } from '../notificaciones/notificaciones.gateway';
 import { NotificacionesService } from '../notificaciones/notificaciones.service';
+import { ICrearNotificacion } from '../notificaciones/notificaciones.interface';
 
 @Injectable()
 export class LeadService {
@@ -257,30 +258,54 @@ export class LeadService {
   }
 
 
-  async reasignarLead(data: IReasignarLead) {
+async reasignarLead(data: IReasignarLead) {
   try {
     const result = await this.leadRepository.reasignar_lead(data);
-
+ 
     if (!result.reasignado) {
       throw new BadRequestException(
         'No se reasignó el lead: no existe o ya está asignado a ese asesor.',
       );
     }
-
-    await this.notificacionesService.crearYEmitir({
+ 
+    // La reasignación ya se confirmó en BD: si una notificación falla,
+    // no debe hacer fallar la respuesta.
+    const notificar = async (payload: ICrearNotificacion) => {
+      try {
+        await this.notificacionesService.crearYEmitir(payload);
+      } catch (e) {
+        console.error('Error al notificar reasignación:', e);
+      }
+    };
+ 
+    // 1) Asesor NUEVO: le llega el lead
+    await notificar({
       id_asesor: data.id_asesor_nuevo,
       id_lead: data.id_lead,
       tipo: 'NUEVO_LEAD',
       titulo: 'Nuevo lead asignado',
       mensaje: 'Tienes un nuevo lead asignado. Revísalo en tu listado.',
     });
-
+ 
+    // 2) Asesor ANTERIOR: se le quita el lead
+    if (result.id_asesor_anterior) {
+      await notificar({
+        id_asesor: result.id_asesor_anterior,
+        id_lead: data.id_lead,
+        tipo: 'LEAD_REASIGNADO',
+        titulo: 'Lead reasignado',
+        mensaje: 'Uno de tus leads fue reasignado a otro asesor.',
+      });
+    }
+ 
     return { mensaje: 'Lead reasignado correctamente.' };
   } catch (error) {
     console.log(error);
     throw error;
   }
 }
+
+
   async actualizarLeadDniProyecto(data: IActualizarLeadDniProyecto) {
   try {
     return await this.leadRepository.actualizar_lead_dni_proyecto(data);
