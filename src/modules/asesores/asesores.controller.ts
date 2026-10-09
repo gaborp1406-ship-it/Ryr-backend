@@ -10,7 +10,7 @@ import { AsesoresService } from './asesores.service';
 
 @Controller('asesor')
 export class AsesoresController {
-  constructor(private readonly asesoresService: AsesoresService) {}
+  constructor(private readonly asesoresService: AsesoresService) { }
 
   @Get('listar/:id_trabajador')
   @UseGuards(JwtAuthGuard)
@@ -24,5 +24,10 @@ export class AsesoresController {
   @UseGuards(JwtAuthGuard)
   listarAsesores() {
     return this.asesoresService.listarAsesores();
+  }
+  @Get('listar-asesores-activos')
+  @UseGuards(JwtAuthGuard)
+  listarAsesoresActivos() {
+    return this.asesoresService.listarAsesoresActivos();
   }
 }

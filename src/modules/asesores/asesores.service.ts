@@ -14,4 +14,8 @@ export class AsesoresService {
   async listarAsesores() {
     return await this.asesoresRepository.gen_listar_asesores();
   }
+  async listarAsesoresActivos() {
+return await this.asesoresRepository.gen_listar_asesores_activos();
+}
+
 }
