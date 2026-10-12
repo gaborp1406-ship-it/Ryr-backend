@@ -132,7 +132,7 @@ export class DashboardService {
     try {
       return await this.dashboardRepository
         .fn_contar_leads_atendidos_dashboard(
-         fechaInicio,
+          fechaInicio,
           fechaFin,
           idAsesor,
         );
@@ -159,7 +159,7 @@ export class DashboardService {
     try {
       return await this.dashboardRepository
         .fn_dashboard_leads_cierre(
-         fechaInicio,
+          fechaInicio,
           fechaFin,
           idAsesor,
         );
@@ -213,7 +213,7 @@ export class DashboardService {
     try {
       return await this.dashboardRepository
         .fn_dashboard_cierres_por_proyecto(
-           fechaInicio,
+          fechaInicio,
           fechaFin,
           idAsesor,
         );
@@ -240,7 +240,7 @@ export class DashboardService {
     try {
       return await this.dashboardRepository
         .fn_dashboard_cierres_por_fuente(
-           fechaInicio,
+          fechaInicio,
           fechaFin,
           idAsesor,
         );
@@ -267,7 +267,7 @@ export class DashboardService {
     try {
       return await this.dashboardRepository
         .fn_dashboard_cierres_por_asesor(
-           fechaInicio,
+          fechaInicio,
           fechaFin,
           idAsesor,
         );
@@ -393,7 +393,7 @@ export class DashboardService {
     try {
       return await this.dashboardRepository
         .fn_dashboard_negociacion_por_proyecto(
-         fechaInicio,
+          fechaInicio,
           fechaFin,
           idAsesor,
         );
@@ -417,7 +417,7 @@ export class DashboardService {
     try {
       return await this.dashboardRepository
         .fn_dashboard_negociacion_por_asesor(
-         fechaInicio,
+          fechaInicio,
           fechaFin,
           idAsesor,
         );
@@ -465,7 +465,7 @@ export class DashboardService {
     try {
       return await this.dashboardRepository
         .fn_dashboard_contacto_por_asesor(
-         fechaInicio,
+          fechaInicio,
           fechaFin,
           idAsesor,
         );
@@ -490,7 +490,7 @@ export class DashboardService {
     try {
       return await this.dashboardRepository
         .fn_dashboard_rangos_contacto(
-         fechaInicio,
+          fechaInicio,
           fechaFin,
           idAsesor,
         );
@@ -515,7 +515,7 @@ export class DashboardService {
     try {
       return await this.dashboardRepository
         .fn_dashboard_resumen_contacto(
-         fechaInicio,
+          fechaInicio,
           fechaFin,
           idAsesor,
         );
@@ -552,6 +552,54 @@ export class DashboardService {
 
       throw new InternalServerErrorException(
         'Error al obtener leads contactados por asesor',
+      );
+    }
+  }
+
+  async leadsPorProyecto(
+    fechaInicio: string | null,
+    fechaFin: string | null,
+    idAsesor: number | null,
+  ) {
+    try {
+      return await this.dashboardRepository
+        .fn_dashboard_leads_por_proyecto(
+          fechaInicio,
+          fechaFin,
+          idAsesor,
+        );
+    } catch (error) {
+      console.error(
+        'Error al obtener leads por proyecto:',
+        error,
+      );
+
+      throw new InternalServerErrorException(
+        'Error al obtener leads por proyecto',
+      );
+    }
+  } 
+  
+  async leadsReasignados(
+    fechaInicio: string | null,
+    fechaFin: string | null,
+    idAsesor: number | null,
+  ) {
+    try {
+      return await this.dashboardRepository
+        .fn_dashboard_leads_reasignados(
+          fechaInicio,
+          fechaFin,
+          idAsesor,
+        );
+    } catch (error) {
+      console.error(
+        'Error al obtener leads reasignados:',
+        error,
+      );
+
+      throw new InternalServerErrorException(
+        'Error al obtener leads reasignados',
       );
     }
   }

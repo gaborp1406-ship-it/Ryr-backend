@@ -684,4 +684,50 @@ export class DashboardController {
       pIdAsesor,
     );
   }
+
+    @Get('leads-por-proyecto')
+  @UseGuards(JwtAuthGuard)
+  leadsPorProyecto(
+    @Query('fecha_inicio') fechaInicio?: string,
+    @Query('fecha_fin') fechaFin?: string,
+    @Query('id_asesor') idAsesor?: string,
+  ) {
+    const {
+      fechaInicio: pFechaInicio,
+      fechaFin: pFechaFin,
+    } = this.obtenerRangoFechas(
+      fechaInicio,
+      fechaFin,
+    );
+
+    const pIdAsesor = this.validarIdAsesor(idAsesor);
+
+    return this.dashboardService.leadsPorProyecto(
+      pFechaInicio,
+      pFechaFin,
+      pIdAsesor,
+    );
+  }  @Get('leads-reasignados')
+  @UseGuards(JwtAuthGuard)
+  leadsReasignados(
+    @Query('fecha_inicio') fechaInicio?: string,
+    @Query('fecha_fin') fechaFin?: string,
+    @Query('id_asesor') idAsesor?: string,
+  ) {
+    const {
+      fechaInicio: pFechaInicio,
+      fechaFin: pFechaFin,
+    } = this.obtenerRangoFechas(
+      fechaInicio,
+      fechaFin,
+    );
+
+    const pIdAsesor = this.validarIdAsesor(idAsesor);
+
+    return this.dashboardService.leadsReasignados(
+      pFechaInicio,
+      pFechaFin,
+      pIdAsesor,
+    );
+  }
 }

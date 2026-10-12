@@ -32,7 +32,7 @@ export class DashboardRepository {
   async fn_contar_clientes_potenciales_por_fase(
     fechaInicio: string | null,
     fechaFin: string | null,
-     idAsesor: number | null,
+    idAsesor: number | null,
   ) {
     const result = await this.dataSource.query(
       `
@@ -235,7 +235,7 @@ export class DashboardRepository {
         SELECT *
         FROM fn_dashboard_tasa_cierre($1, $2, $3)
       `,
-     [fechaInicio, fechaFin, idAsesor],
+      [fechaInicio, fechaFin, idAsesor],
     );
 
     return result;
@@ -381,6 +381,38 @@ export class DashboardRepository {
       `
       SELECT *
       FROM fn_dashboard_leads_contactados_asesor($1, $2, $3)
+    `,
+      [fechaInicio, fechaFin, idAsesor],
+    );
+
+    return result;
+  }
+
+  async fn_dashboard_leads_por_proyecto(
+    fechaInicio: string | null,
+    fechaFin: string | null,
+    idAsesor: number | null,
+  ) {
+    const result = await this.dataSource.query(
+      `
+      SELECT *
+      FROM fn_dashboard_leads_por_proyecto($1, $2, $3)
+    `,
+      [fechaInicio, fechaFin, idAsesor],
+    );
+
+    return result;
+  }
+
+  async fn_dashboard_leads_reasignados(
+    fechaInicio: string | null,
+    fechaFin: string | null,
+    idAsesor: number | null,
+  ) {
+    const result = await this.dataSource.query(
+      `
+    SELECT *
+    FROM public.fn_listar_reasignaciones_por_asesor($1, $2, $3)
     `,
       [fechaInicio, fechaFin, idAsesor],
     );
