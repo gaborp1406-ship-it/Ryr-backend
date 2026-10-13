@@ -5,12 +5,16 @@ import {
 } from '@nestjs/common';
 
 import { TrabajadorRepository } from './repository/trabajador.repository';
+import { LeadService } from '../leads/leads.service';
 
+const ESTADO_ACTIVO = 1;
 
 @Injectable()
 export class TrabajadorService {
-  constructor(private trabajadorRepository: TrabajadorRepository) {}
-
+  constructor(
+    private trabajadorRepository: TrabajadorRepository,
+    private readonly leadService: LeadService,
+  ) {}
 
   // ---------- ESTADOS DE CONEXIÓN ----------
 
@@ -47,9 +51,15 @@ export class TrabajadorService {
     }
   }
 
-  async cambiarEstado(id_trabajador: number, id_estado: number) {
+  async cambiarEstado(
+    id_trabajador: number,
+    id_estado: number,
+    usuario_creacion: number = id_trabajador,
+  ) {
+    let result;
+
     try {
-      const result = await this.trabajadorRepository.fn_cambiar_estado_asesor(
+      result = await this.trabajadorRepository.fn_cambiar_estado_asesor(
         id_trabajador,
         id_estado,
       );
@@ -57,12 +67,32 @@ export class TrabajadorService {
       if (!result) {
         throw new Error('Error inesperado al cambiar estado');
       }
-
-      return result;
     } catch (error) {
       console.log('Error al cambiar estado:', error);
       throw new InternalServerErrorException('Error al cambiar estado');
     }
+
+    // Si pasó a activo, asignar todos sus leads reservados pendientes.
+    // El cambio de estado ya se confirmó: si esto falla, no debe tumbarlo.
+    let reservadosAsignados = 0;
+
+    if (id_estado === ESTADO_ACTIVO) {
+      try {
+        const asignados = await this.leadService.asignarLeadsReservados({
+          id_importacion: null,
+          id_asesor: id_trabajador,
+          usuario_creacion,
+        });
+        reservadosAsignados = asignados.length;
+      } catch (error) {
+        console.log(
+          `Error al asignar reservados del asesor ${id_trabajador}:`,
+          error,
+        );
+      }
+    }
+
+    return { ...result, reservados_asignados: reservadosAsignados };
   }
 
   async listarEstadoActualTrabajadores(id_estado?: number) {
@@ -78,25 +108,24 @@ export class TrabajadorService {
     }
   }
 
-async historialEstadoTrabajador(
-  id_trabajador?: number,
-  id_estado?: number,
-  fecha_desde?: string,
-  fecha_hasta?: string,
-) {
-  try {
-    return await this.trabajadorRepository.fn_historial_estado_trabajador(
-      id_trabajador ?? null,
-      id_estado ?? null,
-      fecha_desde ?? null,
-      fecha_hasta ?? null,
-    );
-  } catch (error) {
-    console.log('Error al obtener historial de estado:', error);
-
-    throw new InternalServerErrorException(
-      'Error al obtener historial de estado',
-    );
+  async historialEstadoTrabajador(
+    id_trabajador?: number,
+    id_estado?: number,
+    fecha_desde?: string,
+    fecha_hasta?: string,
+  ) {
+    try {
+      return await this.trabajadorRepository.fn_historial_estado_trabajador(
+        id_trabajador ?? null,
+        id_estado ?? null,
+        fecha_desde ?? null,
+        fecha_hasta ?? null,
+      );
+    } catch (error) {
+      console.log('Error al obtener historial de estado:', error);
+      throw new InternalServerErrorException(
+        'Error al obtener historial de estado',
+      );
+    }
   }
-}
 }

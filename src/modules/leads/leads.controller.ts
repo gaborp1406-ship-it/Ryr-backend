@@ -12,19 +12,10 @@ import {
 } from '@nestjs/common';
 import { JwtAuthGuard } from '../auth/guard/jwt-auth.guard';
 import { LeadService } from './leads.service';
-import type { IActualizarLeadDniProyecto, ICrearLead, IListarClientesPotenciales, IListarEtapas, IReasignarLead } from './interface/leads.interface';
+import type { IActualizarLeadDniProyecto, IAsignarLeadsReservados, ICrearLead, IImportarLeads, IListarClientesPotenciales, IListarEtapas, IReasignarLead } from './interface/leads.interface';
 @Controller('lead')
 export class LeadController {
   constructor(private readonly leadService: LeadService) { }
-
-  @Get('listar-diario/:id_trabajador')
-  @UseGuards(JwtAuthGuard)
-  listarAsesorDisponible(
-    @Param('id_trabajador', ParseIntPipe) id_trabajador: number,
-  ) {
-    return this.leadService.listarleadsdiarios(id_trabajador);
-  }
-
   @Post('crear')
   @UseGuards(JwtAuthGuard)
   crearLead(
@@ -34,6 +25,32 @@ export class LeadController {
     return this.leadService.crearLead(data);
 
   }
+
+
+  @Post('importar')
+  @UseGuards(JwtAuthGuard)
+  importarLeads(@Body() data: IImportarLeads) {
+    return this.leadService.importarLeads(data);
+  }
+
+
+  @Post('asignar-reservados')
+  @UseGuards(JwtAuthGuard)
+  asignarLeadsReservados(
+    @Body() data: IAsignarLeadsReservados,
+  ) {
+    return this.leadService.asignarLeadsReservados(data);
+  }
+
+  @Get('listar-diario/:id_trabajador')
+  @UseGuards(JwtAuthGuard)
+  listarAsesorDisponible(
+    @Param('id_trabajador', ParseIntPipe) id_trabajador: number,
+  ) {
+    return this.leadService.listarleadsdiarios(id_trabajador);
+  }
+
+
 
   @Post('validar-duplicado')
   @UseGuards(JwtAuthGuard)
@@ -114,10 +131,10 @@ export class LeadController {
   }
 
   @Post('reasignar-lead')
-@UseGuards(JwtAuthGuard)
-reasignarLead(@Body() data: IReasignarLead) {
-  return this.leadService.reasignarLead(data);
-}
+  @UseGuards(JwtAuthGuard)
+  reasignarLead(@Body() data: IReasignarLead) {
+    return this.leadService.reasignarLead(data);
+  }
 
   @Post('actualizar-dni-proyecto')
   @UseGuards(JwtAuthGuard)
@@ -681,6 +698,37 @@ reasignarLead(@Body() data: IReasignarLead) {
 
     return await this.leadService.actualizarDocumentoNegociacion(data);
 
+  }
+
+
+  @Get('verificar-lead-reasignado/:id_lead')
+  async verificarLeadReasignado(
+    @Param('id_lead', ParseIntPipe) id_lead: number,
+  ) {
+    return await this.leadService.verificarLeadReasignado(id_lead);
+  }
+
+  @Post('guardar-mensaje-lead-etapa-reunion')
+  async guardarMensajeLeadEtapaReunion(
+    @Body()
+    body: {
+      id_lead_etapa_reunion: number;
+      mensaje: string;
+    },
+  ) {
+    return await this.leadService.guardarMensajeLeadEtapaReunion(
+      body.id_lead_etapa_reunion,
+      body.mensaje,
+    );
+  }
+
+  @Get('obtener-historial-mensajes-lead-etapa-reunion/:id')
+  async obtenerHistorialMensajesLeadEtapaReunion(
+    @Param('id', ParseIntPipe) id: number,
+  ) {
+    return await this.leadService.obtenerHistorialMensajesLeadEtapaReunion(
+      id,
+    );
   }
 }
 

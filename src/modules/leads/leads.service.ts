@@ -1,6 +1,6 @@
 import { BadRequestException, Inject, Injectable } from '@nestjs/common';
 import { LeadRepository } from './repository/lead.repository';
-import { IActualizarLeadDniProyecto, ICrearLead, IListarClientesPotenciales, IListarEtapas, IReasignarLead } from './interface/leads.interface';
+import { IActualizarLeadDniProyecto, IAsignarLeadsReservados, ICrearLead, IImportarLeads, IListarClientesPotenciales, IListarEtapas, IReasignarLead } from './interface/leads.interface';
 import { SupabaseClient } from '@supabase/supabase-js';
 import { NotificacionesGateway } from '../notificaciones/notificaciones.gateway';
 import { NotificacionesService } from '../notificaciones/notificaciones.service';
@@ -204,6 +204,143 @@ export class LeadService {
     }
   }
 
+  async importarLeads(data: IImportarLeads) {
+    const resultados = await this.leadRepository.importar_leads(data);
+
+    // La función SQL devuelve un registro por lead, en el mismo orden en que se enviaron
+    for (let i = 0; i < resultados.length; i++) {
+      const result = resultados[i];
+      const leadOriginal = data.leads[i];
+
+      // Una notificación fallida no debe tumbar la respuesta:
+      // la importación ya se confirmó en la base de datos.
+      try {
+        // 1. CLIENTE YA TIENE LEAD ACTIVO EN EL MISMO PROYECTO
+        // En el SQL, id_lead / id_asesor son los del lead existente y su dueño.
+        if (result.accion === 'ALERTA' && result.id_lead && result.id_asesor) {
+          await this.notificacionesService.crearYEmitir({
+            id_asesor: result.id_asesor,
+            id_lead: Number(result.id_lead),
+            tipo: 'CLIENTE_ACTIVO_MISMO_PROYECTO',
+            titulo: 'Cliente preguntando nuevamente',
+            mensaje:
+              'El cliente está preguntando nuevamente por el proyecto. Contáctalo.',
+          });
+          continue;
+        }
+
+        // 2. NUEVO LEAD - OTRO PROYECTO
+        if (
+          result.accion === 'CREADO_NUEVO_PROYECTO' &&
+          result.id_lead &&
+          result.id_asesor
+        ) {
+          await this.notificacionesService.crearYEmitir({
+            id_asesor: result.id_asesor,
+            id_lead: Number(result.id_lead),
+            tipo: 'NUEVO_LEAD',
+            titulo: 'Cliente preguntando por otro proyecto',
+            mensaje:
+              result.mensaje ||
+              'El cliente está interesado en otro proyecto. Revisa el nuevo lead.',
+          });
+          continue;
+        }
+
+
+        // 4. NUEVO LEAD NORMAL
+        if (result.accion === 'CREADO' && result.id_lead && result.id_asesor) {
+          await this.notificacionesService.crearYEmitir({
+            id_asesor: result.id_asesor,
+            id_lead: Number(result.id_lead),
+            tipo: 'NUEVO_LEAD',
+            titulo: 'Nuevo lead asignado',
+            mensaje:
+              result.mensaje ||
+              'Tienes un nuevo lead asignado. Revísalo en tu listado.',
+          });
+        }
+      } catch (error) {
+        console.log(
+          `Error al notificar el lead ${i + 1} de la importación:`,
+          error,
+        );
+      }
+    }
+
+    return resultados;
+  }
+
+  
+  async asignarLeadsReservados(data: IAsignarLeadsReservados) {
+    try {
+      const resultados =
+        await this.leadRepository.asignar_leads_reservados(data);
+
+      for (const result of resultados) {
+        // Una notificación fallida no debe tumbar la respuesta:
+        // la asignación ya se confirmó en la base de datos.
+        try {
+          if (!result.id_lead || !result.id_asesor) continue;
+
+          // 1. CLIENTE YA TIENE LEAD ACTIVO EN EL MISMO PROYECTO
+          // id_lead / id_asesor son los del lead existente y su dueño.
+          if (result.accion === 'ALERTA') {
+            await this.notificacionesService.crearYEmitir({
+              id_asesor: result.id_asesor,
+              id_lead: Number(result.id_lead),
+              tipo: 'CLIENTE_ACTIVO_MISMO_PROYECTO',
+              titulo: 'Cliente preguntando nuevamente',
+              mensaje:
+                'El cliente está preguntando nuevamente por el proyecto. Contáctalo.',
+            });
+            continue;
+          }
+
+          // 2. NUEVO LEAD - OTRO PROYECTO
+          if (result.accion === 'CREADO_NUEVO_PROYECTO') {
+            await this.notificacionesService.crearYEmitir({
+              id_asesor: result.id_asesor,
+              id_lead: Number(result.id_lead),
+              tipo: 'NUEVO_LEAD',
+              titulo: 'Cliente preguntando por otro proyecto',
+              mensaje:
+                result.mensaje ||
+                'El cliente está interesado en otro proyecto. Revisa el nuevo lead.',
+            });
+            continue;
+          }
+
+          // 3. NUEVO LEAD NORMAL
+          if (result.accion === 'CREADO') {
+            await this.notificacionesService.crearYEmitir({
+              id_asesor: result.id_asesor,
+              id_lead: Number(result.id_lead),
+              tipo: 'NUEVO_LEAD',
+              titulo: 'Nuevo lead asignado',
+              mensaje:
+                result.mensaje ||
+                'Tienes un nuevo lead asignado. Revísalo en tu listado.',
+            });
+          }
+        } catch (error) {
+          console.log(
+            `Error al notificar el reservado ${result.id_reservado}:`,
+            error,
+          );
+        }
+      }
+
+      return resultados;
+    } catch (error) {
+      console.log('Error al asignar leads reservados:', error);
+      throw error;
+    }
+  }
+
+
+
+
 
   async listarClientesPotenciales(data: IListarClientesPotenciales) {
 
@@ -305,15 +442,16 @@ export class LeadService {
 
 
 
-
-  async actualizarLeadDniProyecto(data: IActualizarLeadDniProyecto) {
-    try {
-      return await this.leadRepository.actualizar_lead_dni_proyecto(data);
-    } catch (error) {
-      console.log(error);
-      throw error;
-    }
+async actualizarLeadDniProyecto(
+  data: IActualizarLeadDniProyecto,
+) {
+  try {
+    return await this.leadRepository.actualizar_lead_dni_proyecto(data);
+  } catch (error) {
+    console.log(error);
+    throw error;
   }
+}
   async reabrirLeadEtapa(idLeadEtapa: number) {
     try {
       const result =
@@ -1130,4 +1268,46 @@ export class LeadService {
     }
   }
 
+async verificarLeadReasignado(id_lead: number) {
+  try {
+    return await this.leadRepository.verificarLeadReasignado(id_lead);
+  } catch (error) {
+    console.log('Error al verificar lead reasignado:', error);
+    throw error;
+  }
+}
+
+async guardarMensajeLeadEtapaReunion(
+  id_lead_etapa_reunion: number,
+  mensaje: string,
+) {
+  try {
+    return await this.leadRepository.guardarMensajeLeadEtapaReunion(
+      id_lead_etapa_reunion,
+      mensaje,
+    );
+  } catch (error) {
+    console.log(
+      'Error al guardar mensaje del lead etapa reunión:',
+      error,
+    );
+    throw error;
+  }
+}
+
+async obtenerHistorialMensajesLeadEtapaReunion(
+  id_lead_etapa_reunion: number,
+) {
+  try {
+    return await this.leadRepository.obtenerHistorialMensajesLeadEtapaReunion(
+      id_lead_etapa_reunion,
+    );
+  } catch (error) {
+    console.log(
+      'Error al obtener historial de mensajes del lead etapa reunión:',
+      error,
+    );
+    throw error;
+  }
+}
 }

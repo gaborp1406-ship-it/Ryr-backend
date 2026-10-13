@@ -72,6 +72,8 @@ export interface IActualizarLeadDniProyecto {
   dni_cliente: string | null;
   id_proyecto: number;
   usuario_modificacion: number;
+  nombres: string | null;
+  telefono: string | null;
 }
 export interface IReasignarLead {
   id_lead: number;
@@ -83,4 +85,41 @@ export interface IReasignarLead {
 export interface IReasignarLeadResultado {
   reasignado: boolean;
   id_asesor_anterior: number | null;
+}
+
+export interface IAsignarLeadsReservados {
+  id_importacion?: number | null;
+  id_asesor: number;
+  usuario_creacion: number;
+}
+
+export interface ILeadReservadoResultado {
+  id_reservado: number;
+  id_lead: number | null;
+  id_cliente: number | null;
+  id_asesor: number;
+  accion: string;
+  mensaje: string;
+}
+
+
+export interface IImportarLeads {
+  id_asesores: number[];
+  leads: {
+    id_proyecto: number;
+    id_fuente: number;
+    nombre_cliente: string;
+    dni_cliente?: string | null;
+    telefono_cliente?: string | null;
+  }[];
+  usuario_creacion: number;
+}
+
+export interface IImportarLeadsResultado {
+  id_importacion: number;
+  id_lead: number | null;
+  id_cliente: number | null;
+  id_asesor: number;
+  accion: string;
+  mensaje: string;
 }

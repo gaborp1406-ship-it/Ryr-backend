@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { DataSource } from 'typeorm';
-import { IActualizarLeadDniProyecto, IClientePotencial, ICrearLead, IEtapa, ILeadCreado, ILeadDiario, IListarClientesPotenciales, IListarEtapas, IReasignarLead, IReasignarLeadResultado } from '../interface/leads.interface';
+import { IActualizarLeadDniProyecto, IAsignarLeadsReservados, IClientePotencial, ICrearLead, IEtapa, IImportarLeads, IImportarLeadsResultado, ILeadCreado, ILeadDiario, ILeadReservadoResultado, IListarClientesPotenciales, IListarEtapas, IReasignarLead, IReasignarLeadResultado } from '../interface/leads.interface';
 @Injectable()
 export class LeadRepository {
   constructor(private dataSource: DataSource) { }
@@ -46,6 +46,37 @@ export class LeadRepository {
     return result[0];
   }
 
+async asignar_leads_reservados(
+  data: IAsignarLeadsReservados,
+): Promise<ILeadReservadoResultado[]> {
+  return await this.dataSource.query(
+    `
+    SELECT *
+    FROM public.fn_asignar_leads_reservados($1::bigint, $2, $3)
+    `,
+    [
+      data.id_importacion ?? null,
+      data.id_asesor,
+      data.usuario_creacion,
+    ],
+  );
+}
+
+  async importar_leads(
+    data: IImportarLeads,
+  ): Promise<IImportarLeadsResultado[]> {
+    return await this.dataSource.query(
+      `
+    SELECT *
+    FROM public.fn_importar_leads($1, $2::jsonb, $3)
+    `,
+      [
+        data.id_asesores,
+        JSON.stringify(data.leads),
+        data.usuario_creacion,
+      ],
+    );
+  }
 
   async validarLeadDuplicado(
     dni: string,
@@ -174,14 +205,22 @@ export class LeadRepository {
     return result;
   }
 
-async actualizar_lead_dni_proyecto(data: IActualizarLeadDniProyecto) {
+async actualizar_lead_dni_proyecto(
+  data: IActualizarLeadDniProyecto,
+) {
   await this.dataSource.query(
-    `SELECT fn_actualizar_lead_dni_proyecto($1, $2, $3, $4)`,
+    `
+    SELECT public.fn_actualizar_lead_dni_proyecto(
+      $1, $2, $3, $4, $5, $6
+    )
+    `,
     [
       data.id_lead,
       data.dni_cliente ?? null,
       data.id_proyecto,
       data.usuario_modificacion,
+      data.nombres ?? null,
+      data.telefono ?? null,
     ],
   );
 
@@ -189,20 +228,20 @@ async actualizar_lead_dni_proyecto(data: IActualizarLeadDniProyecto) {
 }
 
 
-async reasignar_lead(data: IReasignarLead) {
-  const result: IReasignarLeadResultado[] = await this.dataSource.query(
-    `SELECT * FROM fn_reasignar_lead($1, $2, $3, $4, $5)`,
-    [
-      data.id_lead,
-      data.id_asesor_nuevo,
-      data.usuario_modificacion,
-      data.motivo ?? 'SIN_RESPUESTA',
-      data.observacion ?? null,
-    ],
-  );
+  async reasignar_lead(data: IReasignarLead) {
+    const result: IReasignarLeadResultado[] = await this.dataSource.query(
+      `SELECT * FROM fn_reasignar_lead($1, $2, $3, $4, $5)`,
+      [
+        data.id_lead,
+        data.id_asesor_nuevo,
+        data.usuario_modificacion,
+        data.motivo ?? 'SIN_RESPUESTA',
+        data.observacion ?? null,
+      ],
+    );
 
-  return result[0];
-}
+    return result[0];
+  }
 
   async obtenerEtapaActualLead(id_lead: number) {
     const result = await this.dataSource.query(
@@ -978,5 +1017,43 @@ async reasignar_lead(data: IReasignarLead) {
     );
   }
 
+  async verificarLeadReasignado(id_lead: number) {
+    return await this.dataSource.query(
+      `
+    SELECT *
+    FROM public.fn_verificar_lead_reasignado($1)
+    `,
+      [id_lead],
+    );
+  }
 
+  async guardarMensajeLeadEtapaReunion(
+  id_lead_etapa_reunion: number,
+  mensaje: string,
+) {
+  return await this.dataSource.query(
+    `
+    SELECT *
+    FROM public.fn_guardar_mensaje_lead_etapa_reunion($1, $2)
+    `,
+    [
+      id_lead_etapa_reunion,
+      mensaje,
+    ],
+  );
+}
+
+async obtenerHistorialMensajesLeadEtapaReunion(
+  id_lead_etapa_reunion: number,
+) {
+  return await this.dataSource.query(
+    `
+    SELECT *
+    FROM public.fn_obtener_historial_mensajes_lead_etapa_reunion($1)
+    `,
+    [
+      id_lead_etapa_reunion,
+    ],
+  );
+}
 }
