@@ -603,4 +603,29 @@ export class DashboardService {
       );
     }
   }
+
+  async leadsCruzados(
+  fechaInicio: string | null,
+  fechaFin: string | null,
+  idAsesor: number | null,
+) {
+  try {
+    return await this.dashboardRepository.fn_dashboard_leads_cruzadas(
+      fechaInicio,
+      fechaFin,
+      idAsesor,
+    );
+  } catch (error) {
+    console.error(
+      'Error al obtener leads cruzados:',
+      error,
+    );
+
+    throw new InternalServerErrorException(
+      'Error al obtener leads cruzados',
+    );
+  }
+}
+
+
 }

@@ -419,4 +419,19 @@ export class DashboardRepository {
 
     return result;
   }
+
+  async fn_dashboard_leads_cruzadas(
+  fechaInicio: string | null,
+  fechaFin: string | null,
+  idAsesor: number | null,
+) {
+  const result = await this.dataSource.query(
+    `
+    SELECT public.fn_dashboard_leads_cruzadas($1, $2, $3) AS cantidad
+    `,
+    [fechaInicio, fechaFin, idAsesor],
+  );
+
+  return result[0];
+}
 }

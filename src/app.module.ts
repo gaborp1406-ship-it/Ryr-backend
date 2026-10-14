@@ -12,6 +12,7 @@ import { AsesoresModule } from './modules/asesores/asesores.module';
 import { LeadsModule } from './modules/leads/leads.module';
 import { AsteriskModule } from './modules/asterisk/asterisk.module';
 import { DashboardModule } from './modules/dashboard/dashboard.module';
+import { WhatsappModule } from './modules/whatsapp/whatsapp.module';
 
 @Module({
   imports: [
@@ -41,7 +42,8 @@ import { DashboardModule } from './modules/dashboard/dashboard.module';
     LeadsModule,
     AsteriskModule,
     OpcionesModule,
-    DashboardModule
+    DashboardModule,
+    WhatsappModule
 
   ],
   controllers: [AppController],

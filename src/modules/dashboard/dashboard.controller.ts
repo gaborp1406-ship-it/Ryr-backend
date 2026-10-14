@@ -730,4 +730,28 @@ export class DashboardController {
       pIdAsesor,
     );
   }
+
+ @Get('leads-cruzadas')
+  @UseGuards(JwtAuthGuard)
+leadsCruzadas(
+  @Query('fecha_inicio') fechaInicio?: string,
+  @Query('fecha_fin') fechaFin?: string,
+  @Query('id_asesor') idAsesor?: string,
+) {
+  const {
+    fechaInicio: pFechaInicio,
+    fechaFin: pFechaFin,
+  } = this.obtenerRangoFechas(
+    fechaInicio,
+    fechaFin,
+  );
+
+  const pIdAsesor = this.validarIdAsesor(idAsesor);
+
+  return this.dashboardService.leadsCruzados(
+    pFechaInicio,
+    pFechaFin,
+    pIdAsesor,
+  );
+}
 }
