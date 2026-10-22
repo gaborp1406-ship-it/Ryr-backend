@@ -1,3 +1,4 @@
+
 import { Module } from '@nestjs/common';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
@@ -13,16 +14,19 @@ import { LeadsModule } from './modules/leads/leads.module';
 import { AsteriskModule } from './modules/asterisk/asterisk.module';
 import { DashboardModule } from './modules/dashboard/dashboard.module';
 import { WhatsappModule } from './modules/whatsapp/whatsapp.module';
+import { LuneModule } from './modules/lune/lune.module';
 
 @Module({
   imports: [
     ConfigModule.forRoot({
       isGlobal: true,
     }),
+
+    // CONEXIÓN PRINCIPAL: RYR
     TypeOrmModule.forRoot({
       type: 'postgres',
       host: process.env.DB_HOST,
-      port: parseInt(process.env.DB_PORT ?? '5432'),
+      port: parseInt(process.env.DB_PORT ?? '5432', 10),
       database: process.env.DB_DATABASE,
       username: process.env.DB_USERNAME,
       password: process.env.DB_PASSWORD,
@@ -31,20 +35,37 @@ import { WhatsappModule } from './modules/whatsapp/whatsapp.module';
           ? { rejectUnauthorized: false }
           : false,
       autoLoadEntities: true,
-      synchronize: true,
+      synchronize: false,
     }),
+
+    // SEGUNDA CONEXIÓN: NEON
+    TypeOrmModule.forRoot({
+      name: 'secundaria',
+      type: 'postgres',
+      host: process.env.DB2_HOST,
+      port: parseInt(process.env.DB2_PORT ?? '5432', 10),
+      database: process.env.DB2_DATABASE,
+      username: process.env.DB2_USERNAME,
+      password: process.env.DB2_PASSWORD,
+      ssl:
+        process.env.DB2_SSLMODE === 'require'
+          ? { rejectUnauthorized: false }
+          : false,
+      autoLoadEntities: false,
+      synchronize: false,
+    }),
+
     TrabajadorModule,
     UsuarioModule,
     AuthModule,
     ProyectosModule,
-
     AsesoresModule,
     LeadsModule,
     AsteriskModule,
     OpcionesModule,
     DashboardModule,
-    WhatsappModule
-
+    WhatsappModule,
+    LuneModule
   ],
   controllers: [AppController],
   providers: [AppService],
