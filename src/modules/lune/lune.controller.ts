@@ -13,17 +13,23 @@ import {
 import { LuneService } from './lune.service';
 
 import {
+  CambiarEstadoDto,
   CATEGORIAS_EGRESO,
   CobrarDto,
   CrearEgresoDto,
   CrearVentaDto,
+  ESTADOS_VENTA,
   FiltroEgresosDto,
+  FiltroMovimientosDto,
   FiltroReporteDto,
+  FiltroStockDto,
   FiltroVentasDto,
   GuardarClienteDto,
   GuardarProductoDto,
   METODOS_PAGO,
+  RegistrarMovimientoDto,
   SOCIOS,
+  StockMinimoDto,
 } from './lune.dto';
 
 @Controller('lune')
@@ -40,6 +46,7 @@ export class LuneController {
       metodosPago: METODOS_PAGO,
       categoriasEgreso: CATEGORIAS_EGRESO,
       socios: SOCIOS,
+      estadosVenta: ESTADOS_VENTA,
     };
   }
 
@@ -51,9 +58,27 @@ export class LuneController {
     return this.luneService.listarVentas(filtro);
   }
 
+  /** Pedido con sus productos */
+  @Get('ventas/:id')
+  obtenerVenta(@Param('id', ParseIntPipe) id: number) {
+    return this.luneService.obtenerVenta(id);
+  }
+
   @Post('ventas')
   registrarVenta(@Body() dto: CrearVentaDto) {
     return this.luneService.registrarVenta(dto);
+  }
+
+  /** Cambiar estado (agendado / entregado) y opcionalmente reprogramar */
+  @Patch('ventas/:id/estado')
+  cambiarEstado(@Param('id', ParseIntPipe) id: number, @Body() dto: CambiarEstadoDto) {
+    return this.luneService.cambiarEstado(id, dto);
+  }
+
+  /** Atajo: marcar como entregado */
+  @Patch('ventas/:id/entregar')
+  marcarEntregado(@Param('id', ParseIntPipe) id: number) {
+    return this.luneService.marcarEntregado(id);
   }
 
   @Patch('ventas/:id/pagar')
@@ -131,5 +156,33 @@ export class LuneController {
   @Get('reportes')
   reporte(@Query() filtro: FiltroReporteDto) {
     return this.luneService.reporte(filtro);
+  }
+
+
+    // ===================================================================
+  // STOCK
+  // ===================================================================
+  @Get('stock')
+  listarStock(@Query() filtro: FiltroStockDto) {
+    return this.luneService.listarStock(filtro);
+  }
+
+  /** Historial de movimientos (va antes que stock/:id) */
+  @Get('stock/movimientos')
+  listarMovimientos(@Query() filtro: FiltroMovimientosDto) {
+    return this.luneService.listarMovimientosStock(filtro);
+  }
+
+  @Post('stock/movimientos')
+  registrarMovimiento(@Body() dto: RegistrarMovimientoDto) {
+    return this.luneService.registrarMovimientoStock(dto);
+  }
+
+  @Patch('stock/:productoId/minimo')
+  actualizarMinimo(
+    @Param('productoId', ParseIntPipe) productoId: number,
+    @Body() dto: StockMinimoDto,
+  ) {
+    return this.luneService.actualizarStockMinimo(productoId, dto.stockMinimo);
   }
 }

@@ -6,13 +6,17 @@ import {
 import { InjectDataSource } from '@nestjs/typeorm';
 import { DataSource } from 'typeorm';
 import {
+  CambiarEstadoDto,
   CrearEgresoDto,
   CrearVentaDto,
   FiltroEgresosDto,
+  FiltroMovimientosDto,
   FiltroReporteDto,
+  FiltroStockDto,
   FiltroVentasDto,
   GuardarClienteDto,
   GuardarProductoDto,
+  RegistrarMovimientoDto,
 } from './lune.dto';
 
 @Injectable()
@@ -75,23 +79,39 @@ export class LuneService {
   }
 
   // ===================================================================
-  // VENTAS (INGRESOS)
+  // VENTAS (PEDIDOS)
   // ===================================================================
   listarVentas(f: FiltroVentasDto = {}) {
-    return this.fn('fn_listar_ventas', [f.desde, f.hasta, f.cliente, f.pagado]);
+    return this.fn('fn_listar_ventas', [f.desde, f.hasta, f.cliente, f.pagado, f.estado]);
+  }
+
+  /** Un pedido con todos sus productos */
+  obtenerVenta(id: number) {
+    return this.fn('fn_obtener_venta', [id]);
   }
 
   registrarVenta(dto: CrearVentaDto) {
     return this.fn('fn_registrar_venta', [
       dto.cliente,
-      dto.productoId,
-      dto.cantidad,
+      JSON.stringify(dto.items),
       dto.monto,
       dto.pagado ?? true,
       dto.metodoPago,
       dto.fecha,
       dto.notas,
+      dto.estado ?? 'entregado',
+      dto.fechaEntrega,
     ]);
+  }
+
+  /** Cambia entre agendado / entregado (y opcionalmente reprograma) */
+  cambiarEstado(id: number, dto: CambiarEstadoDto) {
+    return this.fn('fn_cambiar_estado_venta', [id, dto.estado, dto.fechaEntrega]);
+  }
+
+  /** Atajo: marca el pedido como entregado */
+  marcarEntregado(id: number) {
+    return this.fn('fn_cambiar_estado_venta', [id, 'entregado', null]);
   }
 
   /** Marca una venta puntual como pagada */
@@ -141,5 +161,30 @@ export class LuneService {
   // ===================================================================
   reporte(f: FiltroReporteDto = {}) {
     return this.fn('fn_reporte', [f.desde, f.hasta]);
+  }
+
+
+    // ===================================================================
+  // STOCK
+  // ===================================================================
+  listarStock(f: FiltroStockDto = {}) {
+    return this.fn('fn_listar_stock', [f.buscar, f.soloAlertas]);
+  }
+
+  registrarMovimientoStock(dto: RegistrarMovimientoDto) {
+    return this.fn('fn_registrar_movimiento_stock', [
+      dto.productoId,
+      dto.tipo,
+      dto.cantidad,
+      dto.nota,
+    ]);
+  }
+
+  actualizarStockMinimo(productoId: number, stockMinimo: number) {
+    return this.fn('fn_actualizar_stock_minimo', [productoId, stockMinimo]);
+  }
+
+  listarMovimientosStock(f: FiltroMovimientosDto = {}) {
+    return this.fn('fn_listar_movimientos_stock', [f.productoId, f.desde, f.hasta]);
   }
 }
