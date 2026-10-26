@@ -7,9 +7,24 @@ export class DashboardRepository {
     private readonly dataSource: DataSource,
   ) { }
 
-  // =========================================================
-  // LEADS POR ETAPA
-  // =========================================================
+
+async fn_contar_total_leads(
+  fechaInicio: string | null,
+  fechaFin: string | null,
+  idAsesor: number | null,
+) {
+  const result = await this.dataSource.query(
+    `
+      SELECT public.fn_contar_total_leads($1, $2, $3) AS cantidad
+    `,
+    [fechaInicio, fechaFin, idAsesor],
+  );
+
+  return result[0];
+}
+
+
+
   async fn_contar_clientes_potenciales_por_etapa(
     fechaInicio: string | null,
     fechaFin: string | null,

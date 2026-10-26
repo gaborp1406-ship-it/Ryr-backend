@@ -307,29 +307,27 @@ export class DashboardController {
   // =========================================================
   // 2. TOTAL DE LEADS
   // =========================================================
-  @Get('total-leads')
-  @UseGuards(JwtAuthGuard)
-  contarTotalLeads(
-    @Query('fecha_inicio') fechaInicio?: string,
-    @Query('fecha_fin') fechaFin?: string,
-    @Query('id_asesor') idAsesor?: string,
-  ) {
-    const {
-      fechaInicio: pFechaInicio,
-      fechaFin: pFechaFin,
-    } = this.obtenerRangoFechas(
-      fechaInicio,
-      fechaFin,
-    );
 
-    const pIdAsesor = this.validarIdAsesor(idAsesor);
+@Get('total-leads')
+@UseGuards(JwtAuthGuard)
+contarTotalLeads(
+  @Query('fecha_inicio') fechaInicio?: string,
+  @Query('fecha_fin') fechaFin?: string,
+  @Query('id_asesor') idAsesor?: string,
+) {
+  const {
+    fechaInicio: pFechaInicio,
+    fechaFin: pFechaFin,
+  } = this.obtenerRangoFechas(fechaInicio, fechaFin);
 
-    return this.dashboardService.contarTotalLeads(
-      pFechaInicio,
-      pFechaFin,
-      pIdAsesor,
-    );
-  }
+  const pIdAsesor = this.validarIdAsesor(idAsesor);
+
+  return this.dashboardService.contarTotalLeads(
+    pFechaInicio,
+    pFechaFin,
+    pIdAsesor,
+  );
+}
 
   // =========================================================
   // 3. CIERRES POR PROYECTO

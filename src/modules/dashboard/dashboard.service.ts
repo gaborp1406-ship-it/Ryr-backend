@@ -38,6 +38,27 @@ export class DashboardService {
     }
   }
 
+
+async contarTotalLeads(
+  fechaInicio: string | null,
+  fechaFin: string | null,
+  idAsesor: number | null,
+) {
+  try {
+    return await this.dashboardRepository.fn_contar_total_leads(
+      fechaInicio,
+      fechaFin,
+      idAsesor,
+    );
+  } catch (error) {
+    console.error('Error al contar el total de leads:', error);
+
+    throw new InternalServerErrorException(
+      'Error al contar el total de leads',
+    );
+  }
+}
+
   // =========================================================
   // LEADS POR FASE
   // =========================================================
@@ -175,32 +196,7 @@ export class DashboardService {
     }
   }
 
-  // =========================================================
-  // 2. TOTAL DE LEADS
-  // =========================================================
-  async contarTotalLeads(
-    fechaInicio: string | null,
-    fechaFin: string | null,
-    idAsesor: number | null,
-  ) {
-    try {
-      return await this.dashboardRepository
-        .fn_dashboard_total_leads(
-          fechaInicio,
-          fechaFin,
-          idAsesor,
-        );
-    } catch (error) {
-      console.error(
-        'Error al contar total de leads:',
-        error,
-      );
 
-      throw new InternalServerErrorException(
-        'Error al contar total de leads',
-      );
-    }
-  }
 
   // =========================================================
   // 3. CIERRES POR PROYECTO
