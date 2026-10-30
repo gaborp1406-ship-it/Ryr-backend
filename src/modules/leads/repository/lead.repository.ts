@@ -533,6 +533,55 @@ async actualizar_lead_dni_proyecto(
   }
 
 
+    async agendarReunionAtencion(
+    data: {
+      idAsesor: number;
+      idLead: number;
+      idTipoActividad: number;
+      titulo: string;
+      descripcion: string;
+      fecha: string;
+      hora: string;
+      idUsuarioCreacion: number;
+      lugar_plataforma: string;
+    }
+  ) {
+
+
+    const result = await this.dataSource.query(
+      `
+    SELECT *
+    FROM fn_agendar_reunion_etapa_atencion(
+      $1,
+      $2,
+      $3,
+      $4,
+      $5,
+      $6,
+      $7,
+      $8,
+      $9
+    )
+    `,
+      [
+        data.idAsesor,
+        data.idLead,
+        data.idTipoActividad,
+        data.titulo,
+        data.descripcion,
+        data.fecha,
+        data.hora,
+        data.idUsuarioCreacion,
+        data.lugar_plataforma
+      ]
+    );
+
+
+    return result[0] ?? null;
+
+  }
+
+
   async listarActividadesAsesores(
     data: {
       fechaInicio?: string | null;

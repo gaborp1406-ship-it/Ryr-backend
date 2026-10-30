@@ -794,6 +794,38 @@ async actualizarLeadDniProyecto(
 
   }
 
+    async agendarReunionAtencion(
+    data: {
+      idAsesor: number;
+      idLead: number;
+      idTipoActividad: number;
+      titulo: string;
+      descripcion: string;
+      fecha: string;
+      hora: string;
+      idUsuarioCreacion: number;
+      lugar_plataforma: string;
+    }
+  ) {
+
+    try {
+
+      return await this.leadRepository.agendarReunionAtencion(
+        data
+      );
+
+    } catch (error) {
+
+      console.log(
+        'Error al agendar reunion:',
+        error
+      );
+
+      throw error;
+    }
+
+  }
+
   async listarActividadesAsesores(
     data: {
       fechaInicio?: string | null;

@@ -404,6 +404,30 @@ export class LeadController {
   }
 
 
+
+
+   @Post('agendar-reunion-atencion')
+  @UseGuards(JwtAuthGuard)
+  agendarReunionAtencion(
+    @Body() body: {
+      idAsesor: number;
+      idLead: number;
+      idTipoActividad: number;
+      titulo: string;
+      descripcion: string;
+      fecha: string;
+      hora: string;
+      idUsuarioCreacion: number;
+      lugar_plataforma: string;
+
+    },
+  ) {
+
+    return this.leadService.agendarReunionAtencion(body);
+
+  }
+
+
   @Post('finalizar-etapa-negociacion/:id_lead')
   @UseGuards(JwtAuthGuard)
   finalizarEtapaNegociacion(
