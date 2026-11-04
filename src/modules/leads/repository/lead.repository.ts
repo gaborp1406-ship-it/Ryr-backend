@@ -18,7 +18,7 @@ export class LeadRepository {
     const result: ILeadCreado[] = await this.dataSource.query(
       `
       SELECT *
-      FROM fn_crear_lead_v4(
+      FROM fn_crear_lead_v6(
         $1,
         $2,
         $3,
