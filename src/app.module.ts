@@ -15,6 +15,8 @@ import { AsteriskModule } from './modules/asterisk/asterisk.module';
 import { DashboardModule } from './modules/dashboard/dashboard.module';
 import { WhatsappModule } from './modules/whatsapp/whatsapp.module';
 import { LuneModule } from './modules/lune/lune.module';
+import { BotModule } from './modules/chatbot/bot.module';
+import { AnalistadatosModule } from './modules/analistadatos/analistadatos.module';
 
 @Module({
   imports: [
@@ -65,7 +67,9 @@ import { LuneModule } from './modules/lune/lune.module';
     OpcionesModule,
     DashboardModule,
     WhatsappModule,
-    LuneModule
+    LuneModule,
+    BotModule,
+    AnalistadatosModule
   ],
   controllers: [AppController],
   providers: [AppService],

@@ -60,6 +60,23 @@ async fn_contar_total_leads(
     return result;
   }
 
+
+    async com_contar_leads_por_oportunidad_candidato(
+    fechaInicio: string | null,
+    fechaFin: string | null,
+    idAsesor: number | null,
+  ) {
+    const result = await this.dataSource.query(
+      `
+        SELECT *
+        FROM com_contar_leads_por_oportunidad_candidato($1, $2, $3)
+      `,
+      [fechaInicio, fechaFin, idAsesor],
+    );
+
+    return result;
+  }
+
   // =========================================================
   // ACTIVIDADES
   // =========================================================
