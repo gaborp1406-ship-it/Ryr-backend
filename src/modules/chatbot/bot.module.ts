@@ -1,10 +1,26 @@
-// bot.module.ts
-import { Module } from '@nestjs/common';
+import { Module, forwardRef } from '@nestjs/common';
 import { BotController } from './bot.controller';
 import { BotService } from './bot.service';
+import { BotWaService } from './botwaservice';
+import { WhatsappModule } from '../whatsapp/whatsapp.module';
+import { LeadsModule } from '../leads/leads.module';
+import { MetaLeadsController } from './metaleads.controller';
+import { MetaLeadsService } from './metaleads.service';
 
 @Module({
-    controllers: [BotController],
-    providers: [BotService],
+    imports: [
+        forwardRef(() => WhatsappModule),
+        LeadsModule,
+    ],
+    controllers: [BotController, MetaLeadsController],
+    providers: [
+        BotService,
+        BotWaService,
+        MetaLeadsService
+    ],
+    exports: [
+        BotService,
+        BotWaService,
+    ],
 })
-export class BotModule { }
+export class BotModule {}

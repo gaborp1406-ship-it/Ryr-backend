@@ -24,6 +24,7 @@ import { createHmac, timingSafeEqual } from 'crypto';
 import type { Request, Response } from 'express';
 import { WhatsappService } from './whatsapp.service';
 import type { ArchivoSubido } from './whatsapp.service';
+import { BotWaService } from '../chatbot/botwaservice';
 
 @Controller('whatsapp')
 export class WhatsappController {
@@ -31,6 +32,7 @@ export class WhatsappController {
 
     constructor(
         private readonly whatsappService: WhatsappService,
+        private readonly botWa: BotWaService,
     ) { }
 
     // ───────────── WEBHOOK (público: NO le pongas guard de autenticación) ─────────────
@@ -59,9 +61,17 @@ export class WhatsappController {
         this.validarFirma(req.rawBody, firma);
 
         // Respondemos rápido a Meta y procesamos en segundo plano
+
+        // 1) Número del bot (R&R)
+        this.botWa.procesarWebhook(body).catch((e) =>
+            this.logger.error(`Error en webhook bot: ${e.message}`, e.stack),
+        );
+
+        // 2) Números de los asesores (ignora el número del bot)
         this.whatsappService.procesarWebhook(body).catch((e) =>
             this.logger.error(`Error en webhook: ${e.message}`, e.stack),
         );
+
         return 'EVENT_RECEIVED';
     }
 

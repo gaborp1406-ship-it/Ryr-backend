@@ -271,7 +271,7 @@ export class LeadService {
     return resultados;
   }
 
-  
+
   async asignarLeadsReservados(data: IAsignarLeadsReservados) {
     try {
       const resultados =
@@ -442,16 +442,16 @@ export class LeadService {
 
 
 
-async actualizarLeadDniProyecto(
-  data: IActualizarLeadDniProyecto,
-) {
-  try {
-    return await this.leadRepository.actualizar_lead_dni_proyecto(data);
-  } catch (error) {
-    console.log(error);
-    throw error;
+  async actualizarLeadDniProyecto(
+    data: IActualizarLeadDniProyecto,
+  ) {
+    try {
+      return await this.leadRepository.actualizar_lead_dni_proyecto(data);
+    } catch (error) {
+      console.log(error);
+      throw error;
+    }
   }
-}
   async reabrirLeadEtapa(idLeadEtapa: number) {
     try {
       const result =
@@ -794,7 +794,7 @@ async actualizarLeadDniProyecto(
 
   }
 
-    async agendarReunionAtencion(
+  async agendarReunionAtencion(
     data: {
       idAsesor: number;
       idLead: number;
@@ -1300,46 +1300,62 @@ async actualizarLeadDniProyecto(
     }
   }
 
-async verificarLeadReasignado(id_lead: number) {
-  try {
-    return await this.leadRepository.verificarLeadReasignado(id_lead);
-  } catch (error) {
-    console.log('Error al verificar lead reasignado:', error);
-    throw error;
+  async verificarLeadReasignado(id_lead: number) {
+    try {
+      return await this.leadRepository.verificarLeadReasignado(id_lead);
+    } catch (error) {
+      console.log('Error al verificar lead reasignado:', error);
+      throw error;
+    }
   }
-}
 
-async guardarMensajeLeadEtapaReunion(
-  id_lead_etapa_reunion: number,
-  mensaje: string,
-) {
-  try {
-    return await this.leadRepository.guardarMensajeLeadEtapaReunion(
-      id_lead_etapa_reunion,
-      mensaje,
-    );
-  } catch (error) {
-    console.log(
-      'Error al guardar mensaje del lead etapa reunión:',
-      error,
-    );
-    throw error;
+  async guardarMensajeLeadEtapaReunion(
+    id_lead_etapa_reunion: number,
+    mensaje: string,
+  ) {
+    try {
+      return await this.leadRepository.guardarMensajeLeadEtapaReunion(
+        id_lead_etapa_reunion,
+        mensaje,
+      );
+    } catch (error) {
+      console.log(
+        'Error al guardar mensaje del lead etapa reunión:',
+        error,
+      );
+      throw error;
+    }
   }
-}
 
-async obtenerHistorialMensajesLeadEtapaReunion(
-  id_lead_etapa_reunion: number,
-) {
-  try {
-    return await this.leadRepository.obtenerHistorialMensajesLeadEtapaReunion(
-      id_lead_etapa_reunion,
-    );
-  } catch (error) {
-    console.log(
-      'Error al obtener historial de mensajes del lead etapa reunión:',
-      error,
-    );
-    throw error;
+  async obtenerHistorialMensajesLeadEtapaReunion(
+    id_lead_etapa_reunion: number,
+  ) {
+    try {
+      return await this.leadRepository.obtenerHistorialMensajesLeadEtapaReunion(
+        id_lead_etapa_reunion,
+      );
+    } catch (error) {
+      console.log(
+        'Error al obtener historial de mensajes del lead etapa reunión:',
+        error,
+      );
+      throw error;
+    }
   }
-}
+  async obtenerLeadsDesistidos(
+    id_agente?: number,
+    fecha_inicio?: string,
+    fecha_fin?: string,
+  ) {
+    try {
+      return await this.leadRepository.obtenerLeadsDesistidos(
+        id_agente ?? null,
+        fecha_inicio ?? null,
+        fecha_fin ?? null,
+      );
+    } catch (error) {
+      console.log('Error al obtener leads desistidos:', error);
+      throw error;
+    }
+  }
 }

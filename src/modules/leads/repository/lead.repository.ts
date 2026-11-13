@@ -1105,4 +1105,22 @@ async obtenerHistorialMensajesLeadEtapaReunion(
     ],
   );
 }
+
+async obtenerLeadsDesistidos(
+  id_agente: number | null,
+  fecha_inicio: string | null,
+  fecha_fin: string | null,
+) {
+  return await this.dataSource.query(
+    `
+    SELECT *
+    FROM public.fn_obtener_leads_desistidos($1::integer, $2::date, $3::date)
+    `,
+    [
+      id_agente,
+      fecha_inicio,
+      fecha_fin,
+    ],
+  );
+}
 }

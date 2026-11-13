@@ -754,6 +754,20 @@ export class LeadController {
       id,
     );
   }
+
+  @Get('obtener-leads-desistidos')
+async obtenerLeadsDesistidos(
+  @Query('id_agente', new ParseIntPipe({ optional: true }))
+  id_agente?: number,
+  @Query('fecha_inicio') fecha_inicio?: string,
+  @Query('fecha_fin') fecha_fin?: string,
+) {
+  return await this.leadService.obtenerLeadsDesistidos(
+    id_agente,
+    fecha_inicio,
+    fecha_fin,
+  );
+}
 }
 
 

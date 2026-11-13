@@ -41,15 +41,15 @@ export interface IListarClientesPotenciales {
   id_fuente?: number;
   id_proyecto?: number;
   id_fase?: number;
-  id_etapa?: number; // NUEVO
+  id_etapa?: number;
 }
 
-// NUEVO
+
 export interface IListarEtapas {
   id_fase?: number | null;
 }
 
-// NUEVO
+
 export interface IEtapa {
   id: number;
   nombre: string;
