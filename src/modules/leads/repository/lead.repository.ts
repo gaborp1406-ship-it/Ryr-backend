@@ -46,21 +46,21 @@ export class LeadRepository {
     return result[0];
   }
 
-async asignar_leads_reservados(
-  data: IAsignarLeadsReservados,
-): Promise<ILeadReservadoResultado[]> {
-  return await this.dataSource.query(
-    `
+  async asignar_leads_reservados(
+    data: IAsignarLeadsReservados,
+  ): Promise<ILeadReservadoResultado[]> {
+    return await this.dataSource.query(
+      `
     SELECT *
     FROM public.fn_asignar_leads_reservados($1::bigint, $2, $3)
     `,
-    [
-      data.id_importacion ?? null,
-      data.id_asesor,
-      data.usuario_creacion,
-    ],
-  );
-}
+      [
+        data.id_importacion ?? null,
+        data.id_asesor,
+        data.usuario_creacion,
+      ],
+    );
+  }
 
   async importar_leads(
     data: IImportarLeads,
@@ -205,27 +205,27 @@ async asignar_leads_reservados(
     return result;
   }
 
-async actualizar_lead_dni_proyecto(
-  data: IActualizarLeadDniProyecto,
-) {
-  await this.dataSource.query(
-    `
+  async actualizar_lead_dni_proyecto(
+    data: IActualizarLeadDniProyecto,
+  ) {
+    await this.dataSource.query(
+      `
     SELECT public.fn_actualizar_lead_dni_proyecto(
       $1, $2, $3, $4, $5, $6
     )
     `,
-    [
-      data.id_lead,
-      data.dni_cliente ?? null,
-      data.id_proyecto,
-      data.usuario_modificacion,
-      data.nombres ?? null,
-      data.telefono ?? null,
-    ],
-  );
+      [
+        data.id_lead,
+        data.dni_cliente ?? null,
+        data.id_proyecto,
+        data.usuario_modificacion,
+        data.nombres ?? null,
+        data.telefono ?? null,
+      ],
+    );
 
-  return { mensaje: 'Datos actualizados correctamente.' };
-}
+    return { mensaje: 'Datos actualizados correctamente.' };
+  }
 
 
   async reasignar_lead(data: IReasignarLead) {
@@ -533,7 +533,7 @@ async actualizar_lead_dni_proyecto(
   }
 
 
-    async agendarReunionAtencion(
+  async agendarReunionAtencion(
     data: {
       idAsesor: number;
       idLead: number;
@@ -1077,50 +1077,52 @@ async actualizar_lead_dni_proyecto(
   }
 
   async guardarMensajeLeadEtapaReunion(
-  id_lead_etapa_reunion: number,
-  mensaje: string,
-) {
-  return await this.dataSource.query(
-    `
+    id_lead_etapa_reunion: number,
+    mensaje: string,
+  ) {
+    return await this.dataSource.query(
+      `
     SELECT *
     FROM public.fn_guardar_mensaje_lead_etapa_reunion($1, $2)
     `,
-    [
-      id_lead_etapa_reunion,
-      mensaje,
-    ],
-  );
-}
+      [
+        id_lead_etapa_reunion,
+        mensaje,
+      ],
+    );
+  }
 
-async obtenerHistorialMensajesLeadEtapaReunion(
-  id_lead_etapa_reunion: number,
-) {
-  return await this.dataSource.query(
-    `
+  async obtenerHistorialMensajesLeadEtapaReunion(
+    id_lead_etapa_reunion: number,
+  ) {
+    return await this.dataSource.query(
+      `
     SELECT *
     FROM public.fn_obtener_historial_mensajes_lead_etapa_reunion($1)
     `,
-    [
-      id_lead_etapa_reunion,
-    ],
-  );
-}
+      [
+        id_lead_etapa_reunion,
+      ],
+    );
+  }
 
-async obtenerLeadsDesistidos(
-  id_agente: number | null,
-  fecha_inicio: string | null,
-  fecha_fin: string | null,
-) {
-  return await this.dataSource.query(
-    `
+  async obtenerLeadsDesistidos(
+    id_agente: number | null,
+    fecha_inicio: string | null,
+    fecha_fin: string | null,
+    estado_contacto: string | null,
+  ) {
+    return await this.dataSource.query(
+      `
     SELECT *
-    FROM public.fn_obtener_leads_desistidos($1::integer, $2::date, $3::date)
+    FROM public.fn_obtener_leads_desistidos($1::integer, $2::date, $3::date, $4::text)
     `,
-    [
-      id_agente,
-      fecha_inicio,
-      fecha_fin,
-    ],
-  );
-}
+      [
+        id_agente,
+        fecha_inicio,
+        fecha_fin,
+        estado_contacto,
+      ],
+    );
+  }
 }

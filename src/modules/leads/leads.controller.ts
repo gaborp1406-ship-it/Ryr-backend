@@ -406,7 +406,7 @@ export class LeadController {
 
 
 
-   @Post('agendar-reunion-atencion')
+  @Post('agendar-reunion-atencion')
   @UseGuards(JwtAuthGuard)
   agendarReunionAtencion(
     @Body() body: {
@@ -756,18 +756,20 @@ export class LeadController {
   }
 
   @Get('obtener-leads-desistidos')
-async obtenerLeadsDesistidos(
-  @Query('id_agente', new ParseIntPipe({ optional: true }))
-  id_agente?: number,
-  @Query('fecha_inicio') fecha_inicio?: string,
-  @Query('fecha_fin') fecha_fin?: string,
-) {
-  return await this.leadService.obtenerLeadsDesistidos(
-    id_agente,
-    fecha_inicio,
-    fecha_fin,
-  );
-}
+  async obtenerLeadsDesistidos(
+    @Query('id_agente', new ParseIntPipe({ optional: true }))
+    id_agente?: number,
+    @Query('fecha_inicio') fecha_inicio?: string,
+    @Query('fecha_fin') fecha_fin?: string,
+    @Query('estado_contacto') estado_contacto?: string,
+  ) {
+    return await this.leadService.obtenerLeadsDesistidos(
+      id_agente,
+      fecha_inicio,
+      fecha_fin,
+      estado_contacto,
+    );
+  }
 }
 
 

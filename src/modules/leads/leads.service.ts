@@ -1346,16 +1346,19 @@ export class LeadService {
     id_agente?: number,
     fecha_inicio?: string,
     fecha_fin?: string,
+    estado_contacto?: string,
   ) {
     try {
       return await this.leadRepository.obtenerLeadsDesistidos(
         id_agente ?? null,
         fecha_inicio ?? null,
         fecha_fin ?? null,
+        estado_contacto ?? null,
       );
     } catch (error) {
       console.log('Error al obtener leads desistidos:', error);
       throw error;
     }
   }
+
 }
