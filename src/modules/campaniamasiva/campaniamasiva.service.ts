@@ -1,4 +1,17 @@
 // campaniamasiva.service.ts
+//
+// MIGRACIÓN SQL NECESARIA (ejecutar una sola vez antes de desplegar):
+//   1) Buscar el nombre de la constraint única actual:
+//        SELECT conname, pg_get_constraintdef(oid)
+//          FROM pg_constraint
+//         WHERE conrelid = 'com_campania_respuesta'::regclass AND contype = 'u';
+//   2) Reemplazarla (ajusta el nombre del DROP al que te salió):
+//        ALTER TABLE com_campania_respuesta
+//          DROP CONSTRAINT com_campania_respuesta_id_campania_telefono_key;
+//        ALTER TABLE com_campania_respuesta
+//          ADD CONSTRAINT com_campania_respuesta_camp_tel_tipo_key
+//          UNIQUE (id_campania, telefono, tipo);
+//
 import {
     BadGatewayException,
     BadRequestException,
@@ -38,6 +51,8 @@ export class CampaniaMasivaService implements OnModuleInit, OnModuleDestroy {
     private timer?: NodeJS.Timeout;
     /** Ids de mensajes entrantes ya atendidos (Meta reintenta los webhooks y puede repetirlos) */
     private readonly mensajesProcesados = new Set<string>();
+    /** Teléfono -> última vez que se le agradeció su asistencia (para no repetir el mensaje) */
+    private readonly agradecidos = new Map<string, number>();
 
     constructor(private readonly dataSource: DataSource) { }
 
@@ -191,6 +206,27 @@ export class CampaniaMasivaService implements OnModuleInit, OnModuleDestroy {
            ORDER BY id LIMIT $2 OFFSET $3`,
             params,
         );
+    }
+
+    /**
+     * Respuestas clasificadas de una campaña: confirmaron, piden info y no quieren nada.
+     * Un mismo teléfono puede aparecer con más de un tipo (p. ej. INFO y luego BAJA):
+     * cada tipo es una fila y cuenta en su propio total del resumen.
+     */
+    async respuestas(id: number) {
+        await this.detalle(id); // 404 si no existe
+        const items = await this.dataSource.query(
+            `SELECT r.id, r.telefono, d.nombre, r.tipo, r.mensaje, r.fecha
+               FROM com_campania_respuesta r
+          LEFT JOIN com_campania_destinatario d ON d.id = r.id_destinatario
+              WHERE r.id_campania = $1
+           ORDER BY r.fecha DESC
+              LIMIT 5000`,
+            [id],
+        );
+        const resumen = { CONFIRMA: 0, INFO: 0, BAJA: 0 };
+        for (const i of items) resumen[i.tipo as keyof typeof resumen]++;
+        return { resumen, items };
     }
 
     /**
@@ -553,8 +589,11 @@ export class CampaniaMasivaService implements OnModuleInit, OnModuleDestroy {
         const texto: string =
             msg.text?.body ?? msg.button?.text ?? msg.interactive?.button_reply?.title ?? '';
 
+        // Último envío de campaña que recibió ese teléfono (null si nunca fue destinatario)
+        const envio = await this.ultimoEnvio(tel);
+
+        // 1) Pide no recibir más mensajes → lista de exclusión (tiene prioridad sobre todo)
         if (this.esBaja(texto)) {
-            // ¿Ya estaba en la lista? Entonces no se vuelve a enviar la confirmación
             const yaExcluido = await this.dataSource.query(
                 `SELECT 1 FROM wa_optout WHERE telefono=$1 LIMIT 1`, [tel],
             );
@@ -563,57 +602,265 @@ export class CampaniaMasivaService implements OnModuleInit, OnModuleDestroy {
                 [tel, `Respondió: ${texto.slice(0, 100)}`],
             );
             await this.excluirPendientes(tel);
+            if (envio) await this.registrarRespuesta(envio, tel, 'BAJA', texto);
             if (yaExcluido.length) return;
 
-            await axios.post(
-                `${this.graphUrl}/${this.phoneId}/messages`,
-                {
-                    messaging_product: 'whatsapp', to: tel, type: 'text',
-                    text: {
-                        body:
-                            '¡Listo! 😊 Ya te quitamos de nuestra lista y no volverás a recibir mensajes promocionales de RyR Inmobiliaria.\n\n' +
-                            'Gracias por avisarnos. Si más adelante necesitas información, puedes escribirnos al +51 961 872 715. ¡Que tengas un lindo día! 🌟',
-                    },
-                },
-                { headers: this.headers, timeout: 15000 },
-            ).catch((e) =>
+            await this.enviarTexto(tel, CampaniaMasivaService.MSG_BAJA).catch((e) =>
                 this.logger.warn(`No se pudo enviar la confirmación de baja a ${tel}: ${e?.response?.data?.error?.message ?? e.message}`));
             return;
         }
 
-        // Marca la respuesta en el último envío a ese teléfono
-        await this.dataSource.query(
-            `UPDATE com_campania_destinatario
-                SET respondio=true, fecha_respuesta=now()
-              WHERE id = (SELECT id FROM com_campania_destinatario
-                           WHERE telefono=$1 AND estado IN ('ENVIADO','ENTREGADO','LEIDO')
-                        ORDER BY fecha_envio DESC NULLS LAST LIMIT 1)`,
+        // No fue destinatario de ninguna campaña: no se clasifica
+        if (!envio) return;
+        await this.marcarRespuesta(envio.id);
+
+        // 2) Confirma que asistirá → se registra y se le agradece
+        if (this.esAsistencia(texto)) {
+            await this.registrarRespuesta(envio, tel, 'CONFIRMA', texto);
+            await this.agradecerAsistencia(tel);
+            return;
+        }
+
+        // 3) Pide información / muestra interés
+        if (this.esInfo(texto)) {
+            await this.registrarRespuesta(envio, tel, 'INFO', texto);
+        }
+    }
+
+    /** Último envío (campaña + destinatario) recibido por ese teléfono */
+    private async ultimoEnvio(tel: string): Promise<{ id: number; id_campania: number } | null> {
+        const rows = await this.dataSource.query(
+            `SELECT id, id_campania FROM com_campania_destinatario
+              WHERE telefono=$1 AND estado IN ('ENVIADO','ENTREGADO','LEIDO')
+           ORDER BY fecha_envio DESC NULLS LAST LIMIT 1`,
             [tel],
+        );
+        return rows[0] ? { id: Number(rows[0].id), id_campania: Number(rows[0].id_campania) } : null;
+    }
+
+    private async marcarRespuesta(idDestinatario: number) {
+        await this.dataSource.query(
+            `UPDATE com_campania_destinatario SET respondio=true, fecha_respuesta=now() WHERE id=$1`,
+            [idDestinatario],
         );
     }
 
     /**
-     * Frases con las que alguien pide no recibir más mensajes (se comparan sin tildes ni mayúsculas).
-     * Para agregar más, suma otra expresión regular a la lista.
+     * Guarda la clasificación: una fila por teléfono, campaña y TIPO.
+     * Así, si alguien pide info y luego toca "no interesado", quedan ambas (INFO y BAJA).
+     * Si repite el mismo tipo, solo se actualiza el mensaje y la fecha de esa fila.
+     * Requiere UNIQUE (id_campania, telefono, tipo).
+     */
+    private async registrarRespuesta(
+        envio: { id: number; id_campania: number },
+        tel: string,
+        tipo: 'CONFIRMA' | 'INFO' | 'BAJA',
+        texto: string,
+    ) {
+        try {
+            await this.dataSource.query(
+                `INSERT INTO com_campania_respuesta (id_campania, id_destinatario, telefono, tipo, mensaje)
+                 VALUES ($1,$2,$3,$4,$5)
+                 ON CONFLICT (id_campania, telefono, tipo) DO UPDATE
+                    SET mensaje = EXCLUDED.mensaje,
+                        fecha = now()`,
+                [envio.id_campania, envio.id, tel, tipo, String(texto ?? '').slice(0, 500)],
+            );
+        } catch (e: any) {
+            this.logger.error(`No se pudo registrar la respuesta (${tipo}) de ${tel}: ${e.message}`);
+        }
+    }
+
+    /** Envía el agradecimiento una sola vez cada 12 horas por teléfono (evita repetirlo si escribe varias veces) */
+    private async agradecerAsistencia(tel: string) {
+        const ahora = Date.now();
+        const ultimo = this.agradecidos.get(tel);
+        if (ultimo && ahora - ultimo < 12 * 60 * 60 * 1000) return;
+
+        this.agradecidos.set(tel, ahora);
+        if (this.agradecidos.size > 5000) {
+            this.agradecidos.delete(this.agradecidos.keys().next().value as string);
+        }
+        try {
+            await this.enviarTexto(tel, CampaniaMasivaService.MSG_ASISTENCIA);
+        } catch (e: any) {
+            this.agradecidos.delete(tel); // si falló, que se pueda reintentar
+            this.logger.warn(`No se pudo enviar el agradecimiento a ${tel}: ${e?.response?.data?.error?.message ?? e.message}`);
+        }
+    }
+
+    private async enviarTexto(tel: string, body: string) {
+        await axios.post(
+            `${this.graphUrl}/${this.phoneId}/messages`,
+            { messaging_product: 'whatsapp', to: tel, type: 'text', text: { body } },
+            { headers: this.headers, timeout: 15000 },
+        );
+    }
+
+    // ───────────────────────── mensajes automáticos ─────────────────────────
+
+    private static readonly MSG_BAJA =
+        'Gracias por avisarnos. Si más adelante necesitas información, puedes escribirnos al +51 961 872 715. ¡Que tengas un lindo día! 🌟';
+
+    /** Se envía cuando la persona confirma que asistirá (WhatsApp muestra *texto* en negrita) */
+    private static readonly MSG_ASISTENCIA =
+        '¡Muchas gracias por confirmar su asistencia!\n\n' +
+        'Será un gusto contar con tu presencia y recibirte en esta ocasión especial. \n\n' +
+        'Si tienes alguna consulta o requieres información adicional, no dudes en comunicarte con nosotros.\n\n' +
+        '¡Te esperamos! 🏙️✨\n' +
+        '*RyR Inmobiliaria*';
+
+    // ───────────────────────── detección de intención ─────────────────────────
+
+    /**
+     * Pasa a minúsculas, quita tildes y reduce letras repetidas 3+ veces
+     * ("siiii" → "si", "asistireee" → "asistire"), para que los patrones sean simples.
+     */
+    private static normalizar(texto: string): string {
+        return (texto ?? '')
+            .normalize('NFD').replace(/[\u0300-\u036f]/g, '')
+            .toLowerCase()
+            .replace(/(.)\1{2,}/g, '$1')
+            .trim();
+    }
+
+    /**
+     * Frases con las que alguien pide no recibir más mensajes o dice que ya no le interesa
+     * (se comparan sin tildes ni mayúsculas). Para agregar más, suma otra expresión regular.
      */
     private static readonly PATRONES_BAJA: RegExp[] = [
-        /\bbaja\b/,                                       // "baja", "dame de baja", "quiero la baja"
+        // — palabras clave directas —
+        /\bbaja\b/,                                         // "baja", "dame de baja", "quiero la baja"
         /\b(stop|basta|unsubscribe|spam)\b/,
         /\bdesuscrib\w*|\bdesuscrip\w*/,
         /cancel\w* (mi |la )?suscripcion/,
-        /\bno (me )?interesa/,                              // "no me interesa", "no interesa"
-        /\bya no (me )?(interesa|quiero|deseo|necesito)/,
+
+        // — ya no le interesa —
+        /\bno (me )?interes\w*/,                            // "no me interesa", "no interesa", "no me interesan"
+        /\b(ya )?no (estoy|esta|estamos|sigo|seguimos|me encuentro|nos encontramos) (mas |muy |nada |tan )?interesad[oa]s?/, // "ya no estoy interesado/a"
+        /\bno (tengo|tenemos|veo|vemos) (mas |ningun |mucho )?interes/, // "no tengo interés"
+        /\bsin interes\b/,
+        /\bya no (estoy |estamos )?(me )?(quiero|queremos|deseo|deseamos|necesito|necesitamos|busco|buscamos|buscando)/, // "ya no quiero", "ya no estoy buscando"
+        /\bno (estoy )?busc\w+ (nada|departamento|depa|casa|terreno|lote|inmueble|propiedad|vivienda)/,
+        /\bno,? gracias\b/,                                 // "no gracias", "no, gracias"
+        /\bgracias,? pero no\b/,                            // "gracias pero no"
+
+        // — pide que no le escriban —
         /\bno (quiero|deseo|necesito|requiero) (recibir )?(mas )?(mensajes|publicidad|promociones|informacion|ofertas|notificaciones|propaganda)/,
         /\bno (me )?(escriban?|escribas|envien?|envies|manden?|mandes|contacten?|contactes|molesten?|molestes|llamen?|llames)\b/,
+        /\bno (me )?sig\w* (escribiendo|enviando|mandando|molestando|llamando|contactando)/, // "no me sigan escribiendo"
         /\b(dejen?|deja|dejar|pare|paren|parar) de (escribir|enviar|mandar|molestar|contactar|llamar|recibir)/,
         /\b(eliminar|elimina|eliminen|borrar|borra|borren|quitar|quita|quiten|sacar|saca|saquen|retirar|retira|retiren)\w* (me |mi |a mi |de |el |mi )?(numero|contacto|de (la |su |esa |sus )?(lista|base))/,
         /\bnumero equivocado|\bequivocaron de numero|\bno soy (el|la) (que|persona)/,
         /\bno (mas|nunca mas)\b.*(mensajes|publicidad|promociones)/,
     ];
 
+    /**
+     * Frases con las que alguien confirma que asistirá (se comparan sin tildes ni mayúsculas).
+     * Ejemplos: "sí asistiré", "estaré ahí", "nos vemos ahí", "cuenten conmigo", "confirmo".
+     * Para agregar más, suma otra expresión regular a la lista.
+     */
+    private static readonly PATRONES_ASISTENCIA: RegExp[] = [
+        // — "sí voy / sí asistiré" —
+        /\bsi,? (voy|vamos|ire|iremos|asisto|asistimos|asistire|asistiremos|estare|estaremos|llegare|llegaremos|puedo|podemos|podre|podremos)\b/,
+        /\b(asistire|asistiremos|asistiria|asistiriamos)\b/,
+        /\b(ire|iremos|llegare|llegaremos|acudire|acudiremos|participare|participaremos)\b/,
+        /\b(voy|vamos) a (asistir|ir|estar|llegar|acudir|participar)\b/,
+        /\b(puedo|podemos|podre|podremos) (asistir|ir|llegar|acudir|estar presente)\b/,
+        /\b(yo|nosotros|nosotras) (voy|vamos|ire|iremos|asistire|asistiremos)\b/,
+        /\b(voy|vamos) (sin falta|con mi \w+|con mis \w+|con mi familia|con gusto|con todo gusto|todos|juntos|en familia|puntual|puntuales|temprano|acompanad[oa]s?)\b/,
+
+        // — "estaré ahí / nos vemos ahí" —
+        /\b(ahi|alli|alla) (estare|estaremos|nos vemos|nos veremos|nos encontramos|llegare|llegaremos|ire|iremos|voy|vamos|te veo|los veo|las veo)\b/,
+        /\b(estare|estaremos) (ahi|alli|alla|presente|presentes|puntual|puntuales|por ahi|sin falta)\b/,
+        /\b(sere|seremos) (parte|puntual|puntuales)\b/,
+        /\bnos (vemos|veremos|encontramos)\b/,              // "nos vemos", "nos vemos ahí", "nos veremos pronto"
+
+        // — "cuenten conmigo / confirmo" —
+        /\bcuent\w* con(migo| nosotr[oa]s)\b/,              // "cuenta conmigo", "cuenten con nosotros"
+        /\bconfirm(o|amos|are|aremos)\b/,                   // "confirmo", "confirmo mi asistencia"
+        /\bconfirmad[oa]s?\b/,                              // "confirmado", "asistencia confirmada"
+        /\b(acepto|aceptamos) (la )?(invitacion|asistir)\b/,
+        /\bme (apunto|anoto|inscribo|registro|apuntare|anotare)\b/,
+        /\b(reserv|separ)\w* (mi|un|el|mis|nuestro|nuestros) (cupo|cupos|lugar|lugares|espacio|espacios|asiento|asientos|entrada|entradas)\b/,
+
+        // — "quiero asistir" —
+        /\b(quiero|queremos|quisiera|quisieramos|me gustaria|nos gustaria|deseo|deseamos) (asistir|ir|participar|acudir|estar presente)\b/,
+
+        // — afirmaciones enfáticas —
+        /\b(claro|por supuesto|desde luego|obvio|sin duda) que si\b/,
+        /\bsin falta\b/,
+        /\bno (me lo )?pierdo\b/,
+        /\bno (me lo )?perdere\b/,
+        /\bno faltare(mos)?\b/,
+    ];
+
+    /** Si aparece alguna de estas, NO se toma como asistencia aunque coincida un patrón ("no asistiré", "no podré ir") */
+    private static readonly NEGACIONES_ASISTENCIA: RegExp[] = [
+        /\bno (voy|vamos|ire|iremos|podre|podremos|puedo|podemos|podria|podriamos|asistire|asistiremos|asisto|asistimos|asistiria|estare|estaremos|llegare|llegaremos|creo|pienso|quiero|queremos|quisiera|deseo|sere|seremos|acudire|participare|confirmo|confirmamos)\b/,
+        /\bno (me es|es|sera) posible\b/,
+        /\b(imposible|lamentablemente|desafortunadamente|que pena|una pena|lo siento|sentimos)\b/,
+        /\bpero no\b/,
+        /\b(ya no|tampoco|nunca|jamas)\b/,
+        /\b(cancel\w*|reprogram\w*|posterg\w*)\b/,
+    ];
+
     private esBaja(texto: string): boolean {
-        const t = (texto ?? '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase().trim();
+        const t = CampaniaMasivaService.normalizar(texto);
         if (!t || t.split(/\s+/).length > 12) return false; // mensajes largos no se tratan como baja
         return CampaniaMasivaService.PATRONES_BAJA.some((re) => re.test(t));
+    }
+
+    private esAsistencia(texto: string): boolean {
+        const t = CampaniaMasivaService.normalizar(texto);
+        if (!t || t.split(/\s+/).length > 20) return false; // mensajes largos suelen ser consultas
+        if (CampaniaMasivaService.NEGACIONES_ASISTENCIA.some((re) => re.test(t))) return false;
+        return CampaniaMasivaService.PATRONES_ASISTENCIA.some((re) => re.test(t));
+    }
+
+    /**
+     * Frases con las que alguien pide información o muestra interés
+     * (se comparan sin tildes ni mayúsculas). Para agregar más, suma otra expresión regular.
+     */
+    private static readonly PATRONES_INFO: RegExp[] = [
+        // — preguntas en general —
+        /[?¿]/,
+        /\b(como funciona|en que consiste|de que trata|que incluye|que incluyen|que es|que son|que tipo|quien|quienes|cual|cuales|hay|tienen|tiene|cuentan|aceptan|aceptas|se puede|pueden|podria|podrian|podrias|es posible|existe|existen|requisitos|requiere|ayuda|consulta|consultas|duda|dudas|pregunta|preguntas)\b/,
+
+        // — información / material —
+        /\binfo\w*/,                                           // info, informacion, informes, informar
+        /\b(detalle|detalles|brochure|folleto|catalogo|presentacion|video|fotos|imagenes|plano|planos|pdf|lista de precios)\b/,
+
+        // — precio y financiamiento —
+        /\b(precio|precios|costo|costos|cuesta|cuestan|valor|valores|tarifa|tarifas|cotizacion|cotizar|cotizame|presupuesto|cuanto)\b/,
+        /\b(financiamiento|financiar|financiado|credito|creditos|hipotecario|hipoteca|mivivienda|mi vivienda|techo propio|bono|bbp|prestamo|banco|bancos|cuota|cuotas|inicial|mensualidad|separacion|arras|tasa|tea|contado|descuento|descuentos|promocion|promociones|oferta|ofertas)\b/,
+
+        // — ubicación y horarios —
+        /\b(ubicacion|ubicado|ubicada|ubicados|direccion|donde|como llego|como llegar|mapa|referencia|distrito|zona|cerca)\b/,
+        /\b(horario|horarios|hora|horas|cuando|fecha|dia|dias|a que hora|hasta que hora|que dia)\b/,
+
+        // — el producto —
+        /\b(departamento|departamentos|depa|depas|dpto|dptos|casa|casas|lote|lotes|terreno|terrenos|local|locales|oficina|oficinas|inmueble|inmuebles|propiedad|propiedades|vivienda|viviendas|proyecto|proyectos)\b/,
+        /\b(dormitorio|dormitorios|habitacion|habitaciones|cuarto|cuartos|metraje|m2|metros|area|areas|piso|pisos|tipologia|tipologias|modelo|modelos|disponible|disponibles|disponibilidad|stock|entrega|entregan|avance|obra|estreno|estrenar|cochera|cocheras|estacionamiento|parking|deposito|balcon|terraza|vista|amenidades|piscina|gimnasio|ascensor|piloto|maqueta|sala de ventas)\b/,
+
+        // — muestra interés —
+        /\b(me interesa\w*|nos interesa\w*|interesad[oa]s?)\b/,
+        /\b(me gustaria|nos gustaria|quisiera|quisieramos|quiero saber|quiero conocer|quiero ver|quiero mas|necesito mas|necesito|necesitamos|deseo saber|deseo conocer)\b/,
+
+        // — pide que le envíen algo —
+        /\b(mandame|mandeme|mandenme|enviame|envieme|envienme|pasame|paseme|pasenme|compartame|compartanme|comparte|compartan|manden|envien|mandar|enviar|pasar|remitame)\b/,
+
+        // — pide contacto, cita o visita —
+        /\b(llamame|llameme|llamenme|llamar|llamada|llamen|contactame|contacteme|contactenme|contactar|comuniquense|comunicar|comunicarse|escribeme|escribame|escribanme)\b/,
+        /\b(asesor|asesora|ejecutivo|ejecutiva|vendedor|vendedora|agente|cita|visita|visitar|agendar|agenda|reunion|reunirnos|conocer)\b/,
+
+        // — respuestas cortas / saludos (están enganchados con la campaña) —
+        /^(hola|buenas|buenos dias|buen dia|buenas tardes|buenas noches|dime|digame|cuentame|cuentenme|mande|adelante|ok|okay|oki|dale|bueno|claro|aja|si|vale|listo)\b/,
+    ];
+
+    private esInfo(texto: string): boolean {
+        const t = CampaniaMasivaService.normalizar(texto);
+        if (!t || t.split(/\s+/).length > 40) return false; // mensajes muy largos: revisión manual
+        return CampaniaMasivaService.PATRONES_INFO.some((re) => re.test(t));
     }
 }

@@ -80,6 +80,11 @@ export class CampaniaMasivaController {
         return this.service.destinatarios(id, estado, Number(pagina) || 1, Math.min(Number(limite) || 50, 500));
     }
 
+        @Get(':id/respuestas')
+    respuestas(@Param('id', ParseIntPipe) id: number) {
+        return this.service.respuestas(id);
+    }
+
     @Post(':id/iniciar')
     iniciar(@Param('id', ParseIntPipe) id: number) {
         return this.service.iniciar(id);
