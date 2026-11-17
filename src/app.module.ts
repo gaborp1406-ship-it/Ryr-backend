@@ -17,6 +17,7 @@ import { WhatsappModule } from './modules/whatsapp/whatsapp.module';
 import { LuneModule } from './modules/lune/lune.module';
 import { BotModule } from './modules/chatbot/bot.module';
 import { AnalistadatosModule } from './modules/analistadatos/analistadatos.module';
+import { CampaniaMasivaModule } from './modules/campaniamasiva/campaniamasiva.module';
 
 @Module({
   imports: [
@@ -69,7 +70,8 @@ import { AnalistadatosModule } from './modules/analistadatos/analistadatos.modul
     WhatsappModule,
     LuneModule,
     BotModule,
-    AnalistadatosModule
+    AnalistadatosModule,
+    CampaniaMasivaModule
   ],
   controllers: [AppController],
   providers: [AppService],

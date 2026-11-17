@@ -25,6 +25,7 @@ import type { Request, Response } from 'express';
 import { WhatsappService } from './whatsapp.service';
 import type { ArchivoSubido } from './whatsapp.service';
 import { BotWaService } from '../chatbot/botwaservice';
+import { CampaniaMasivaService } from '../campaniamasiva/campaniamasiva.service';
 
 @Controller('whatsapp')
 export class WhatsappController {
@@ -33,6 +34,7 @@ export class WhatsappController {
     constructor(
         private readonly whatsappService: WhatsappService,
         private readonly botWa: BotWaService,
+        private readonly campanias: CampaniaMasivaService,
     ) { }
 
     // ───────────── WEBHOOK (público: NO le pongas guard de autenticación) ─────────────
@@ -70,6 +72,12 @@ export class WhatsappController {
         // 2) Números de los asesores (ignora el número del bot)
         this.whatsappService.procesarWebhook(body).catch((e) =>
             this.logger.error(`Error en webhook: ${e.message}`, e.stack),
+        );
+
+
+        // 3) Número de campañas masivas
+        this.campanias.procesarWebhook(body).catch((e) =>
+            this.logger.error(`Error en webhook campañas: ${e.message}`, e.stack),
         );
 
         return 'EVENT_RECEIVED';
