@@ -308,26 +308,54 @@ export class DashboardController {
   // 2. TOTAL DE LEADS
   // =========================================================
 
-@Get('total-leads')
-@UseGuards(JwtAuthGuard)
-contarTotalLeads(
-  @Query('fecha_inicio') fechaInicio?: string,
-  @Query('fecha_fin') fechaFin?: string,
-  @Query('id_asesor') idAsesor?: string,
-) {
-  const {
-    fechaInicio: pFechaInicio,
-    fechaFin: pFechaFin,
-  } = this.obtenerRangoFechas(fechaInicio, fechaFin);
+  @Get('total-leads')
+  @UseGuards(JwtAuthGuard)
+  contarTotalLeads(
+    @Query('fecha_inicio') fechaInicio?: string,
+    @Query('fecha_fin') fechaFin?: string,
+    @Query('id_asesor') idAsesor?: string,
+  ) {
+    const {
+      fechaInicio: pFechaInicio,
+      fechaFin: pFechaFin,
+    } = this.obtenerRangoFechas(fechaInicio, fechaFin);
 
-  const pIdAsesor = this.validarIdAsesor(idAsesor);
+    const pIdAsesor = this.validarIdAsesor(idAsesor);
 
-  return this.dashboardService.contarTotalLeads(
-    pFechaInicio,
-    pFechaFin,
-    pIdAsesor,
-  );
-}
+    return this.dashboardService.contarTotalLeads(
+      pFechaInicio,
+      pFechaFin,
+      pIdAsesor,
+    );
+  }
+
+  @Get('total-desistimientos')
+  @UseGuards(JwtAuthGuard)
+  contarTotalDesistimientos(
+    @Query('id_etapa') idEtapa?: string,
+    @Query('fecha_inicio') fechaInicio?: string,
+    @Query('fecha_fin') fechaFin?: string,
+    @Query('id_asesor') idAsesor?: string,
+  ) {
+    const {
+      fechaInicio: pFechaInicio,
+      fechaFin: pFechaFin,
+    } = this.obtenerRangoFechas(fechaInicio, fechaFin);
+
+    const pIdAsesor = this.validarIdAsesor(idAsesor);
+
+    const pIdEtapa =
+      idEtapa !== undefined && idEtapa !== ''
+        ? Number(idEtapa)
+        : null;
+
+    return this.dashboardService.contarTotalDesistimientos(
+      pIdEtapa,
+      pFechaInicio,
+      pFechaFin,
+      pIdAsesor,
+    );
+  }
 
   // =========================================================
   // 3. CIERRES POR PROYECTO
@@ -683,7 +711,7 @@ contarTotalLeads(
     );
   }
 
-    @Get('leads-por-proyecto')
+  @Get('leads-por-proyecto')
   @UseGuards(JwtAuthGuard)
   leadsPorProyecto(
     @Query('fecha_inicio') fechaInicio?: string,
@@ -705,7 +733,7 @@ contarTotalLeads(
       pFechaFin,
       pIdAsesor,
     );
-  }  @Get('leads-reasignados')
+  } @Get('leads-reasignados')
   @UseGuards(JwtAuthGuard)
   leadsReasignados(
     @Query('fecha_inicio') fechaInicio?: string,
@@ -729,27 +757,27 @@ contarTotalLeads(
     );
   }
 
- @Get('leads-cruzadas')
+  @Get('leads-cruzadas')
   @UseGuards(JwtAuthGuard)
-leadsCruzadas(
-  @Query('fecha_inicio') fechaInicio?: string,
-  @Query('fecha_fin') fechaFin?: string,
-  @Query('id_asesor') idAsesor?: string,
-) {
-  const {
-    fechaInicio: pFechaInicio,
-    fechaFin: pFechaFin,
-  } = this.obtenerRangoFechas(
-    fechaInicio,
-    fechaFin,
-  );
+  leadsCruzadas(
+    @Query('fecha_inicio') fechaInicio?: string,
+    @Query('fecha_fin') fechaFin?: string,
+    @Query('id_asesor') idAsesor?: string,
+  ) {
+    const {
+      fechaInicio: pFechaInicio,
+      fechaFin: pFechaFin,
+    } = this.obtenerRangoFechas(
+      fechaInicio,
+      fechaFin,
+    );
 
-  const pIdAsesor = this.validarIdAsesor(idAsesor);
+    const pIdAsesor = this.validarIdAsesor(idAsesor);
 
-  return this.dashboardService.leadsCruzados(
-    pFechaInicio,
-    pFechaFin,
-    pIdAsesor,
-  );
-}
+    return this.dashboardService.leadsCruzados(
+      pFechaInicio,
+      pFechaFin,
+      pIdAsesor,
+    );
+  }
 }

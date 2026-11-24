@@ -38,26 +38,49 @@ export class DashboardService {
     }
   }
 
+  async contarTotalDesistimientos(
+    idEtapa: number | null,
+    fechaInicio: string | null,
+    fechaFin: string | null,
+    idAsesor: number | null,
+  ) {
+    try {
+      return await this.dashboardRepository.fn_total_desistimientos(
+        idEtapa,
+        fechaInicio,
+        fechaFin,
+        idAsesor,
+      );
+    } catch (error) {
+      console.error(
+        'Error al contar desistimientos:',
+        error,
+      );
 
-async contarTotalLeads(
-  fechaInicio: string | null,
-  fechaFin: string | null,
-  idAsesor: number | null,
-) {
-  try {
-    return await this.dashboardRepository.fn_contar_total_leads(
-      fechaInicio,
-      fechaFin,
-      idAsesor,
-    );
-  } catch (error) {
-    console.error('Error al contar el total de leads:', error);
-
-    throw new InternalServerErrorException(
-      'Error al contar el total de leads',
-    );
+      throw new InternalServerErrorException(
+        'Error al contar desistimientos',
+      );
+    }
   }
-}
+  async contarTotalLeads(
+    fechaInicio: string | null,
+    fechaFin: string | null,
+    idAsesor: number | null,
+  ) {
+    try {
+      return await this.dashboardRepository.fn_contar_total_leads(
+        fechaInicio,
+        fechaFin,
+        idAsesor,
+      );
+    } catch (error) {
+      console.error('Error al contar el total de leads:', error);
+
+      throw new InternalServerErrorException(
+        'Error al contar el total de leads',
+      );
+    }
+  }
 
   // =========================================================
   // LEADS POR FASE
@@ -574,8 +597,8 @@ async contarTotalLeads(
         'Error al obtener leads por proyecto',
       );
     }
-  } 
-  
+  }
+
   async leadsReasignados(
     fechaInicio: string | null,
     fechaFin: string | null,
@@ -601,27 +624,27 @@ async contarTotalLeads(
   }
 
   async leadsCruzados(
-  fechaInicio: string | null,
-  fechaFin: string | null,
-  idAsesor: number | null,
-) {
-  try {
-    return await this.dashboardRepository.fn_dashboard_leads_cruzadas(
-      fechaInicio,
-      fechaFin,
-      idAsesor,
-    );
-  } catch (error) {
-    console.error(
-      'Error al obtener leads cruzados:',
-      error,
-    );
+    fechaInicio: string | null,
+    fechaFin: string | null,
+    idAsesor: number | null,
+  ) {
+    try {
+      return await this.dashboardRepository.fn_dashboard_leads_cruzadas(
+        fechaInicio,
+        fechaFin,
+        idAsesor,
+      );
+    } catch (error) {
+      console.error(
+        'Error al obtener leads cruzados:',
+        error,
+      );
 
-    throw new InternalServerErrorException(
-      'Error al obtener leads cruzados',
-    );
+      throw new InternalServerErrorException(
+        'Error al obtener leads cruzados',
+      );
+    }
   }
-}
 
 
 }

@@ -8,20 +8,20 @@ export class DashboardRepository {
   ) { }
 
 
-async fn_contar_total_leads(
-  fechaInicio: string | null,
-  fechaFin: string | null,
-  idAsesor: number | null,
-) {
-  const result = await this.dataSource.query(
-    `
+  async fn_contar_total_leads(
+    fechaInicio: string | null,
+    fechaFin: string | null,
+    idAsesor: number | null,
+  ) {
+    const result = await this.dataSource.query(
+      `
       SELECT public.fn_contar_total_leads($1, $2, $3) AS cantidad
     `,
-    [fechaInicio, fechaFin, idAsesor],
-  );
+      [fechaInicio, fechaFin, idAsesor],
+    );
 
-  return result[0];
-}
+    return result[0];
+  }
 
 
 
@@ -41,6 +41,24 @@ async fn_contar_total_leads(
     return result;
   }
 
+
+
+  async fn_total_desistimientos(
+    idEtapa: number | null,
+    fechaInicio: string | null,
+    fechaFin: string | null,
+    idAsesor: number | null,
+  ) {
+    const result = await this.dataSource.query(
+      `
+      SELECT *
+      FROM public.fn_total_desistimientos($1, $2, $3, $4)
+    `,
+      [idEtapa, fechaInicio, fechaFin, idAsesor],
+    );
+
+    return result;
+  }
   // =========================================================
   // LEADS POR FASE
   // =========================================================
@@ -61,7 +79,7 @@ async fn_contar_total_leads(
   }
 
 
-    async com_contar_leads_por_oportunidad_candidato(
+  async com_contar_leads_por_oportunidad_candidato(
     fechaInicio: string | null,
     fechaFin: string | null,
     idAsesor: number | null,
@@ -453,17 +471,17 @@ async fn_contar_total_leads(
   }
 
   async fn_dashboard_leads_cruzadas(
-  fechaInicio: string | null,
-  fechaFin: string | null,
-  idAsesor: number | null,
-) {
-  const result = await this.dataSource.query(
-    `
+    fechaInicio: string | null,
+    fechaFin: string | null,
+    idAsesor: number | null,
+  ) {
+    const result = await this.dataSource.query(
+      `
     SELECT public.fn_dashboard_leads_cruzadas($1, $2, $3) AS cantidad
     `,
-    [fechaInicio, fechaFin, idAsesor],
-  );
+      [fechaInicio, fechaFin, idAsesor],
+    );
 
-  return result[0];
-}
+    return result[0];
+  }
 }
